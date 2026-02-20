@@ -108,6 +108,15 @@ async def get_current_user(
             detail="Invalid API key",
         )
 
+    # Dev mode: skip auth, return a default dev user
+    if settings.dev_mode:
+        return {
+            "id": "dev",
+            "username": "dev",
+            "role": "admin",
+            "auth_method": "dev",
+        }
+
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Authentication required. Provide a Bearer token or X-API-Key header.",

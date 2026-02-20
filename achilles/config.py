@@ -37,6 +37,11 @@ class Settings(BaseModel):
     rate_limit: str = Field(default="100/minute")
     auth_rate_limit: str = Field(default="10/minute")
 
+    # Dev mode — skip authentication
+    dev_mode: bool = Field(
+        default_factory=lambda: os.environ.get("ACHILLES_DEV_MODE", "true").lower() == "true"
+    )
+
     @property
     def db_path(self) -> Path:
         return self.data_dir / self.db_name

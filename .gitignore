@@ -1,16 +1,51 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Environment & secrets
 .env
 .env.local
 *.db
 *.sqlite
 .achilles/
-dist/
-build/
-*.egg-info/
+
+# Python tools
 .ruff_cache/
 .pytest_cache/
 .mypy_cache/
-venv/
-.venv/
+
+# Node.js
+node_modules/
+
+# Frontend build output
+frontend/dist/
+
+# Tauri / Rust build output
+frontend/src-tauri/target/
+frontend/src-tauri/gen/
+
+# Tauri generated icons (keep SVG source, regenerate PNGs)
+frontend/src-tauri/icons/*.png
+frontend/src-tauri/icons/*.ico
+frontend/src-tauri/icons/*.icns
+frontend/src-tauri/icons/chrome/
+!frontend/src-tauri/icons/icon.svg
+!frontend/src-tauri/icons/generate_pngs.py
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build artifacts
+dist/
+build/

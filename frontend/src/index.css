@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@theme {
+  --color-vault-950: #050505;
+  --color-vault-900: #0a0a0a;
+  --color-vault-850: #0f0f0f;
+  --color-vault-800: #141414;
+  --color-vault-700: #1a1a1a;
+  --color-vault-600: #222222;
+  --color-vault-500: #333333;
+  --color-vault-400: #555555;
+  --color-vault-300: #888888;
+  --color-vault-200: #aaaaaa;
+  --color-vault-100: #cccccc;
+  --color-vault-50: #eeeeee;
+
+  --color-accent-500: #10b981;
+  --color-accent-400: #34d399;
+  --color-accent-600: #059669;
+  --color-accent-700: #047857;
+  --color-accent-900: #064e3b;
+
+  --color-danger-500: #ef4444;
+  --color-danger-400: #f87171;
+  --color-danger-600: #dc2626;
+
+  --color-warn-500: #f59e0b;
+  --color-warn-400: #fbbf24;
+
+  --font-display: "Sora", sans-serif;
+  --font-body: "Plus Jakarta Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-body);
+  background: var(--color-vault-950);
+  color: var(--color-vault-100);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-vault-500);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-vault-400);
+}
+
+.glow-accent {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15), 0 0 60px rgba(16, 185, 129, 0.05);
+}
+
+.glow-accent-strong {
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.25), 0 0 80px rgba(16, 185, 129, 0.1);
+}
+
+.vault-grid {
+  background-image:
+    linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+@keyframes reveal {
+  from { filter: blur(8px); opacity: 0.5; }
+  to { filter: blur(0); opacity: 1; }
+}
+
+.secret-reveal {
+  animation: reveal 0.3s ease-out forwards;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.8); }
+}
+
+.pulse-online {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+}
