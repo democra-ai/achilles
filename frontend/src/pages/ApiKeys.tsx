@@ -16,8 +16,8 @@ import { useStore } from "../store";
 import { apiKeysApi } from "../api/client";
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" as const } },
 };
 
 const scopes = [
@@ -38,7 +38,10 @@ export default function ApiKeys() {
   const [copiedKey, setCopiedKey] = useState(false);
 
   useEffect(() => {
-    apiKeysApi.list().then((r) => setApiKeys(r.data)).catch(() => {});
+    apiKeysApi
+      .list()
+      .then((r) => setApiKeys(r.data))
+      .catch(() => {});
   }, [setApiKeys]);
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -71,7 +74,7 @@ export default function ApiKeys() {
     }
   };
 
-  const copyKey = async () => {
+  const copyKeyValue = async () => {
     if (!newKeyValue) return;
     await navigator.clipboard.writeText(newKeyValue);
     setCopiedKey(true);
@@ -80,7 +83,9 @@ export default function ApiKeys() {
 
   const toggleScope = (scope: string) => {
     setSelectedScopes((prev) =>
-      prev.includes(scope) ? prev.filter((s) => s !== scope) : [...prev, scope]
+      prev.includes(scope)
+        ? prev.filter((s) => s !== scope)
+        : [...prev, scope]
     );
   };
 
@@ -93,20 +98,27 @@ export default function ApiKeys() {
   };
 
   return (
-    <motion.div initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.05 } } }}>
+    <motion.div
+      initial="hidden"
+      animate="show"
+      variants={{ show: { transition: { staggerChildren: 0.04 } } }}
+    >
       {/* Header */}
-      <motion.div variants={fadeUp} className="flex items-center justify-between mb-8">
+      <motion.div
+        variants={fadeUp}
+        className="flex items-center justify-between mb-6"
+      >
         <div>
-          <h1 className="font-display text-2xl font-bold text-vault-50 tracking-tight">
+          <h1 className="font-display text-xl font-bold text-vault-50 tracking-tight leading-tight">
             API Keys
           </h1>
-          <p className="text-sm text-vault-400 mt-1">
+          <p className="text-sm text-vault-400 mt-1 leading-normal">
             Manage programmatic access to your vault
           </p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-accent-500 hover:bg-accent-600 text-vault-950 font-semibold text-sm rounded-xl transition-all glow-accent"
+          className="flex items-center gap-2 px-4 py-2 bg-accent-500 hover:bg-accent-600 text-vault-950 font-semibold text-[13px] rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" />
           New API Key
@@ -117,56 +129,62 @@ export default function ApiKeys() {
       {apiKeys.length === 0 ? (
         <motion.div
           variants={fadeUp}
-          className="flex flex-col items-center justify-center py-20 text-vault-500"
+          className="flex flex-col items-center justify-center py-16 text-vault-500"
         >
-          <div className="w-16 h-16 rounded-2xl bg-vault-800 flex items-center justify-center mb-4">
-            <Key className="w-8 h-8 opacity-40" />
+          <div className="w-14 h-14 rounded-xl bg-vault-800/80 flex items-center justify-center mb-3">
+            <Key className="w-7 h-7 opacity-30" />
           </div>
-          <p className="text-sm font-medium">No API keys yet</p>
-          <p className="text-xs text-vault-500 mt-1">
+          <p className="text-[13px] font-medium text-vault-300">
+            No API keys yet
+          </p>
+          <p className="text-[11px] text-vault-500 mt-1">
             Create an API key for programmatic vault access
           </p>
         </motion.div>
       ) : (
-        <motion.div variants={fadeUp} className="space-y-2">
+        <motion.div variants={fadeUp} className="space-y-1.5">
           {apiKeys.map((key) => (
             <div
               key={key.id}
-              className="bg-vault-900 border border-vault-700/50 rounded-xl px-5 py-4 hover:border-vault-600 transition-all group"
+              className="bg-vault-900 border border-vault-700/40 rounded-xl px-4 py-3 hover:border-vault-600/60 transition-all duration-200 group"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-vault-50">{key.name}</h3>
-                    <code className="text-[10px] font-mono text-vault-400 bg-vault-800 px-1.5 py-0.5 rounded">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-[13px] font-semibold text-vault-50 leading-tight">
+                      {key.name}
+                    </h3>
+                    <code className="text-[10px] font-mono text-vault-400 bg-vault-800 px-1.5 py-0.5 rounded leading-tight">
                       {key.prefix}...
                     </code>
                   </div>
 
-                  <div className="flex items-center gap-3 mt-2 text-xs text-vault-400">
-                    <span className="flex items-center gap-1">
-                      <Shield className="w-3 h-3" />
+                  <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                    <span className="flex items-center gap-1 text-[11px] text-vault-400 leading-tight">
+                      <Shield className="w-3 h-3 flex-shrink-0" />
                       {key.scopes.join(", ")}
                     </span>
                     {key.expires_at && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        Expires {new Date(key.expires_at).toLocaleDateString()}
+                      <span className="flex items-center gap-1 text-[11px] text-vault-400 leading-tight">
+                        <Clock className="w-3 h-3 flex-shrink-0" />
+                        Expires{" "}
+                        {new Date(key.expires_at).toLocaleDateString()}
                       </span>
                     )}
                     {key.last_used_at && (
-                      <span className="flex items-center gap-1">
-                        Last used {new Date(key.last_used_at).toLocaleDateString()}
+                      <span className="text-[11px] text-vault-400 leading-tight">
+                        Last used{" "}
+                        {new Date(key.last_used_at).toLocaleDateString()}
                       </span>
                     )}
                   </div>
                 </div>
                 <button
                   onClick={() => handleRevoke(key.id)}
-                  className="p-2 rounded-lg text-vault-400 hover:text-danger-400 hover:bg-danger-500/10 transition-all opacity-0 group-hover:opacity-100"
+                  className="p-1.5 rounded-md text-vault-400 hover:text-danger-400 hover:bg-danger-500/10 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
                   title="Revoke"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -181,42 +199,43 @@ export default function ApiKeys() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             onClick={closeCreate}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.96, opacity: 0, y: 8 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.96, opacity: 0, y: 8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-vault-900 border border-vault-700/50 rounded-2xl p-6 w-full max-w-md"
+              className="bg-vault-900 border border-vault-700/50 rounded-xl p-5 w-full max-w-md shadow-2xl"
             >
               {newKeyValue ? (
-                /* Show new key */
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-8 h-8 rounded-lg bg-accent-500/10 flex items-center justify-center">
                       <Check className="w-4 h-4 text-accent-500" />
                     </div>
-                    <h2 className="font-display text-lg font-semibold text-vault-50">
+                    <h2 className="font-display text-base font-semibold text-vault-50 leading-tight">
                       API Key Created
                     </h2>
                   </div>
 
-                  <div className="bg-warn-500/5 border border-warn-500/20 rounded-lg p-3 mb-4 flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-warn-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-warn-400">
+                  <div className="bg-warn-500/5 border border-warn-500/15 rounded-lg p-2.5 mb-3 flex items-start gap-2">
+                    <AlertTriangle className="w-3.5 h-3.5 text-warn-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-[11px] text-warn-400 leading-normal">
                       Copy this key now. It won't be shown again.
                     </p>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <code className="flex-1 font-mono text-xs text-accent-400 bg-vault-800 rounded-lg px-3 py-2.5 break-all border border-vault-700/50">
+                    <code className="flex-1 font-mono text-[11px] text-accent-400 bg-vault-800 rounded-lg px-3 py-2 break-all border border-vault-700/40 leading-relaxed">
                       {newKeyValue}
                     </code>
                     <button
-                      onClick={copyKey}
-                      className="p-2.5 rounded-lg bg-vault-800 hover:bg-vault-700 text-vault-300 hover:text-vault-100 transition-all border border-vault-700/50"
+                      onClick={copyKeyValue}
+                      className="p-2 rounded-lg bg-vault-800 hover:bg-vault-700 text-vault-300 hover:text-vault-100 transition-colors border border-vault-700/40 flex-shrink-0"
                     >
                       {copiedKey ? (
                         <Check className="w-4 h-4 text-accent-500" />
@@ -228,36 +247,35 @@ export default function ApiKeys() {
 
                   <button
                     onClick={closeCreate}
-                    className="w-full mt-4 py-2.5 bg-vault-800 hover:bg-vault-700 text-vault-200 font-medium rounded-xl transition-all text-sm"
+                    className="w-full mt-3 py-2 bg-vault-800 hover:bg-vault-700 text-vault-200 font-medium rounded-lg transition-colors text-[13px]"
                   >
                     Done
                   </button>
                 </div>
               ) : (
-                /* Create form */
                 <>
-                  <div className="flex items-center justify-between mb-5">
-                    <h2 className="font-display text-lg font-semibold text-vault-50">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-display text-base font-semibold text-vault-50 leading-tight">
                       New API Key
                     </h2>
                     <button
                       onClick={closeCreate}
-                      className="text-vault-400 hover:text-vault-200 transition-colors"
+                      className="p-1 rounded-md text-vault-400 hover:text-vault-200 hover:bg-vault-800 transition-colors"
                     >
-                      <X className="w-5 h-5" />
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <form onSubmit={handleCreate} className="space-y-4">
+                  <form onSubmit={handleCreate} className="space-y-3">
                     <div>
-                      <label className="block text-xs font-medium text-vault-300 mb-1.5 uppercase tracking-wider">
+                      <label className="block text-[11px] font-medium text-vault-300 mb-1.5 uppercase tracking-wider leading-tight">
                         Name
                       </label>
                       <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full px-4 py-3 bg-vault-800 border border-vault-600/50 rounded-xl text-vault-50 placeholder-vault-500 focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/20 transition-all text-sm"
+                        className="w-full px-3 py-2.5 bg-vault-800 border border-vault-600/40 rounded-lg text-vault-50 placeholder-vault-500 focus:border-accent-500/50 transition-colors text-[13px]"
                         placeholder="My Claude Agent"
                         required
                         autoFocus
@@ -265,19 +283,19 @@ export default function ApiKeys() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-vault-300 mb-1.5 uppercase tracking-wider">
+                      <label className="block text-[11px] font-medium text-vault-300 mb-1.5 uppercase tracking-wider leading-tight">
                         Scopes
                       </label>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-2 gap-1.5">
                         {scopes.map((scope) => (
                           <button
                             key={scope.key}
                             type="button"
                             onClick={() => toggleScope(scope.key)}
-                            className={`px-3 py-2 rounded-lg text-xs font-medium transition-all border ${
+                            className={`px-3 py-2 rounded-md text-[12px] font-medium transition-all duration-150 border ${
                               selectedScopes.includes(scope.key)
-                                ? "bg-accent-500/10 border-accent-500/30 text-accent-400"
-                                : "bg-vault-800 border-vault-700/50 text-vault-400 hover:border-vault-600"
+                                ? "bg-accent-500/10 border-accent-500/25 text-accent-400"
+                                : "bg-vault-800/60 border-vault-700/30 text-vault-400 hover:border-vault-600/50"
                             }`}
                           >
                             {scope.label}
@@ -287,13 +305,13 @@ export default function ApiKeys() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-vault-300 mb-1.5 uppercase tracking-wider">
-                        Expires In (days)
+                      <label className="block text-[11px] font-medium text-vault-300 mb-1.5 uppercase tracking-wider leading-tight">
+                        Expires In
                       </label>
                       <select
                         value={expiryDays}
                         onChange={(e) => setExpiryDays(e.target.value)}
-                        className="w-full px-4 py-3 bg-vault-800 border border-vault-600/50 rounded-xl text-vault-50 focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/20 transition-all text-sm"
+                        className="w-full px-3 py-2.5 bg-vault-800 border border-vault-600/40 rounded-lg text-vault-50 focus:border-accent-500/50 transition-colors text-[13px]"
                       >
                         <option value="30">30 days</option>
                         <option value="90">90 days</option>
@@ -305,7 +323,7 @@ export default function ApiKeys() {
                     <button
                       type="submit"
                       disabled={loading || selectedScopes.length === 0}
-                      className="w-full py-3 bg-accent-500 hover:bg-accent-600 text-vault-950 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full py-2.5 bg-accent-500 hover:bg-accent-600 text-vault-950 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 text-[13px] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? (
                         <Loader2 className="w-4 h-4 animate-spin" />

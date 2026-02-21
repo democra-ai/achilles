@@ -12,8 +12,8 @@ import {
 import { useStore } from "../store";
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" as const } },
 };
 
 export default function Settings() {
@@ -52,59 +52,57 @@ export default function Settings() {
     <motion.div
       initial="hidden"
       animate="show"
-      variants={{ show: { transition: { staggerChildren: 0.05 } } }}
+      variants={{ show: { transition: { staggerChildren: 0.04 } } }}
     >
       {/* Header */}
-      <motion.div variants={fadeUp} className="mb-8">
-        <h1 className="font-display text-2xl font-bold text-vault-50 tracking-tight">
+      <motion.div variants={fadeUp} className="mb-6">
+        <h1 className="font-display text-xl font-bold text-vault-50 tracking-tight leading-tight">
           Settings
         </h1>
-        <p className="text-sm text-vault-400 mt-1">
+        <p className="text-sm text-vault-400 mt-1 leading-normal">
           Server configuration and integrations
         </p>
       </motion.div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Server Status */}
         <motion.div
           variants={fadeUp}
-          className="bg-vault-900 border border-vault-700/50 rounded-xl p-6"
+          className="bg-vault-900 border border-vault-700/40 rounded-xl p-5"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Server className="w-4 h-4 text-vault-300" />
-              <h2 className="font-display text-sm font-semibold text-vault-200 uppercase tracking-wider">
+              <Server className="w-4 h-4 text-vault-400" />
+              <h2 className="text-[11px] font-semibold text-vault-300 uppercase tracking-wider leading-tight">
                 Server Status
               </h2>
             </div>
             <button
               onClick={refreshHealth}
-              className="p-2 rounded-lg text-vault-400 hover:text-vault-200 hover:bg-vault-800 transition-all"
+              className="p-1.5 rounded-md text-vault-400 hover:text-vault-200 hover:bg-vault-800 transition-colors"
             >
               <RefreshCw
-                className={`w-4 h-4 ${checking ? "animate-spin" : ""}`}
+                className={`w-3.5 h-3.5 ${checking ? "animate-spin" : ""}`}
               />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-vault-800 rounded-lg p-4 border border-vault-700/50">
-              <p className="text-xs text-vault-400 uppercase tracking-wider mb-1">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="bg-vault-800/60 rounded-lg p-3 border border-vault-700/30">
+              <p className="text-[10px] text-vault-400 uppercase tracking-wider mb-1 leading-tight">
                 Status
               </p>
               <div className="flex items-center gap-2">
                 <div
-                  className={`w-2.5 h-2.5 rounded-full ${
+                  className={`w-2 h-2 rounded-full flex-shrink-0 ${
                     serverStatus.running
                       ? "bg-accent-500 pulse-online"
-                      : "bg-danger-500"
+                      : "bg-vault-500"
                   }`}
                 />
                 <span
-                  className={`text-sm font-semibold ${
-                    serverStatus.running
-                      ? "text-accent-400"
-                      : "text-danger-400"
+                  className={`text-[13px] font-semibold leading-tight ${
+                    serverStatus.running ? "text-accent-400" : "text-vault-300"
                   }`}
                 >
                   {serverStatus.running ? "Online" : "Offline"}
@@ -112,12 +110,12 @@ export default function Settings() {
               </div>
             </div>
 
-            <div className="bg-vault-800 rounded-lg p-4 border border-vault-700/50">
-              <p className="text-xs text-vault-400 uppercase tracking-wider mb-1">
+            <div className="bg-vault-800/60 rounded-lg p-3 border border-vault-700/30">
+              <p className="text-[10px] text-vault-400 uppercase tracking-wider mb-1 leading-tight">
                 Address
               </p>
               <div className="flex items-center gap-2">
-                <code className="text-sm font-mono text-vault-100">
+                <code className="text-[13px] font-mono text-vault-100 leading-tight">
                   127.0.0.1:{serverStatus.port}
                 </code>
                 <button
@@ -138,11 +136,11 @@ export default function Settings() {
               </div>
             </div>
 
-            <div className="bg-vault-800 rounded-lg p-4 border border-vault-700/50">
-              <p className="text-xs text-vault-400 uppercase tracking-wider mb-1">
+            <div className="bg-vault-800/60 rounded-lg p-3 border border-vault-700/30">
+              <p className="text-[10px] text-vault-400 uppercase tracking-wider mb-1 leading-tight">
                 Encryption
               </p>
-              <span className="text-sm font-mono text-vault-100">
+              <span className="text-[13px] font-mono text-vault-100 leading-tight">
                 AES-256-GCM
               </span>
             </div>
@@ -152,26 +150,26 @@ export default function Settings() {
         {/* MCP Configuration */}
         <motion.div
           variants={fadeUp}
-          className="bg-vault-900 border border-vault-700/50 rounded-xl p-6"
+          className="bg-vault-900 border border-vault-700/40 rounded-xl p-5"
         >
-          <div className="flex items-center gap-2 mb-4">
-            <Shield className="w-4 h-4 text-vault-300" />
-            <h2 className="font-display text-sm font-semibold text-vault-200 uppercase tracking-wider">
+          <div className="flex items-center gap-2 mb-3">
+            <Shield className="w-4 h-4 text-vault-400" />
+            <h2 className="text-[11px] font-semibold text-vault-300 uppercase tracking-wider leading-tight">
               MCP Configuration
             </h2>
           </div>
 
-          <p className="text-xs text-vault-400 mb-3">
+          <p className="text-[11px] text-vault-400 mb-3 leading-normal">
             Add this to your Claude/AI agent configuration to connect via MCP:
           </p>
 
           <div className="relative">
-            <pre className="font-mono text-xs text-accent-400 bg-vault-800 rounded-lg p-4 overflow-x-auto border border-vault-700/50">
+            <pre className="font-mono text-[11px] text-accent-400 bg-vault-800/60 rounded-lg p-4 overflow-x-auto border border-vault-700/30 leading-relaxed">
               {mcpConfig}
             </pre>
             <button
               onClick={() => copyToClipboard(mcpConfig, "mcp")}
-              className="absolute top-3 right-3 p-1.5 rounded-md bg-vault-700 hover:bg-vault-600 text-vault-300 hover:text-vault-100 transition-all"
+              className="absolute top-2.5 right-2.5 p-1.5 rounded-md bg-vault-700/80 hover:bg-vault-600 text-vault-300 hover:text-vault-100 transition-colors"
             >
               {copied === "mcp" ? (
                 <Check className="w-3.5 h-3.5 text-accent-500" />
@@ -185,19 +183,22 @@ export default function Settings() {
         {/* API Endpoints */}
         <motion.div
           variants={fadeUp}
-          className="bg-vault-900 border border-vault-700/50 rounded-xl p-6"
+          className="bg-vault-900 border border-vault-700/40 rounded-xl p-5"
         >
-          <div className="flex items-center gap-2 mb-4">
-            <Terminal className="w-4 h-4 text-vault-300" />
-            <h2 className="font-display text-sm font-semibold text-vault-200 uppercase tracking-wider">
+          <div className="flex items-center gap-2 mb-3">
+            <Terminal className="w-4 h-4 text-vault-400" />
+            <h2 className="text-[11px] font-semibold text-vault-300 uppercase tracking-wider leading-tight">
               API Endpoints
             </h2>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             {[
-              { method: "POST", path: "/api/v1/auth/login", desc: "Authenticate" },
-              { method: "GET", path: "/api/v1/projects", desc: "List projects" },
+              {
+                method: "GET",
+                path: "/api/v1/projects",
+                desc: "List projects",
+              },
               {
                 method: "GET",
                 path: "/api/v1/projects/{id}/environments/{env}/secrets",
@@ -216,23 +217,25 @@ export default function Settings() {
             ].map((ep) => (
               <div
                 key={ep.path}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg bg-vault-800/50 border border-vault-700/30"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg bg-vault-800/40 border border-vault-700/20"
               >
                 <span
-                  className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${
+                  className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded leading-tight ${
                     ep.method === "GET"
                       ? "bg-accent-500/10 text-accent-400"
                       : ep.method === "POST"
-                      ? "bg-blue-500/10 text-blue-400"
-                      : "bg-warn-500/10 text-warn-400"
+                        ? "bg-blue-500/10 text-blue-400"
+                        : "bg-warn-500/10 text-warn-400"
                   }`}
                 >
                   {ep.method}
                 </span>
-                <code className="text-xs font-mono text-vault-200 flex-1">
+                <code className="text-[11px] font-mono text-vault-200 flex-1 min-w-0 truncate leading-tight">
                   {ep.path}
                 </code>
-                <span className="text-[10px] text-vault-500">{ep.desc}</span>
+                <span className="text-[10px] text-vault-500 flex-shrink-0 leading-tight">
+                  {ep.desc}
+                </span>
               </div>
             ))}
           </div>
@@ -241,24 +244,24 @@ export default function Settings() {
         {/* Chrome Extension */}
         <motion.div
           variants={fadeUp}
-          className="bg-vault-900 border border-vault-700/50 rounded-xl p-6"
+          className="bg-vault-900 border border-vault-700/40 rounded-xl p-5"
         >
-          <div className="flex items-center gap-2 mb-4">
-            <ExternalLink className="w-4 h-4 text-vault-300" />
-            <h2 className="font-display text-sm font-semibold text-vault-200 uppercase tracking-wider">
+          <div className="flex items-center gap-2 mb-3">
+            <ExternalLink className="w-4 h-4 text-vault-400" />
+            <h2 className="text-[11px] font-semibold text-vault-300 uppercase tracking-wider leading-tight">
               Chrome Extension
             </h2>
           </div>
 
-          <p className="text-xs text-vault-400 mb-3">
+          <p className="text-[11px] text-vault-400 mb-3 leading-normal">
             Install the Achilles Vault Chrome extension for quick access to
             secrets from your browser.
           </p>
 
-          <div className="bg-vault-800 rounded-lg p-4 border border-vault-700/50">
-            <p className="text-xs text-vault-300">
+          <div className="bg-vault-800/60 rounded-lg p-3 border border-vault-700/30">
+            <p className="text-[11px] text-vault-300 leading-normal">
               Load the extension from{" "}
-              <code className="font-mono text-accent-400 bg-vault-700 px-1.5 py-0.5 rounded">
+              <code className="font-mono text-accent-400 bg-vault-700/80 px-1.5 py-0.5 rounded text-[10px]">
                 chrome-extension/
               </code>{" "}
               directory via Chrome Developer Mode.

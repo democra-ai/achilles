@@ -1,6 +1,5 @@
 import axios from "axios";
 import type {
-  AuthTokens,
   Project,
   Environment,
   Secret,
@@ -16,34 +15,6 @@ const api = axios.create({
   baseURL: `${API_BASE}/api/v1`,
   headers: { "Content-Type": "application/json" },
 });
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("achilles_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("achilles_token");
-      window.location.hash = "#/login";
-    }
-    return Promise.reject(error);
-  }
-);
-
-// Auth
-export const authApi = {
-  register: (username: string, password: string) =>
-    api.post<AuthTokens>("/auth/register", { username, password }),
-
-  login: (username: string, password: string) =>
-    api.post<AuthTokens>("/auth/login", { username, password }),
-};
 
 // Projects
 export const projectsApi = {
