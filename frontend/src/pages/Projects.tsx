@@ -28,7 +28,7 @@ const fadeUp = {
 };
 
 export default function Projects() {
-  const { projects, setProjects, selectProject, selectEnv } = useStore();
+  const { projects, setProjects, selectProject, selectEnv, serverStatus, addToast } = useStore();
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -36,14 +36,19 @@ export default function Projects() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!serverStatus.running) return;
     projectsApi
       .list()
       .then((r) => setProjects(r.data))
-      .catch(() => {});
-  }, [setProjects]);
+      .catch(() => {/* handled by interceptor */});
+  }, [setProjects, serverStatus.running]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!serverStatus.running) {
+      addToast({ type: "error", title: "Server offline", message: "Start the server before creating projects" });
+      return;
+    }
     setLoading(true);
     try {
       await projectsApi.create(name, description);
@@ -52,22 +57,24 @@ export default function Projects() {
       setShowCreate(false);
       setName("");
       setDescription("");
-    } catch (err) {
-      console.error(err);
+      addToast({ type: "success", title: "Project created", message: `"${name}" is ready to use` });
+    } catch {
+      // handled by interceptor
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id: number, e: React.MouseEvent) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm("Delete this project and all its secrets?")) return;
     try {
       await projectsApi.delete(id);
       const { data } = await projectsApi.list();
       setProjects(data);
-    } catch (err) {
-      console.error(err);
+      addToast({ type: "success", title: "Project deleted" });
+    } catch {
+      // handled by interceptor
     }
   };
 
@@ -259,7 +266,7 @@ export default function Projects() {
               </div>
 
               <p className="text-[10px] text-vault-500 mt-2.5 font-mono leading-tight">
-                Created {new Date(project.created_at).toLocaleDateString()}
+                Created {new Date(project.created_at * 1000).toLocaleDateString()}
               </p>
             </motion.div>
           ))}

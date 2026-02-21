@@ -11,7 +11,7 @@ import {
   Clock,
 } from "lucide-react";
 import { useStore } from "../store";
-import { projectsApi, auditApi } from "../api/client";
+import { projectsApi, auditApi, apiKeysApi, secretsApi } from "../api/client";
 import { useNavigate } from "react-router-dom";
 import type { AuditEntry } from "../types";
 
@@ -29,20 +29,46 @@ const fadeUp = {
 };
 
 export default function Dashboard() {
-  const { projects, setProjects, serverStatus } = useStore();
+  const { projects, setProjects, apiKeys, setApiKeys, serverStatus } = useStore();
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
+  const [secretCount, setSecretCount] = useState<number | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!serverStatus.running) return;
     projectsApi
       .list()
       .then((r) => setProjects(r.data))
-      .catch(() => {});
+      .catch(() => {/* handled by interceptor */});
     auditApi
       .list({ limit: 8 })
-      .then((r) => setAuditLog(r.data))
-      .catch(() => {});
-  }, [setProjects]);
+      .then((r) => setAuditLog(r.data.entries))
+      .catch(() => {/* handled by interceptor */});
+    apiKeysApi
+      .list()
+      .then((r) => setApiKeys(r.data))
+      .catch(() => {/* handled by interceptor */});
+  }, [setProjects, setApiKeys, serverStatus.running]);
+
+  // Count total secrets across all projects and environments
+  useEffect(() => {
+    if (projects.length === 0) {
+      setSecretCount(0);
+      return;
+    }
+    const envs = ["development", "staging", "production"];
+    const promises = projects.flatMap((p) =>
+      envs.map((env) =>
+        secretsApi
+          .list(p.id, env)
+          .then((r) => r.data.length)
+          .catch(() => 0)
+      )
+    );
+    Promise.all(promises).then((counts) => {
+      setSecretCount(counts.reduce((a, b) => a + b, 0));
+    });
+  }, [projects]);
 
   const stats = [
     {
@@ -54,14 +80,14 @@ export default function Dashboard() {
     },
     {
       label: "Secrets",
-      value: "\u2014",
+      value: secretCount !== null ? secretCount : "\u2014",
       icon: KeyRound,
       color: "accent" as const,
       onClick: () => navigate("/secrets"),
     },
     {
       label: "API Keys",
-      value: "\u2014",
+      value: apiKeys.length,
       icon: Key,
       color: "accent" as const,
       onClick: () => navigate("/api-keys"),
@@ -75,6 +101,10 @@ export default function Dashboard() {
         | "muted",
     },
   ];
+
+  const formatTime = (ts: number) => {
+    return new Date(ts * 1000).toLocaleString();
+  };
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="show">
@@ -208,7 +238,7 @@ export default function Dashboard() {
                     </p>
                     <p className="text-[11px] text-vault-500 flex items-center gap-1 mt-0.5 leading-tight">
                       <Clock className="w-3 h-3 flex-shrink-0" />
-                      {new Date(entry.timestamp).toLocaleString()}
+                      {formatTime(entry.timestamp)}
                     </p>
                   </div>
                 </div>

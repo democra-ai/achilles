@@ -41,6 +41,8 @@ export default function Secrets() {
     selectEnv,
     secrets,
     setSecrets,
+    serverStatus,
+    addToast,
   } = useStore();
 
   const [showCreate, setShowCreate] = useState(false);
@@ -57,6 +59,7 @@ export default function Secrets() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!serverStatus.running) return;
     if (projects.length === 0) {
       projectsApi
         .list()
@@ -66,19 +69,19 @@ export default function Secrets() {
             selectProject(r.data[0]);
           }
         })
-        .catch(() => {});
+        .catch(() => {/* handled by interceptor */});
     }
-  }, [projects.length, setProjects, selectProject, selectedProject]);
+  }, [projects.length, setProjects, selectProject, selectedProject, serverStatus.running]);
 
   const loadSecrets = useCallback(async () => {
-    if (!selectedProject) return;
+    if (!selectedProject || !serverStatus.running) return;
     try {
       const { data } = await secretsApi.list(selectedProject.id, selectedEnv);
       setSecrets(data);
     } catch {
       setSecrets([]);
     }
-  }, [selectedProject, selectedEnv, setSecrets]);
+  }, [selectedProject, selectedEnv, setSecrets, serverStatus.running]);
 
   useEffect(() => {
     loadSecrets();
@@ -89,9 +92,14 @@ export default function Secrets() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProject) return;
+    if (!serverStatus.running) {
+      addToast({ type: "error", title: "Server offline", message: "Start the server before adding secrets" });
+      return;
+    }
     setLoading(true);
     try {
       await secretsApi.set(selectedProject.id, selectedEnv, newKey, {
+        key: newKey,
         value: newValue,
         description: newDesc || undefined,
         tags: newTags ? newTags.split(",").map((t) => t.trim()) : undefined,
@@ -102,8 +110,9 @@ export default function Secrets() {
       setNewValue("");
       setNewDesc("");
       setNewTags("");
-    } catch (err) {
-      console.error(err);
+      addToast({ type: "success", title: "Secret saved", message: `${newKey} has been encrypted and stored` });
+    } catch {
+      // handled by interceptor
     } finally {
       setLoading(false);
     }
@@ -115,8 +124,9 @@ export default function Secrets() {
     try {
       await secretsApi.delete(selectedProject.id, selectedEnv, key);
       await loadSecrets();
-    } catch (err) {
-      console.error(err);
+      addToast({ type: "success", title: "Secret deleted", message: `${key} has been removed` });
+    } catch {
+      // handled by interceptor
     }
   };
 
@@ -138,8 +148,8 @@ export default function Secrets() {
       );
       setRevealedValues((prev) => ({ ...prev, [key]: data.value || "" }));
       setRevealedKeys((prev) => new Set(prev).add(key));
-    } catch (err) {
-      console.error(err);
+    } catch {
+      // handled by interceptor
     }
   };
 
@@ -158,8 +168,8 @@ export default function Secrets() {
       await navigator.clipboard.writeText(value);
       setCopiedKey(key);
       setTimeout(() => setCopiedKey(null), 2000);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      // handled by interceptor
     }
   };
 

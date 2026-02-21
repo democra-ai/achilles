@@ -20,57 +20,63 @@ const fadeUp = {
   show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" as const } },
 };
 
-const scopes = [
-  { key: "secrets:read", label: "Read Secrets" },
-  { key: "secrets:write", label: "Write Secrets" },
-  { key: "projects:read", label: "Read Projects" },
-  { key: "projects:write", label: "Write Projects" },
+const scopeOptions = [
+  { key: "read", label: "Read" },
+  { key: "write", label: "Write" },
+  { key: "admin", label: "Admin" },
 ];
 
 export default function ApiKeys() {
-  const { apiKeys, setApiKeys } = useStore();
+  const { apiKeys, setApiKeys, serverStatus, addToast } = useStore();
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
-  const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
+  const [selectedScopes, setSelectedScopes] = useState<string[]>(["read"]);
   const [expiryDays, setExpiryDays] = useState("90");
   const [loading, setLoading] = useState(false);
   const [newKeyValue, setNewKeyValue] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState(false);
 
   useEffect(() => {
+    if (!serverStatus.running) return;
     apiKeysApi
       .list()
       .then((r) => setApiKeys(r.data))
-      .catch(() => {});
-  }, [setApiKeys]);
+      .catch(() => {/* handled by interceptor */});
+  }, [setApiKeys, serverStatus.running]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!serverStatus.running) {
+      addToast({ type: "error", title: "Server offline", message: "Start the server before creating API keys" });
+      return;
+    }
     setLoading(true);
     try {
       const { data } = await apiKeysApi.create({
         name,
         scopes: selectedScopes,
-        expires_in_days: parseInt(expiryDays) || undefined,
+        expires_in_days: expiryDays ? parseInt(expiryDays) : undefined,
       });
       setNewKeyValue(data.key);
       const list = await apiKeysApi.list();
       setApiKeys(list.data);
-    } catch (err) {
-      console.error(err);
+      addToast({ type: "success", title: "API key created", message: "Remember to copy the key before closing" });
+    } catch {
+      // handled by interceptor
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRevoke = async (id: number) => {
+  const handleRevoke = async (id: string) => {
     if (!confirm("Revoke this API key? This cannot be undone.")) return;
     try {
       await apiKeysApi.revoke(id);
       const { data } = await apiKeysApi.list();
       setApiKeys(data);
-    } catch (err) {
-      console.error(err);
+      addToast({ type: "success", title: "API key revoked" });
+    } catch {
+      // handled by interceptor
     }
   };
 
@@ -93,8 +99,22 @@ export default function ApiKeys() {
     setShowCreate(false);
     setNewKeyValue(null);
     setName("");
-    setSelectedScopes([]);
+    setSelectedScopes(["read"]);
     setExpiryDays("90");
+  };
+
+  const parseScopes = (raw: string | string[]): string[] => {
+    if (Array.isArray(raw)) return raw;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  };
+
+  const formatDate = (ts: number | null) => {
+    if (!ts) return null;
+    return new Date(ts * 1000).toLocaleDateString();
   };
 
   return (
@@ -143,52 +163,62 @@ export default function ApiKeys() {
         </motion.div>
       ) : (
         <motion.div variants={fadeUp} className="space-y-1.5">
-          {apiKeys.map((key) => (
-            <div
-              key={key.id}
-              className="bg-vault-900 border border-vault-700/40 rounded-xl px-4 py-3 hover:border-vault-600/60 transition-all duration-200 group"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-[13px] font-semibold text-vault-50 leading-tight">
-                      {key.name}
-                    </h3>
-                    <code className="text-[10px] font-mono text-vault-400 bg-vault-800 px-1.5 py-0.5 rounded leading-tight">
-                      {key.prefix}...
-                    </code>
-                  </div>
+          {apiKeys.map((key) => {
+            const keyScopes = parseScopes(key.scopes);
+            return (
+              <div
+                key={key.id}
+                className={`bg-vault-900 border rounded-xl px-4 py-3 hover:border-vault-600/60 transition-all duration-200 group ${
+                  key.is_active ? "border-vault-700/40" : "border-vault-700/20 opacity-50"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-[13px] font-semibold text-vault-50 leading-tight">
+                        {key.name}
+                      </h3>
+                      {!key.is_active && (
+                        <span className="text-[10px] font-mono text-danger-400 bg-danger-500/10 px-1.5 py-0.5 rounded leading-tight">
+                          revoked
+                        </span>
+                      )}
+                    </div>
 
-                  <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                    <span className="flex items-center gap-1 text-[11px] text-vault-400 leading-tight">
-                      <Shield className="w-3 h-3 flex-shrink-0" />
-                      {key.scopes.join(", ")}
-                    </span>
-                    {key.expires_at && (
+                    <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                       <span className="flex items-center gap-1 text-[11px] text-vault-400 leading-tight">
-                        <Clock className="w-3 h-3 flex-shrink-0" />
-                        Expires{" "}
-                        {new Date(key.expires_at).toLocaleDateString()}
+                        <Shield className="w-3 h-3 flex-shrink-0" />
+                        {keyScopes.join(", ")}
                       </span>
-                    )}
-                    {key.last_used_at && (
-                      <span className="text-[11px] text-vault-400 leading-tight">
-                        Last used{" "}
-                        {new Date(key.last_used_at).toLocaleDateString()}
+                      {key.expires_at && (
+                        <span className="flex items-center gap-1 text-[11px] text-vault-400 leading-tight">
+                          <Clock className="w-3 h-3 flex-shrink-0" />
+                          Expires {formatDate(key.expires_at)}
+                        </span>
+                      )}
+                      {key.last_used_at && (
+                        <span className="text-[11px] text-vault-400 leading-tight">
+                          Last used {formatDate(key.last_used_at)}
+                        </span>
+                      )}
+                      <span className="text-[10px] text-vault-500 leading-tight">
+                        Created {formatDate(key.created_at)}
                       </span>
-                    )}
+                    </div>
                   </div>
+                  {key.is_active ? (
+                    <button
+                      onClick={() => handleRevoke(key.id)}
+                      className="p-1.5 rounded-md text-vault-400 hover:text-danger-400 hover:bg-danger-500/10 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
+                      title="Revoke"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  ) : null}
                 </div>
-                <button
-                  onClick={() => handleRevoke(key.id)}
-                  className="p-1.5 rounded-md text-vault-400 hover:text-danger-400 hover:bg-danger-500/10 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
-                  title="Revoke"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </motion.div>
       )}
 
@@ -286,8 +316,8 @@ export default function ApiKeys() {
                       <label className="block text-[11px] font-medium text-vault-300 mb-1.5 uppercase tracking-wider leading-tight">
                         Scopes
                       </label>
-                      <div className="grid grid-cols-2 gap-1.5">
-                        {scopes.map((scope) => (
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {scopeOptions.map((scope) => (
                           <button
                             key={scope.key}
                             type="button"

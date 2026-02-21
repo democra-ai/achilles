@@ -72,13 +72,20 @@ def create_app() -> FastAPI:
     # Error handlers
     @app.exception_handler(RequestValidationError)
     async def validation_handler(request: Request, exc: RequestValidationError):
+        # Sanitize errors: convert bytes to str so JSONResponse can serialize
+        errors = []
+        for err in exc.errors():
+            clean = {}
+            for k, v in err.items():
+                clean[k] = v.decode("utf-8", errors="replace") if isinstance(v, bytes) else v
+            errors.append(clean)
         return JSONResponse(
             status_code=422,
             content={
                 "error": {
                     "code": "VALIDATION_ERROR",
                     "message": "Request validation failed",
-                    "details": exc.errors(),
+                    "details": errors,
                 }
             },
         )

@@ -1,76 +1,86 @@
 export interface User {
-  id: number;
+  id: string;
   username: string;
-  is_admin: boolean;
-  created_at: string;
+  role: string;
+  created_at: number;
 }
 
 export interface AuthTokens {
   access_token: string;
   token_type: string;
+  expires_in: number;
 }
 
 export interface Project {
-  id: number;
+  id: string;
   name: string;
   description: string;
-  created_at: string;
+  created_at: number;
+  updated_at: number;
   environments?: Environment[];
 }
 
 export interface Environment {
-  id: number;
+  id: string;
   name: string;
-  project_id: number;
-  created_at: string;
+  project_id: string;
+  created_at: number;
 }
 
 export interface Secret {
+  id: string;
   key: string;
   description?: string;
   tags?: string[];
   version: number;
-  created_at: string;
-  updated_at: string;
+  created_at: number;
+  updated_at: number;
   value?: string;
 }
 
 export interface SecretCreate {
+  key: string;
   value: string;
   description?: string;
   tags?: string[];
 }
 
 export interface ApiKey {
-  id: number;
+  id: string;
   name: string;
-  prefix: string;
-  scopes: string[];
-  project_id?: number;
-  expires_at?: string;
-  last_used_at?: string;
-  created_at: string;
+  scopes: string;
+  project_ids: string;
+  expires_at: number | null;
+  last_used_at: number | null;
+  created_at: number;
+  is_active: number;
 }
 
 export interface ApiKeyCreate {
   name: string;
   scopes: string[];
-  project_id?: number;
+  project_ids?: string[];
   expires_in_days?: number;
 }
 
 export interface AuditEntry {
-  id: number;
-  timestamp: string;
+  id: string;
+  timestamp: number;
   action: string;
   resource_type: string;
-  resource_id: string;
-  username: string;
-  ip_address: string;
-  details: Record<string, unknown>;
+  resource_id: string | null;
+  actor: string;
+  ip_address: string | null;
+  details: string;
 }
 
 export interface ServerStatus {
+  running: boolean;
+  port: number;
+  url: string;
+}
+
+export interface McpStatus {
   running: boolean;
   port: number;
   url: string;
