@@ -242,7 +242,7 @@ export default function Layout() {
 
           {!serverStatus.running && <OfflineBanner />}
 
-          <div className="max-w-[1200px] mx-auto px-6 lg:px-10 py-6 lg:py-8">
+          <div className="max-w-[1200px] w-full px-6 lg:px-10 py-6 lg:py-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
