@@ -4,7 +4,6 @@ import {
   KeyRound,
   Plus,
   Trash2,
-  X,
   Eye,
   EyeOff,
   Copy,
@@ -16,23 +15,42 @@ import {
   Rocket,
   Tag,
   AlertCircle,
-  Lock,
 } from "lucide-react";
-import { useStore } from "../store";
-import { secretsApi, projectsApi } from "../api/client";
+import { useStore } from "@/store";
+import { secretsApi, projectsApi } from "@/api/client";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-const envTabs = [
-  { key: "development", label: "Development", icon: TestTube },
-  { key: "staging", label: "Staging", icon: Globe },
-  { key: "production", label: "Production", icon: Rocket },
-];
+const stagger = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
+  },
+};
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  show: {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
+    transition: { duration: 0.35 },
   },
 };
 
@@ -203,44 +221,25 @@ export default function Secrets() {
   );
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="show"
-      variants={{
-        hidden: { opacity: 0 },
-        show: { opacity: 1, transition: { staggerChildren: 0.06 } },
-      }}
-    >
+    <motion.div variants={stagger} initial="hidden" animate="visible">
       {/* Header */}
       <motion.div
         variants={fadeUp}
-        className="flex items-center justify-between mb-8"
+        className="flex items-center justify-between mb-6"
       >
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/15 flex items-center justify-center">
-              <Lock className="w-4 h-4 text-blue-400" />
-            </div>
-            <h1 className="font-display text-[28px] font-bold text-vault-50 tracking-tight">
-              Secrets
-            </h1>
-          </div>
-          <p className="text-[14px] text-vault-400 ml-11">
+          <h1 className="text-2xl font-semibold tracking-tight">Secrets</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             {selectedProject
               ? `Managing secrets for ${selectedProject.name}`
               : "Select a project to manage secrets"}
           </p>
         </div>
         {selectedProject && (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-semibold text-[14px] rounded-xl transition-all duration-200 shadow-lg shadow-accent-500/20"
-          >
-            <Plus className="w-4 h-4" />
+          <Button onClick={() => setShowCreate(true)}>
+            <Plus className="size-4" />
             Add Secret
-          </motion.button>
+          </Button>
         )}
       </motion.div>
 
@@ -248,293 +247,268 @@ export default function Secrets() {
       <motion.div variants={fadeUp} className="mb-4">
         <div className="flex gap-2 flex-wrap">
           {projects.map((p) => (
-            <button
+            <Button
               key={p.id}
+              variant={selectedProject?.id === p.id ? "default" : "outline"}
+              size="sm"
               onClick={() => selectProject(p)}
-              className={`px-4 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 ${
-                selectedProject?.id === p.id
-                  ? "bg-accent-500/[0.08] text-accent-400 border border-accent-500/20 shadow-sm shadow-accent-500/10"
-                  : "glass-subtle text-vault-400 hover:text-vault-200 hover:bg-white/[0.04]"
-              }`}
             >
               {p.name}
-            </button>
+            </Button>
           ))}
         </div>
       </motion.div>
 
       {/* Environment Tabs */}
       {selectedProject && (
-        <motion.div variants={fadeUp} className="mb-5">
-          <div className="inline-flex gap-1 p-1 glass-subtle rounded-xl">
-            {envTabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => selectEnv(tab.key)}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 whitespace-nowrap ${
-                  selectedEnv === tab.key
-                    ? "bg-white/[0.08] text-vault-50 shadow-sm border border-white/[0.06]"
-                    : "text-vault-400 hover:text-vault-200"
-                }`}
-              >
-                <tab.icon className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
+        <motion.div variants={fadeUp} className="mb-4">
+          <Tabs value={selectedEnv} onValueChange={selectEnv}>
+            <TabsList>
+              <TabsTrigger value="development">
+                <TestTube className="size-3.5" />
+                Development
+              </TabsTrigger>
+              <TabsTrigger value="staging">
+                <Globe className="size-3.5" />
+                Staging
+              </TabsTrigger>
+              <TabsTrigger value="production">
+                <Rocket className="size-3.5" />
+                Production
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </motion.div>
       )}
 
       {/* Search */}
       {selectedProject && (
-        <motion.div variants={fadeUp} className="mb-5 relative z-0">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-vault-500" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search secrets..."
-              className="input-premium w-full pl-11"
-            />
-          </div>
+        <motion.div variants={fadeUp} className="mb-5 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search secrets..."
+            className="pl-9"
+          />
         </motion.div>
       )}
 
       {/* Secrets List */}
       {!selectedProject ? (
-        <div className="flex flex-col items-center justify-center py-24 text-vault-500">
-          <div className="w-20 h-20 rounded-3xl glass-card flex items-center justify-center mb-5">
-            <AlertCircle className="w-8 h-8 text-vault-500 opacity-40" />
+        <motion.div
+          variants={fadeUp}
+          className="flex flex-col items-center justify-center py-28"
+        >
+          <div className="size-20 rounded-2xl bg-muted flex items-center justify-center mb-5">
+            <AlertCircle className="size-8 text-muted-foreground" />
           </div>
-          <p className="text-[16px] font-medium text-vault-300 font-display">
-            Select a project first
-          </p>
-          <p className="text-[13px] text-vault-500 mt-1.5">
+          <p className="text-base font-medium">Select a project first</p>
+          <p className="text-sm text-muted-foreground mt-1">
             Choose a project from the list above
           </p>
-        </div>
+        </motion.div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-vault-500">
-          <div className="w-20 h-20 rounded-3xl glass-card flex items-center justify-center mb-5">
-            <KeyRound className="w-8 h-8 text-vault-500 opacity-40" />
+        <motion.div
+          variants={fadeUp}
+          className="flex flex-col items-center justify-center py-28"
+        >
+          <div className="size-20 rounded-2xl bg-muted flex items-center justify-center mb-5">
+            <KeyRound className="size-8 text-muted-foreground" />
           </div>
-          <p className="text-[16px] font-medium text-vault-300 font-display">
-            No secrets found
-          </p>
-          <p className="text-[13px] text-vault-500 mt-1.5">
+          <p className="text-base font-medium">No secrets found</p>
+          <p className="text-sm text-muted-foreground mt-1">
             {search
               ? "Try a different search term"
               : "Add your first secret to get started"}
           </p>
           {!search && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowCreate(true)}
-              className="mt-6 flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-accent-500 to-accent-600 text-white font-semibold text-[14px] rounded-xl shadow-lg shadow-accent-500/20"
-            >
-              <Plus className="w-4 h-4" />
+            <Button onClick={() => setShowCreate(true)} className="mt-5">
+              <Plus className="size-4" />
               Add Secret
-            </motion.button>
+            </Button>
           )}
-        </div>
+        </motion.div>
       ) : (
-        <div className="space-y-2 relative z-10">
+        <div className="space-y-3">
           {filtered.map((secret, i) => (
             <motion.div
               key={secret.key}
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] as const }}
-              layout
-              className="glass-card rounded-2xl px-5 py-4 group"
+              transition={{
+                delay: i * 0.04,
+                duration: 0.3,
+                ease: [0.22, 1, 0.36, 1],
+              }}
             >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <code className="font-mono text-[14px] font-semibold text-vault-50">
-                      {secret.key}
-                    </code>
-                    <span className="badge badge-blue">v{secret.version}</span>
-                  </div>
-                  {secret.description && (
-                    <p className="text-[13px] text-vault-400 mt-1.5">
-                      {secret.description}
-                    </p>
-                  )}
-                  {secret.tags && secret.tags.length > 0 && (
-                    <div className="flex gap-1.5 mt-2 flex-wrap">
-                      {secret.tags.map((tag) => (
-                        <span key={tag} className="badge badge-green">
-                          <Tag className="w-3 h-3 flex-shrink-0" />
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Revealed value */}
-                  <AnimatePresence>
-                    {revealedKeys.has(secret.key) && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="mt-3"
-                      >
-                        <code className="secret-reveal block font-mono text-[12px] text-accent-400 glass-subtle rounded-xl px-4 py-3 break-all leading-relaxed">
-                          {revealedValues[secret.key]}
+              <Card className="group">
+                <CardContent className="pt-0">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <code className="font-mono text-sm font-semibold">
+                          {secret.key}
                         </code>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                        <Badge variant="secondary">v{secret.version}</Badge>
+                      </div>
+                      {secret.description && (
+                        <p className="text-xs text-muted-foreground mt-1.5">
+                          {secret.description}
+                        </p>
+                      )}
+                      {secret.tags && secret.tags.length > 0 && (
+                        <div className="flex gap-1.5 mt-2 flex-wrap">
+                          {secret.tags.map((tag) => (
+                            <Badge key={tag} variant="outline">
+                              <Tag className="size-3" />
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
 
-                {/* Actions */}
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button
-                    onClick={() => toggleReveal(secret.key)}
-                    className="p-2 rounded-lg text-vault-400 hover:text-vault-200 hover:bg-white/[0.04] transition-colors"
-                    title={revealedKeys.has(secret.key) ? "Hide" : "Reveal"}
-                  >
-                    {revealedKeys.has(secret.key) ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => copyValue(secret.key)}
-                    className="p-2 rounded-lg text-vault-400 hover:text-vault-200 hover:bg-white/[0.04] transition-colors"
-                    title="Copy value"
-                  >
-                    {copiedKey === secret.key ? (
-                      <Check className="w-4 h-4 text-accent-500" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => handleDelete(secret.key)}
-                    className="p-2 rounded-lg text-vault-400 hover:text-danger-400 hover:bg-danger-500/10 transition-colors opacity-0 group-hover:opacity-100"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+                      {/* Revealed value */}
+                      <AnimatePresence>
+                        {revealedKeys.has(secret.key) && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="mt-3"
+                          >
+                            <code className="block font-mono text-xs text-primary bg-muted border rounded-lg px-4 py-3 break-all">
+                              {revealedValues[secret.key]}
+                            </code>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => toggleReveal(secret.key)}
+                          >
+                            {revealedKeys.has(secret.key) ? (
+                              <EyeOff className="size-4" />
+                            ) : (
+                              <Eye className="size-4" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {revealedKeys.has(secret.key) ? "Hide" : "Reveal"}
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => copyValue(secret.key)}
+                          >
+                            {copiedKey === secret.key ? (
+                              <Check className="size-4 text-primary" />
+                            ) : (
+                              <Copy className="size-4" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Copy value</TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(secret.key)}
+                            className="opacity-0 group-hover:opacity-100 hover:text-destructive"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Delete</TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           ))}
         </div>
       )}
 
       {/* Create Modal */}
-      <AnimatePresence>
-        {showCreate && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 modal-overlay flex items-center justify-center z-50 p-4"
-            onClick={() => setShowCreate(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 16 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 16 }}
-              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              onClick={(e) => e.stopPropagation()}
-              className="modal-content rounded-2xl p-6 w-full max-w-md"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="font-display text-lg font-semibold text-vault-50">
-                  Add Secret
-                </h2>
-                <button
-                  onClick={() => setShowCreate(false)}
-                  className="p-1.5 rounded-lg text-vault-400 hover:text-vault-200 hover:bg-white/[0.04] transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <form onSubmit={handleCreate} className="space-y-4">
-                <div>
-                  <label className="block text-[11px] font-semibold text-vault-400 mb-2 uppercase tracking-[0.1em]">
-                    Key
-                  </label>
-                  <input
-                    type="text"
-                    value={newKey}
-                    onChange={(e) =>
-                      setNewKey(
-                        e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "_")
-                      )
-                    }
-                    className="input-premium w-full font-mono"
-                    placeholder="OPENAI_API_KEY"
-                    required
-                    autoFocus
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-vault-400 mb-2 uppercase tracking-[0.1em]">
-                    Value
-                  </label>
-                  <textarea
-                    value={newValue}
-                    onChange={(e) => setNewValue(e.target.value)}
-                    className="input-premium w-full font-mono resize-none h-24"
-                    placeholder="sk-..."
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-vault-400 mb-2 uppercase tracking-[0.1em]">
-                    Description
-                  </label>
-                  <input
-                    type="text"
-                    value={newDesc}
-                    onChange={(e) => setNewDesc(e.target.value)}
-                    className="input-premium w-full"
-                    placeholder="Optional description"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-vault-400 mb-2 uppercase tracking-[0.1em]">
-                    Tags (comma-separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={newTags}
-                    onChange={(e) => setNewTags(e.target.value)}
-                    className="input-premium w-full"
-                    placeholder="ai, openai, production"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-[14px] disabled:opacity-50 shadow-lg shadow-accent-500/20"
-                >
-                  {loading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Plus className="w-4 h-4" />
-                      Add Secret
-                    </>
-                  )}
-                </button>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <Dialog open={showCreate} onOpenChange={setShowCreate}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Secret</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreate} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="secret-key">Key</Label>
+              <Input
+                id="secret-key"
+                value={newKey}
+                onChange={(e) =>
+                  setNewKey(
+                    e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "_")
+                  )
+                }
+                className="font-mono"
+                placeholder="OPENAI_API_KEY"
+                required
+                autoFocus
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="secret-value">Value</Label>
+              <Textarea
+                id="secret-value"
+                value={newValue}
+                onChange={(e) => setNewValue(e.target.value)}
+                className="font-mono resize-none h-24"
+                placeholder="sk-..."
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="secret-desc">Description</Label>
+              <Input
+                id="secret-desc"
+                value={newDesc}
+                onChange={(e) => setNewDesc(e.target.value)}
+                placeholder="Optional description"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="secret-tags">Tags (comma-separated)</Label>
+              <Input
+                id="secret-tags"
+                value={newTags}
+                onChange={(e) => setNewTags(e.target.value)}
+                placeholder="ai, openai, production"
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Plus className="size-4" />
+              )}
+              Add Secret
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

@@ -1,35 +1,60 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Key,
   Plus,
   Trash2,
-  X,
   Copy,
   Check,
   Loader2,
   Clock,
   Shield,
   AlertTriangle,
-  Fingerprint,
 } from "lucide-react";
-import { useStore } from "../store";
-import { apiKeysApi } from "../api/client";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
-  },
-};
+import { useStore } from "@/store";
+import { apiKeysApi } from "@/api/client";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const scopeOptions = [
   { key: "read", label: "Read", desc: "View secrets" },
   { key: "write", label: "Write", desc: "Create & update" },
   { key: "admin", label: "Admin", desc: "Full access" },
 ];
+
+const stagger = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
+  },
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35 },
+  },
+};
 
 export default function ApiKeys() {
   const { apiKeys, setApiKeys, serverStatus, addToast } = useStore();
@@ -64,7 +89,7 @@ export default function ApiKeys() {
       const { data } = await apiKeysApi.create({
         name,
         scopes: selectedScopes,
-        expires_in_days: expiryDays ? parseInt(expiryDays) : undefined,
+        expires_in_days: expiryDays && expiryDays !== "never" ? parseInt(expiryDays) : undefined,
       });
       setNewKeyValue(data.key);
       const list = await apiKeysApi.list();
@@ -130,148 +155,127 @@ export default function ApiKeys() {
     return new Date(ts * 1000).toLocaleDateString();
   };
 
-  const scopeColor = (scope: string) => {
+  const scopeVariant = (scope: string) => {
     switch (scope) {
       case "read":
-        return "badge-blue";
+        return "secondary" as const;
       case "write":
-        return "badge-amber";
+        return "default" as const;
       case "admin":
-        return "badge-purple";
+        return "destructive" as const;
       default:
-        return "badge-blue";
+        return "secondary" as const;
     }
   };
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="show"
-      variants={{
-        hidden: { opacity: 0 },
-        show: { opacity: 1, transition: { staggerChildren: 0.06 } },
-      }}
-    >
+    <motion.div variants={stagger} initial="hidden" animate="visible">
       {/* Header */}
       <motion.div
         variants={fadeUp}
-        className="flex items-center justify-between mb-10"
+        className="flex items-center justify-between mb-8"
       >
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/15 flex items-center justify-center">
-              <Fingerprint className="w-4 h-4 text-purple-400" />
-            </div>
-            <h1 className="font-display text-[28px] font-bold text-vault-50 tracking-tight">
-              API Keys
-            </h1>
-          </div>
-          <p className="text-[14px] text-vault-400 ml-11">
+          <h1 className="text-2xl font-semibold tracking-tight">API Keys</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Manage programmatic access to your vault
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-semibold text-[14px] rounded-xl transition-all duration-200 shadow-lg shadow-accent-500/20"
-        >
-          <Plus className="w-4 h-4" />
+        <Button onClick={() => setShowCreate(true)}>
+          <Plus className="size-4" />
           New API Key
-        </motion.button>
+        </Button>
       </motion.div>
 
       {/* API Keys List */}
       {apiKeys.length === 0 ? (
         <motion.div
           variants={fadeUp}
-          className="flex flex-col items-center justify-center py-24 text-vault-500"
+          className="flex flex-col items-center justify-center py-28"
         >
-          <div className="w-20 h-20 rounded-3xl glass-card flex items-center justify-center mb-5">
-            <Key className="w-9 h-9 text-vault-500 opacity-40" />
+          <div className="size-20 rounded-2xl bg-muted flex items-center justify-center mb-5">
+            <Key className="size-8 text-muted-foreground" />
           </div>
-          <p className="text-[16px] font-medium text-vault-300 font-display">
-            No API keys yet
-          </p>
-          <p className="text-[13px] text-vault-500 mt-1.5">
+          <p className="text-base font-medium">No API keys yet</p>
+          <p className="text-sm text-muted-foreground mt-1">
             Create an API key for programmatic vault access
           </p>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setShowCreate(true)}
-            className="mt-6 flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-accent-500 to-accent-600 text-white font-semibold text-[14px] rounded-xl shadow-lg shadow-accent-500/20"
-          >
-            <Plus className="w-4 h-4" />
+          <Button onClick={() => setShowCreate(true)} className="mt-5">
+            <Plus className="size-4" />
             Generate Key
-          </motion.button>
+          </Button>
         </motion.div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {apiKeys.map((key, i) => {
             const keyScopes = parseScopes(key.scopes);
             return (
               <motion.div
                 key={key.id}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] as const }}
-                layout
-                className={`glass-card rounded-2xl px-5 py-4 group ${
-                  !key.is_active ? "opacity-50" : ""
-                }`}
+                transition={{
+                  delay: i * 0.04,
+                  duration: 0.3,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <h3 className="text-[15px] font-semibold text-vault-50 font-display">
-                        {key.name}
-                      </h3>
-                      {!key.is_active && (
-                        <span className="badge badge-red">Revoked</span>
-                      )}
-                    </div>
+                <Card
+                  className={`group ${!key.is_active ? "opacity-50" : ""}`}
+                >
+                  <CardContent className="pt-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-sm font-semibold">{key.name}</h3>
+                          {!key.is_active && (
+                            <Badge variant="destructive">Revoked</Badge>
+                          )}
+                        </div>
 
-                    <div className="flex items-center gap-4 mt-2.5 flex-wrap">
-                      <div className="flex items-center gap-1.5">
-                        <Shield className="w-3.5 h-3.5 text-vault-500 flex-shrink-0" />
-                        <div className="flex gap-1">
-                          {keyScopes.map((scope) => (
-                            <span
-                              key={scope}
-                              className={`badge ${scopeColor(scope)}`}
-                            >
-                              {scope}
+                        <div className="flex items-center gap-4 mt-2 flex-wrap">
+                          <div className="flex items-center gap-1.5">
+                            <Shield className="size-3.5 text-muted-foreground" />
+                            <div className="flex gap-1">
+                              {keyScopes.map((scope) => (
+                                <Badge
+                                  key={scope}
+                                  variant={scopeVariant(scope)}
+                                >
+                                  {scope}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          {key.expires_at && (
+                            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Clock className="size-3.5" />
+                              Expires {formatDate(key.expires_at)}
                             </span>
-                          ))}
+                          )}
+                          {key.last_used_at && (
+                            <span className="text-xs text-muted-foreground">
+                              Last used {formatDate(key.last_used_at)}
+                            </span>
+                          )}
+                          <span className="text-[11px] text-muted-foreground">
+                            Created {formatDate(key.created_at)}
+                          </span>
                         </div>
                       </div>
-                      {key.expires_at && (
-                        <span className="flex items-center gap-1.5 text-[12px] text-vault-400">
-                          <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                          Expires {formatDate(key.expires_at)}
-                        </span>
+                      {key.is_active && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRevoke(key.id)}
+                          className="opacity-0 group-hover:opacity-100 hover:text-destructive shrink-0"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
                       )}
-                      {key.last_used_at && (
-                        <span className="text-[12px] text-vault-400">
-                          Last used {formatDate(key.last_used_at)}
-                        </span>
-                      )}
-                      <span className="text-[11px] text-vault-500">
-                        Created {formatDate(key.created_at)}
-                      </span>
                     </div>
-                  </div>
-                  {key.is_active ? (
-                    <button
-                      onClick={() => handleRevoke(key.id)}
-                      className="p-2 rounded-lg text-vault-500 hover:text-danger-400 hover:bg-danger-500/10 transition-all opacity-0 group-hover:opacity-100 flex-shrink-0"
-                      title="Revoke"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  ) : null}
-                </div>
+                  </CardContent>
+                </Card>
               </motion.div>
             );
           })}
@@ -279,154 +283,118 @@ export default function ApiKeys() {
       )}
 
       {/* Create Modal */}
-      <AnimatePresence>
-        {showCreate && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 modal-overlay flex items-center justify-center z-50 p-4"
-            onClick={closeCreate}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 16 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 16 }}
-              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              onClick={(e) => e.stopPropagation()}
-              className="modal-content rounded-2xl p-6 w-full max-w-md"
-            >
-              {newKeyValue ? (
-                <div>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-accent-500/10 border border-accent-500/15 flex items-center justify-center">
-                      <Check className="w-5 h-5 text-accent-400" />
-                    </div>
-                    <h2 className="font-display text-lg font-semibold text-vault-50">
-                      API Key Created
-                    </h2>
-                  </div>
-
-                  <div className="glass-subtle rounded-xl p-3.5 mb-4 flex items-start gap-2.5 !border-warn-500/15 bg-warn-500/[0.04]">
-                    <AlertTriangle className="w-4 h-4 text-warn-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-[13px] text-warn-400 leading-relaxed">
-                      Copy this key now. It won't be shown again.
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 font-mono text-[12px] text-accent-400 glass-subtle rounded-xl px-4 py-3 break-all leading-relaxed">
-                      {newKeyValue}
-                    </code>
-                    <button
-                      onClick={copyKeyValue}
-                      className="p-2.5 rounded-xl glass-subtle hover:bg-white/[0.06] text-vault-300 hover:text-vault-100 transition-colors flex-shrink-0"
-                    >
-                      {copiedKey ? (
-                        <Check className="w-4 h-4 text-accent-500" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={closeCreate}
-                    className="w-full mt-5 py-3 glass-subtle hover:bg-white/[0.06] text-vault-200 font-medium rounded-xl transition-colors text-[14px]"
-                  >
-                    Done
-                  </button>
+      <Dialog open={showCreate} onOpenChange={(open) => !open && closeCreate()}>
+        <DialogContent>
+          {newKeyValue ? (
+            <div>
+              <div className="flex items-center gap-3 mb-5">
+                <div className="size-8 rounded-md bg-primary/10 flex items-center justify-center">
+                  <Check className="size-4 text-primary" />
                 </div>
-              ) : (
-                <>
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="font-display text-lg font-semibold text-vault-50">
-                      New API Key
-                    </h2>
-                    <button
-                      onClick={closeCreate}
-                      className="p-1.5 rounded-lg text-vault-400 hover:text-vault-200 hover:bg-white/[0.04] transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
+                <DialogTitle>API Key Created</DialogTitle>
+              </div>
 
-                  <form onSubmit={handleCreate} className="space-y-4">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-vault-400 mb-2 uppercase tracking-[0.1em]">
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="input-premium w-full"
-                        placeholder="My Claude Agent"
-                        required
-                        autoFocus
-                      />
-                    </div>
+              <Alert className="mb-4">
+                <AlertTriangle className="size-4" />
+                <AlertDescription>
+                  Copy this key now. It won't be shown again.
+                </AlertDescription>
+              </Alert>
 
-                    <div>
-                      <label className="block text-[11px] font-semibold text-vault-400 mb-2 uppercase tracking-[0.1em]">
-                        Scopes
-                      </label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {scopeOptions.map((scope) => (
-                          <button
-                            key={scope.key}
-                            type="button"
-                            onClick={() => toggleScope(scope.key)}
-                            className={`px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 text-center ${
-                              selectedScopes.includes(scope.key)
-                                ? "bg-accent-500/[0.08] border border-accent-500/20 text-accent-400"
-                                : "glass-subtle text-vault-400 hover:text-vault-200 hover:bg-white/[0.04]"
-                            }`}
-                          >
-                            {scope.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 font-mono text-xs text-primary bg-muted border rounded-lg px-4 py-3 break-all">
+                  {newKeyValue}
+                </code>
+                <Button variant="outline" size="icon" onClick={copyKeyValue}>
+                  {copiedKey ? (
+                    <Check className="size-4 text-primary" />
+                  ) : (
+                    <Copy className="size-4" />
+                  )}
+                </Button>
+              </div>
 
-                    <div>
-                      <label className="block text-[11px] font-semibold text-vault-400 mb-2 uppercase tracking-[0.1em]">
-                        Expires In
-                      </label>
-                      <select
-                        value={expiryDays}
-                        onChange={(e) => setExpiryDays(e.target.value)}
-                        className="input-premium w-full"
+              <Button
+                variant="outline"
+                className="w-full mt-4"
+                onClick={closeCreate}
+              >
+                Done
+              </Button>
+            </div>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>New API Key</DialogTitle>
+              </DialogHeader>
+
+              <form onSubmit={handleCreate} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="key-name">Name</Label>
+                  <Input
+                    id="key-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="My Claude Agent"
+                    required
+                    autoFocus
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Scopes</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {scopeOptions.map((scope) => (
+                      <Button
+                        key={scope.key}
+                        type="button"
+                        variant={
+                          selectedScopes.includes(scope.key)
+                            ? "default"
+                            : "outline"
+                        }
+                        size="sm"
+                        onClick={() => toggleScope(scope.key)}
+                        className="text-center"
                       >
-                        <option value="30">30 days</option>
-                        <option value="90">90 days</option>
-                        <option value="365">1 year</option>
-                        <option value="">Never</option>
-                      </select>
-                    </div>
+                        {scope.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
 
-                    <button
-                      type="submit"
-                      disabled={loading || selectedScopes.length === 0}
-                      className="w-full py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-[14px] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-accent-500/20"
-                    >
-                      {loading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Key className="w-4 h-4" />
-                          Generate Key
-                        </>
-                      )}
-                    </button>
-                  </form>
-                </>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                <div className="space-y-2">
+                  <Label>Expires In</Label>
+                  <Select value={expiryDays} onValueChange={setExpiryDays}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 days</SelectItem>
+                      <SelectItem value="90">90 days</SelectItem>
+                      <SelectItem value="365">1 year</SelectItem>
+                      <SelectItem value="never">Never</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={loading || selectedScopes.length === 0}
+                >
+                  {loading ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Key className="size-4" />
+                  )}
+                  Generate Key
+                </Button>
+              </form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

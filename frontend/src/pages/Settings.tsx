@@ -13,26 +13,48 @@ import {
   RotateCw,
   Loader2,
   Lock,
-  Wrench,
   Sun,
   Moon,
   Monitor,
 } from "lucide-react";
-import { useStore } from "../store";
-import { useServerManager } from "../hooks/useTauri";
+import { useStore } from "@/store";
+import { useServerManager } from "@/hooks/useTauri";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+const stagger = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
+  },
+};
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  show: {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
+    transition: { duration: 0.35 },
   },
 };
 
 export default function Settings() {
-  const { serverStatus, checkServerHealth, mcpStatus, checkMcpHealth, theme, setTheme } =
-    useStore();
+  const {
+    serverStatus,
+    checkServerHealth,
+    mcpStatus,
+    checkMcpHealth,
+    theme,
+    setTheme,
+  } = useStore();
   const {
     isTauri,
     startServer,
@@ -95,488 +117,507 @@ export default function Settings() {
   );
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="show"
-      variants={{
-        hidden: { opacity: 0 },
-        show: { opacity: 1, transition: { staggerChildren: 0.06 } },
-      }}
-    >
+    <motion.div variants={stagger} initial="hidden" animate="visible">
       {/* Header */}
-      <motion.div variants={fadeUp} className="mb-10">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-8 h-8 rounded-lg bg-vault-700/50 border border-vault-600/30 flex items-center justify-center">
-            <Wrench className="w-4 h-4 text-vault-300" />
-          </div>
-          <h1 className="font-display text-[28px] font-bold text-vault-50 tracking-tight">
-            Settings
-          </h1>
-        </div>
-        <p className="text-[14px] text-vault-400 ml-11">
+      <motion.div variants={fadeUp} className="mb-8">
+        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Server configuration and integrations
         </p>
       </motion.div>
 
-      <div className="space-y-5">
-        {/* Server Status */}
-        <motion.div variants={fadeUp} className="glass-card rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-accent-500/10 border border-accent-500/15 flex items-center justify-center">
-                <Server className="w-[18px] h-[18px] text-accent-400" />
-              </div>
-              <div>
-                <h2 className="text-[15px] font-semibold text-vault-100 font-display">
-                  Backend Server
-                </h2>
-                <p className="text-[12px] text-vault-500">
-                  REST API on port {serverStatus.port}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {isTauri && (
-                <>
-                  {!serverStatus.running ? (
-                    <button
-                      onClick={() => handleServerAction("start")}
-                      disabled={!!serverAction}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-medium bg-accent-500/[0.08] text-accent-400 hover:bg-accent-500/[0.12] border border-accent-500/15 transition-all disabled:opacity-50"
-                    >
-                      {serverAction === "start" ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Play className="w-3.5 h-3.5" />
-                      )}
-                      Start
-                    </button>
-                  ) : (
+      <div className="space-y-4">
+        {/* Backend Server */}
+        <motion.div variants={fadeUp}>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                    <Server className="size-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-sm">Backend Server</CardTitle>
+                    <CardDescription>
+                      REST API on port {serverStatus.port}
+                    </CardDescription>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isTauri && (
                     <>
-                      <button
-                        onClick={() => handleServerAction("restart")}
-                        disabled={!!serverAction}
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] font-medium text-vault-300 hover:text-vault-100 hover:bg-white/[0.04] transition-all disabled:opacity-50"
-                      >
-                        {serverAction === "restart" ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <RotateCw className="w-3.5 h-3.5" />
-                        )}
-                        Restart
-                      </button>
-                      <button
-                        onClick={() => handleServerAction("stop")}
-                        disabled={!!serverAction}
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] font-medium text-danger-400 hover:bg-danger-500/10 transition-all disabled:opacity-50"
-                      >
-                        {serverAction === "stop" ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <Square className="w-3.5 h-3.5" />
-                        )}
-                        Stop
-                      </button>
+                      {!serverStatus.running ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleServerAction("start")}
+                          disabled={!!serverAction}
+                        >
+                          {serverAction === "start" ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Play className="size-3.5" />
+                          )}
+                          Start
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleServerAction("restart")}
+                            disabled={!!serverAction}
+                          >
+                            {serverAction === "restart" ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <RotateCw className="size-3.5" />
+                            )}
+                            Restart
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleServerAction("stop")}
+                            disabled={!!serverAction}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            {serverAction === "stop" ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <Square className="size-3.5" />
+                            )}
+                            Stop
+                          </Button>
+                        </>
+                      )}
                     </>
                   )}
-                </>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={refreshHealth}
+                    title="Refresh status"
+                  >
+                    <RefreshCw
+                      className={`size-4 ${checking ? "animate-spin" : ""}`}
+                    />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="bg-muted rounded-lg p-4">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">
+                    Status
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`size-2 rounded-full ${
+                        serverStatus.running
+                          ? "bg-primary pulse-online"
+                          : "bg-destructive"
+                      }`}
+                    />
+                    <span
+                      className={`text-sm font-semibold ${
+                        serverStatus.running
+                          ? "text-primary"
+                          : "text-destructive"
+                      }`}
+                    >
+                      {serverStatus.running ? "Online" : "Offline"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-muted rounded-lg p-4">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">
+                    Address
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-sm font-mono">
+                      127.0.0.1:{serverStatus.port}
+                    </code>
+                    <button
+                      onClick={() =>
+                        copyToClipboard(
+                          `http://127.0.0.1:${serverStatus.port}`,
+                          "addr"
+                        )
+                      }
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {copied === "addr" ? (
+                        <Check className="size-3.5 text-primary" />
+                      ) : (
+                        <Copy className="size-3.5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-muted rounded-lg p-4">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">
+                    Encryption
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Lock className="size-3.5 text-primary" />
+                    <span className="text-sm font-mono">AES-256-GCM</span>
+                  </div>
+                </div>
+              </div>
+
+              {!isTauri && !serverStatus.running && (
+                <div className="mt-4 bg-muted rounded-lg p-4">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Start the server from your terminal:
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 font-mono text-xs text-primary bg-background border rounded-md px-3 py-2">
+                      python -m achilles.main
+                    </code>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        copyToClipboard("python -m achilles.main", "cmd")
+                      }
+                    >
+                      {copied === "cmd" ? (
+                        <Check className="size-4 text-primary" />
+                      ) : (
+                        <Copy className="size-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
               )}
-              <button
-                onClick={refreshHealth}
-                className="p-2 rounded-xl text-vault-400 hover:text-vault-200 hover:bg-white/[0.04] transition-colors"
-                title="Refresh status"
-              >
-                <RefreshCw
-                  className={`w-4 h-4 ${checking ? "animate-spin" : ""}`}
-                />
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="glass-subtle rounded-xl p-4">
-              <p className="text-[10px] text-vault-500 uppercase tracking-[0.12em] mb-2 font-semibold">
-                Status
-              </p>
-              <div className="flex items-center gap-2.5">
-                <div
-                  className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-                    serverStatus.running
-                      ? "bg-accent-500 pulse-online"
-                      : "bg-danger-400"
-                  }`}
-                />
-                <span
-                  className={`text-[14px] font-semibold ${
-                    serverStatus.running ? "text-accent-400" : "text-danger-400"
-                  }`}
-                >
-                  {serverStatus.running ? "Online" : "Offline"}
-                </span>
-              </div>
-            </div>
-
-            <div className="glass-subtle rounded-xl p-4">
-              <p className="text-[10px] text-vault-500 uppercase tracking-[0.12em] mb-2 font-semibold">
-                Address
-              </p>
-              <div className="flex items-center gap-2">
-                <code className="text-[14px] font-mono text-vault-100">
-                  127.0.0.1:{serverStatus.port}
-                </code>
-                <button
-                  onClick={() =>
-                    copyToClipboard(
-                      `http://127.0.0.1:${serverStatus.port}`,
-                      "addr"
-                    )
-                  }
-                  className="text-vault-400 hover:text-vault-200 transition-colors"
-                >
-                  {copied === "addr" ? (
-                    <Check className="w-3.5 h-3.5 text-accent-500" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="glass-subtle rounded-xl p-4">
-              <p className="text-[10px] text-vault-500 uppercase tracking-[0.12em] mb-2 font-semibold">
-                Encryption
-              </p>
-              <div className="flex items-center gap-2">
-                <Lock className="w-3.5 h-3.5 text-accent-400" />
-                <span className="text-[14px] font-mono text-vault-100">
-                  AES-256-GCM
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {!isTauri && !serverStatus.running && (
-            <div className="mt-4 glass-subtle rounded-xl p-4">
-              <p className="text-[13px] text-vault-400 mb-2.5">
-                Start the server from your terminal:
-              </p>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 font-mono text-[13px] text-accent-400 glass-subtle rounded-xl px-4 py-2.5">
-                  python -m achilles.main
-                </code>
-                <button
-                  onClick={() =>
-                    copyToClipboard("python -m achilles.main", "cmd")
-                  }
-                  className="p-2.5 rounded-xl glass-subtle hover:bg-white/[0.06] text-vault-400 hover:text-vault-200 transition-colors flex-shrink-0"
-                >
-                  {copied === "cmd" ? (
-                    <Check className="w-4 h-4 text-accent-500" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* MCP Server */}
-        <motion.div variants={fadeUp} className="glass-card rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/15 flex items-center justify-center">
-                <Cpu className="w-[18px] h-[18px] text-purple-400" />
-              </div>
-              <div>
-                <h2 className="text-[15px] font-semibold text-vault-100 font-display">
-                  MCP Server
-                </h2>
-                <p className="text-[12px] text-vault-500">
-                  AI tool integration via SSE
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {isTauri ? (
-                <>
-                  {!mcpStatus.running ? (
-                    <button
-                      onClick={() => handleMcpAction("start")}
-                      disabled={!!mcpAction}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-medium bg-accent-500/[0.08] text-accent-400 hover:bg-accent-500/[0.12] border border-accent-500/15 transition-all disabled:opacity-50"
-                    >
-                      {mcpAction === "start" ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Play className="w-3.5 h-3.5" />
-                      )}
-                      Start
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleMcpAction("stop")}
-                      disabled={!!mcpAction}
-                      className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] font-medium text-danger-400 hover:bg-danger-500/10 transition-all disabled:opacity-50"
-                    >
-                      {mcpAction === "stop" ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Square className="w-3.5 h-3.5" />
-                      )}
-                      Stop
-                    </button>
-                  )}
-                </>
-              ) : null}
-            </div>
-          </div>
-
-          {/* Status Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-            <div className="glass-subtle rounded-xl p-4">
-              <p className="text-[10px] text-vault-500 uppercase tracking-[0.12em] mb-2 font-semibold">
-                Status
-              </p>
-              <div className="flex items-center gap-2.5">
-                <div
-                  className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-                    mcpStatus.running
-                      ? "bg-accent-500 pulse-online"
-                      : "bg-vault-500"
-                  }`}
-                />
-                <span
-                  className={`text-[14px] font-semibold ${
-                    mcpStatus.running ? "text-accent-400" : "text-vault-400"
-                  }`}
-                >
-                  {mcpStatus.running ? "Online" : "Offline"}
-                </span>
-              </div>
-            </div>
-
-            <div className="glass-subtle rounded-xl p-4">
-              <p className="text-[10px] text-vault-500 uppercase tracking-[0.12em] mb-2 font-semibold">
-                URL
-              </p>
-              <div className="flex items-center gap-2">
-                <code className="text-[14px] font-mono text-vault-100">
-                  127.0.0.1:{mcpStatus.port}
-                </code>
-                <button
-                  onClick={() => copyToClipboard(mcpSseUrl, "mcp-url")}
-                  className="text-vault-400 hover:text-vault-200 transition-colors"
-                >
-                  {copied === "mcp-url" ? (
-                    <Check className="w-3.5 h-3.5 text-accent-500" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="glass-subtle rounded-xl p-4">
-              <p className="text-[10px] text-vault-500 uppercase tracking-[0.12em] mb-2 font-semibold">
-                Transport
-              </p>
-              <span className="text-[14px] font-mono text-vault-100">
-                SSE (Server-Sent Events)
-              </span>
-            </div>
-          </div>
-
-          {/* Config Snippets */}
-          <div className="space-y-4">
-            <p className="text-[13px] text-vault-400">
-              Add to your AI tool configuration to connect:
-            </p>
-
-            <div>
-              <p className="text-[10px] text-vault-500 uppercase tracking-[0.12em] mb-2 font-semibold">
-                Claude Desktop / Cursor / Claude Code
-              </p>
-              <div className="relative">
-                <pre className="font-mono text-[12px] text-accent-400 glass-subtle rounded-xl p-4 overflow-x-auto leading-relaxed">
-                  {claudeConfig}
-                </pre>
-                <button
-                  onClick={() =>
-                    copyToClipboard(claudeConfig, "claude-config")
-                  }
-                  className="absolute top-3 right-3 p-2 rounded-lg glass hover:bg-white/[0.06] text-vault-300 hover:text-vault-100 transition-colors"
-                >
-                  {copied === "claude-config" ? (
-                    <Check className="w-4 h-4 text-accent-500" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {!isTauri && (
-              <div className="glass-subtle rounded-xl p-4">
-                <p className="text-[13px] text-vault-400 mb-2.5">
-                  Start the MCP server from your terminal:
-                </p>
+        <motion.div variants={fadeUp}>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                    <Cpu className="size-5 text-purple-400" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-sm">MCP Server</CardTitle>
+                    <CardDescription>
+                      AI tool integration via SSE
+                    </CardDescription>
+                  </div>
+                </div>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 font-mono text-[13px] text-accent-400 glass-subtle rounded-xl px-4 py-2.5">
-                    python -m achilles.mcp_server
-                  </code>
-                  <button
-                    onClick={() =>
-                      copyToClipboard(
-                        "python -m achilles.mcp_server",
-                        "mcp-cmd"
-                      )
-                    }
-                    className="p-2.5 rounded-xl glass-subtle hover:bg-white/[0.06] text-vault-400 hover:text-vault-200 transition-colors flex-shrink-0"
-                  >
-                    {copied === "mcp-cmd" ? (
-                      <Check className="w-4 h-4 text-accent-500" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                  </button>
+                  {isTauri && (
+                    <>
+                      {!mcpStatus.running ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleMcpAction("start")}
+                          disabled={!!mcpAction}
+                        >
+                          {mcpAction === "start" ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Play className="size-3.5" />
+                          )}
+                          Start
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleMcpAction("stop")}
+                          disabled={!!mcpAction}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          {mcpAction === "stop" ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Square className="size-3.5" />
+                          )}
+                          Stop
+                        </Button>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+                <div className="bg-muted rounded-lg p-4">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">
+                    Status
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`size-2 rounded-full ${
+                        mcpStatus.running
+                          ? "bg-primary pulse-online"
+                          : "bg-muted-foreground"
+                      }`}
+                    />
+                    <span
+                      className={`text-sm font-semibold ${
+                        mcpStatus.running
+                          ? "text-primary"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      {mcpStatus.running ? "Online" : "Offline"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-muted rounded-lg p-4">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">
+                    URL
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-sm font-mono">
+                      127.0.0.1:{mcpStatus.port}
+                    </code>
+                    <button
+                      onClick={() => copyToClipboard(mcpSseUrl, "mcp-url")}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {copied === "mcp-url" ? (
+                        <Check className="size-3.5 text-primary" />
+                      ) : (
+                        <Copy className="size-3.5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-muted rounded-lg p-4">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">
+                    Transport
+                  </p>
+                  <span className="text-sm font-mono">
+                    SSE (Server-Sent Events)
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-xs text-muted-foreground">
+                  Add to your AI tool configuration to connect:
+                </p>
+
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">
+                    Claude Desktop / Cursor / Claude Code
+                  </p>
+                  <div className="relative">
+                    <pre className="font-mono text-xs text-primary bg-muted border rounded-lg p-4 overflow-x-auto">
+                      {claudeConfig}
+                    </pre>
+                    <button
+                      onClick={() =>
+                        copyToClipboard(claudeConfig, "claude-config")
+                      }
+                      className="absolute top-3 right-3 p-1.5 rounded-md bg-background/80 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {copied === "claude-config" ? (
+                        <Check className="size-3.5 text-primary" />
+                      ) : (
+                        <Copy className="size-3.5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {!isTauri && (
+                  <div className="bg-muted rounded-lg p-4">
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Start the MCP server from your terminal:
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 font-mono text-xs text-primary bg-background border rounded-md px-3 py-2">
+                        python -m achilles.mcp_server
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() =>
+                          copyToClipboard(
+                            "python -m achilles.mcp_server",
+                            "mcp-cmd"
+                          )
+                        }
+                      >
+                        {copied === "mcp-cmd" ? (
+                          <Check className="size-4 text-primary" />
+                        ) : (
+                          <Copy className="size-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* API Endpoints */}
-        <motion.div variants={fadeUp} className="glass-card rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/15 flex items-center justify-center">
-              <Terminal className="w-[18px] h-[18px] text-blue-400" />
-            </div>
-            <div>
-              <h2 className="text-[15px] font-semibold text-vault-100 font-display">
-                API Endpoints
-              </h2>
-              <p className="text-[12px] text-vault-500">REST API reference</p>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            {[
-              {
-                method: "GET",
-                path: "/api/v1/projects",
-                desc: "List projects",
-              },
-              {
-                method: "GET",
-                path: "/api/v1/projects/{id}/environments/{env}/secrets",
-                desc: "List secrets",
-              },
-              {
-                method: "PUT",
-                path: "/api/v1/projects/{id}/environments/{env}/secrets/{key}",
-                desc: "Set secret",
-              },
-              {
-                method: "POST",
-                path: "/api/v1/ai/mcp/call",
-                desc: "MCP tool call",
-              },
-            ].map((ep) => (
-              <div
-                key={ep.path}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl glass-subtle"
-              >
-                <span
-                  className={`badge ${
-                    ep.method === "GET"
-                      ? "badge-green"
-                      : ep.method === "POST"
-                        ? "badge-blue"
-                        : "badge-amber"
-                  }`}
-                >
-                  {ep.method}
-                </span>
-                <code className="text-[12px] font-mono text-vault-200 flex-1 min-w-0 truncate">
-                  {ep.path}
-                </code>
-                <span className="text-[12px] text-vault-500 flex-shrink-0">
-                  {ep.desc}
-                </span>
+        <motion.div variants={fadeUp}>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                  <Terminal className="size-5 text-blue-400" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm">API Endpoints</CardTitle>
+                  <CardDescription>REST API reference</CardDescription>
+                </div>
               </div>
-            ))}
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {[
+                  {
+                    method: "GET",
+                    path: "/api/v1/projects",
+                    desc: "List projects",
+                  },
+                  {
+                    method: "GET",
+                    path: "/api/v1/projects/{id}/environments/{env}/secrets",
+                    desc: "List secrets",
+                  },
+                  {
+                    method: "PUT",
+                    path: "/api/v1/projects/{id}/environments/{env}/secrets/{key}",
+                    desc: "Set secret",
+                  },
+                  {
+                    method: "POST",
+                    path: "/api/v1/ai/mcp/call",
+                    desc: "MCP tool call",
+                  },
+                ].map((ep) => (
+                  <div
+                    key={ep.path}
+                    className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-muted"
+                  >
+                    <Badge
+                      variant={
+                        ep.method === "GET"
+                          ? "default"
+                          : ep.method === "POST"
+                            ? "secondary"
+                            : "outline"
+                      }
+                    >
+                      {ep.method}
+                    </Badge>
+                    <code className="text-xs font-mono flex-1 min-w-0 truncate">
+                      {ep.path}
+                    </code>
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      {ep.desc}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Appearance */}
-        <motion.div variants={fadeUp} className="glass-card rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-vault-700/50 border border-vault-600/30 flex items-center justify-center">
-              <Sun className="w-[18px] h-[18px] text-vault-300" />
-            </div>
-            <div>
-              <h2 className="text-[15px] font-semibold text-vault-100 font-display">
-                Appearance
-              </h2>
-              <p className="text-[12px] text-vault-500">
-                Theme and display settings
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            {([
-              { key: "light" as const, label: "Light", icon: Sun },
-              { key: "dark" as const, label: "Dark", icon: Moon },
-              { key: "system" as const, label: "System", icon: Monitor },
-            ]).map((opt) => (
-              <button
-                key={opt.key}
-                onClick={() => setTheme(opt.key)}
-                className={`flex flex-col items-center gap-2.5 px-4 py-4 rounded-xl text-[13px] font-medium transition-all duration-200 ${
-                  theme === opt.key
-                    ? "bg-accent-500/[0.08] border border-accent-500/20 text-accent-400"
-                    : "glass-subtle text-vault-400 hover:text-vault-200 hover:bg-white/[0.04]"
-                }`}
-              >
-                <opt.icon className="w-5 h-5" />
-                {opt.label}
-              </button>
-            ))}
-          </div>
+        <motion.div variants={fadeUp}>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
+                  <Sun className="size-5 text-yellow-400" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm">Appearance</CardTitle>
+                  <CardDescription>
+                    Theme and display settings
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-3">
+                {(
+                  [
+                    {
+                      key: "light" as const,
+                      label: "Light",
+                      icon: Sun,
+                    },
+                    {
+                      key: "dark" as const,
+                      label: "Dark",
+                      icon: Moon,
+                    },
+                    {
+                      key: "system" as const,
+                      label: "System",
+                      icon: Monitor,
+                    },
+                  ] as const
+                ).map((opt) => (
+                  <Button
+                    key={opt.key}
+                    variant={theme === opt.key ? "default" : "outline"}
+                    onClick={() => setTheme(opt.key)}
+                    className="flex flex-col items-center gap-2 h-auto py-4"
+                  >
+                    <opt.icon className="size-5" />
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Chrome Extension */}
-        <motion.div variants={fadeUp} className="glass-card rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-xl bg-warn-500/10 border border-warn-500/15 flex items-center justify-center">
-              <ExternalLink className="w-[18px] h-[18px] text-warn-400" />
-            </div>
-            <div>
-              <h2 className="text-[15px] font-semibold text-vault-100 font-display">
-                Chrome Extension
-              </h2>
-              <p className="text-[12px] text-vault-500">
-                Browser integration
+        <motion.div variants={fadeUp}>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
+                  <ExternalLink className="size-5 text-yellow-400" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm">Chrome Extension</CardTitle>
+                  <CardDescription>Browser integration</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground mb-3">
+                Install the Achilles Vault Chrome extension for quick access to
+                secrets from your browser.
               </p>
-            </div>
-          </div>
-
-          <p className="text-[13px] text-vault-400 mb-4 leading-relaxed">
-            Install the Achilles Vault Chrome extension for quick access to
-            secrets from your browser.
-          </p>
-
-          <div className="glass-subtle rounded-xl p-4">
-            <p className="text-[13px] text-vault-300 leading-relaxed">
-              Load the extension from{" "}
-              <code className="font-mono text-accent-400 glass px-2 py-0.5 rounded-lg text-[12px]">
-                chrome-extension/
-              </code>{" "}
-              directory via Chrome Developer Mode.
-            </p>
-          </div>
+              <div className="bg-muted rounded-lg p-4">
+                <p className="text-xs">
+                  Load the extension from{" "}
+                  <code className="font-mono text-primary text-[11px]">
+                    chrome-extension/
+                  </code>{" "}
+                  directory via Chrome Developer Mode.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
     </motion.div>
