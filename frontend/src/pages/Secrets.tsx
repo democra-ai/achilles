@@ -235,8 +235,14 @@ export default function Secrets() {
               : "Select a project to manage secrets"}
           </p>
         </div>
-        {selectedProject && (
-          <Button onClick={() => setShowCreate(true)}>
+        {projects.length > 0 && (
+          <Button
+            onClick={() => {
+              if (!selectedProject && projects.length > 0)
+                selectProject(projects[0]);
+              setShowCreate(true);
+            }}
+          >
             <Plus className="size-4" />
             Add Secret
           </Button>

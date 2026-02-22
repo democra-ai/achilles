@@ -154,18 +154,19 @@ export default function Layout() {
   return (
     <TooltipProvider>
       <SidebarProvider
+        className="h-screen overflow-hidden"
         open={!sidebarCollapsed}
         onOpenChange={(open) => {
           if (open === sidebarCollapsed) toggleSidebar();
         }}
       >
         <Sidebar collapsible="icon">
-          <SidebarHeader className="border-b border-sidebar-border p-4">
-            <div className="flex items-center gap-3">
-              <div className="size-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                <Shield className="size-[18px] text-primary" />
+          <SidebarHeader className="border-b border-sidebar-border !p-0">
+            <div className="flex items-center gap-3 px-4 py-3 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:justify-center">
+              <div className="size-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                <Shield className="size-4 text-primary" />
               </div>
-              <div className="group-data-[collapsible=icon]:hidden">
+              <div className="group-data-[state=collapsed]:hidden">
                 <h1 className="text-sm font-bold tracking-tight">Achilles</h1>
                 <p className="text-[10px] text-muted-foreground font-mono">
                   Vault v0.1.0
@@ -234,27 +235,25 @@ export default function Layout() {
           </SidebarFooter>
         </Sidebar>
 
-        <SidebarInset>
-          <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+        <SidebarInset className="overflow-y-auto">
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4 sticky top-0 z-10 bg-background">
             <SidebarTrigger className="-ml-1" />
           </header>
 
           {!serverStatus.running && <OfflineBanner />}
 
-          <div className="flex-1 overflow-y-auto">
-            <div className="max-w-[1200px] mx-auto px-6 lg:px-10 py-6 lg:py-8">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={location.pathname}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-                >
-                  <Outlet />
-                </motion.div>
-              </AnimatePresence>
-            </div>
+          <div className="max-w-[1200px] mx-auto px-6 lg:px-10 py-6 lg:py-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
           </div>
         </SidebarInset>
 

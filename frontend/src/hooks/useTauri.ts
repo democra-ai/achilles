@@ -146,6 +146,14 @@ export function useServerManager() {
     }
   }, [addToast, checkMcpHealth]);
 
+  const restartMcpServer = useCallback(async () => {
+    if (isTauri) {
+      await stopMcpServer();
+      await new Promise((r) => setTimeout(r, 1000));
+      await startMcpServer();
+    }
+  }, [startMcpServer, stopMcpServer]);
+
   return {
     isTauri,
     startServer,
@@ -153,5 +161,6 @@ export function useServerManager() {
     restartServer,
     startMcpServer,
     stopMcpServer,
+    restartMcpServer,
   };
 }

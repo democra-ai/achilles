@@ -62,6 +62,7 @@ export default function Settings() {
     restartServer,
     startMcpServer,
     stopMcpServer,
+    restartMcpServer,
   } = useServerManager();
   const [copied, setCopied] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
@@ -93,10 +94,11 @@ export default function Settings() {
     setServerAction(null);
   };
 
-  const handleMcpAction = async (action: "start" | "stop") => {
+  const handleMcpAction = async (action: "start" | "stop" | "restart") => {
     setMcpAction(action);
     if (action === "start") await startMcpServer();
-    else await stopMcpServer();
+    else if (action === "stop") await stopMcpServer();
+    else if (action === "restart") await restartMcpServer();
     await new Promise((r) => setTimeout(r, 1500));
     await checkMcpHealth();
     setMcpAction(null);
@@ -332,20 +334,35 @@ export default function Settings() {
                           Start
                         </Button>
                       ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleMcpAction("stop")}
-                          disabled={!!mcpAction}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          {mcpAction === "stop" ? (
-                            <Loader2 className="size-3.5 animate-spin" />
-                          ) : (
-                            <Square className="size-3.5" />
-                          )}
-                          Stop
-                        </Button>
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleMcpAction("restart")}
+                            disabled={!!mcpAction}
+                          >
+                            {mcpAction === "restart" ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <RotateCw className="size-3.5" />
+                            )}
+                            Restart
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleMcpAction("stop")}
+                            disabled={!!mcpAction}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            {mcpAction === "stop" ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <Square className="size-3.5" />
+                            )}
+                            Stop
+                          </Button>
+                        </>
                       )}
                     </>
                   )}
