@@ -27,12 +27,15 @@ export interface Environment {
   created_at: number;
 }
 
+export type SecretCategory = "secret" | "api_key" | "env_var" | "token";
+
 export interface Secret {
   id: string;
   key: string;
   description?: string;
   tags?: string[];
   version: number;
+  category: SecretCategory;
   created_at: number;
   updated_at: number;
   value?: string;
@@ -43,6 +46,7 @@ export interface SecretCreate {
   value: string;
   description?: string;
   tags?: string[];
+  category?: SecretCategory;
 }
 
 export interface ApiKey {

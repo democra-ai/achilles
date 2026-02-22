@@ -1,12 +1,14 @@
 let currentProject = null;
 let currentEnv = "development";
 let revealedSecrets = {};
+let activeTab = "vault";
 
-// Init
+// Init — local mode, no login required
 document.addEventListener("DOMContentLoaded", async () => {
   await checkHealth();
-  await checkAuth();
+  showMainView();
   setupEventListeners();
+  loadDetectedSecrets();
 });
 
 // Health Check
@@ -30,23 +32,7 @@ async function checkHealth() {
   }
 }
 
-// Auth Check
-async function checkAuth() {
-  const resp = await chrome.runtime.sendMessage({ type: "CHECK_AUTH" });
-  if (resp.authenticated) {
-    showMainView();
-  } else {
-    showLoginView();
-  }
-}
-
-function showLoginView() {
-  document.getElementById("login-view").style.display = "block";
-  document.getElementById("main-view").style.display = "none";
-}
-
 function showMainView() {
-  document.getElementById("login-view").style.display = "none";
   document.getElementById("main-view").style.display = "flex";
   document.getElementById("main-view").style.flexDirection = "column";
   document.getElementById("main-view").style.flex = "1";
@@ -55,27 +41,14 @@ function showMainView() {
 
 // Event Listeners
 function setupEventListeners() {
-  // Login
-  document.getElementById("login-btn").addEventListener("click", handleLogin);
-  document.getElementById("password").addEventListener("keypress", (e) => {
-    if (e.key === "Enter") handleLogin();
-  });
-
-  // Logout
-  document.getElementById("logout-btn").addEventListener("click", async () => {
-    await chrome.runtime.sendMessage({ type: "LOGOUT" });
-    showLoginView();
-  });
-
-  // Open App
+  // Open App — launch native desktop app via custom URL scheme
   document.getElementById("open-app").addEventListener("click", () => {
-    chrome.tabs.create({ url: "http://127.0.0.1:8900" });
+    chrome.tabs.create({ url: "achillesvault://open" });
   });
 
   // Project select
   document.getElementById("project-select").addEventListener("change", (e) => {
-    const id = parseInt(e.target.value);
-    currentProject = id || null;
+    currentProject = e.target.value || null;
     if (currentProject) loadSecrets();
     else showEmptyState();
   });
@@ -94,34 +67,115 @@ function setupEventListeners() {
   document.getElementById("search-input").addEventListener("input", (e) => {
     filterSecrets(e.target.value);
   });
+
+  // Tab bar
+  document.querySelectorAll(".tab-bar .tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      switchTab(tab.dataset.tab);
+    });
+  });
 }
 
-// Login
-async function handleLogin() {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-  const errorEl = document.getElementById("login-error");
-  const btn = document.getElementById("login-btn");
+// ── Tab switching ────────────────────────────────────────────────────
 
-  if (!username || !password) return;
+function switchTab(tabName) {
+  activeTab = tabName;
+  document.querySelectorAll(".tab-bar .tab").forEach((t) => {
+    t.classList.toggle("active", t.dataset.tab === tabName);
+  });
+  document.getElementById("vault-tab").style.display = tabName === "vault" ? "flex" : "none";
+  document.getElementById("detected-tab").style.display = tabName === "detected" ? "flex" : "none";
 
-  btn.disabled = true;
-  errorEl.style.display = "none";
-
-  try {
-    const resp = await chrome.runtime.sendMessage({
-      type: "LOGIN",
-      username,
-      password,
-    });
-    if (resp.error) throw new Error(resp.error);
-    showMainView();
-  } catch (err) {
-    errorEl.textContent = err.message || "Login failed";
-    errorEl.style.display = "block";
-  } finally {
-    btn.disabled = false;
+  if (tabName === "detected") {
+    loadDetectedSecrets();
   }
+}
+
+// ── Detected secrets ─────────────────────────────────────────────────
+
+async function loadDetectedSecrets() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) return;
+
+    const resp = await chrome.runtime.sendMessage({
+      type: "GET_DETECTED",
+      tabId: tab.id,
+    });
+
+    const secrets = resp?.secrets || [];
+    const badge = document.getElementById("detected-count");
+
+    if (secrets.length > 0) {
+      badge.textContent = String(secrets.length);
+      badge.style.display = "inline-flex";
+    } else {
+      badge.style.display = "none";
+    }
+
+    renderDetectedSecrets(secrets);
+  } catch {
+    // silently fail
+  }
+}
+
+function renderDetectedSecrets(secrets) {
+  const list = document.getElementById("detected-list");
+
+  if (secrets.length === 0) {
+    list.innerHTML = `<div class="empty-state"><p>No secrets detected on this page</p></div>`;
+    return;
+  }
+
+  list.innerHTML = secrets
+    .map(
+      (s, i) => `
+    <div class="detected-item" data-index="${i}">
+      <div class="detected-info">
+        <span class="detected-type">${escapeHtml(s.type)}</span>
+        <code class="detected-value">${escapeHtml(maskValue(s.value))}</code>
+      </div>
+      <button class="action-btn import-btn" data-index="${i}" title="Import to Vault">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+    </div>
+  `
+    )
+    .join("");
+
+  // Attach import handlers
+  list.querySelectorAll(".import-btn").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.index);
+      const secret = secrets[idx];
+      if (!secret) return;
+
+      btn.disabled = true;
+      try {
+        const resp = await chrome.runtime.sendMessage({
+          type: "IMPORT_SECRET",
+          secret,
+        });
+        if (resp.error) {
+          alert("Import failed: " + resp.error);
+        } else {
+          btn.classList.add("imported");
+          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`;
+          btn.title = `Imported as ${resp.key}`;
+        }
+      } catch (err) {
+        alert("Import failed: " + err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
+function maskValue(value) {
+  if (value.length <= 12) return value;
+  return value.slice(0, 8) + "..." + value.slice(-4);
 }
 
 // Load Projects

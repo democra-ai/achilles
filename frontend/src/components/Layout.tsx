@@ -13,6 +13,8 @@ import {
   Copy,
   Check,
   WifiOff,
+  Fingerprint,
+  Lock,
 } from "lucide-react";
 import { useStore } from "@/store";
 import { useEffect, useState } from "react";
@@ -30,18 +32,37 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronRight, Trash2 } from "lucide-react";
+import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 
-const navItems = [
+const topNav = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/projects", icon: FolderKey, label: "Projects" },
+];
+
+const vaultItems = [
   { to: "/secrets", icon: KeyRound, label: "Secrets" },
-  { to: "/api-keys", icon: Key, label: "API Keys" },
+  { to: "/vault-api-keys", icon: Key, label: "API Keys" },
+  { to: "/env-vars", icon: Terminal, label: "Env Vars" },
+  { to: "/tokens", icon: Shield, label: "Tokens" },
+];
+
+const bottomNav = [
+  { to: "/trash", icon: Trash2, label: "Trash" },
+  { to: "/api-keys", icon: Fingerprint, label: "Access Keys" },
   { to: "/settings", icon: Settings, label: "Settings" },
 ];
 
@@ -177,18 +198,65 @@ export default function Layout() {
 
           <SidebarContent className="px-2 py-4">
             <SidebarMenu>
-              {navItems.map((item) => (
+              {topNav.map((item) => (
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton
                     asChild
-                    isActive={
-                      item.to === "/"
-                        ? location.pathname === "/"
-                        : location.pathname.startsWith(item.to)
-                    }
+                    isActive={item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to)}
                     tooltip={item.label}
                   >
                     <NavLink to={item.to} end={item.to === "/"}>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+
+              {/* Vault collapsible group */}
+              <Collapsible
+                defaultOpen
+                className="group/collapsible"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton
+                      tooltip="Vault"
+                      isActive={vaultItems.some((v) => location.pathname.startsWith(v.to)) || location.pathname === "/vault"}
+                    >
+                      <Lock />
+                      <span>Vault</span>
+                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {vaultItems.map((item) => (
+                        <SidebarMenuSubItem key={item.to}>
+                          <SidebarMenuSubButton
+                            asChild
+                            isActive={location.pathname.startsWith(item.to)}
+                          >
+                            <NavLink to={item.to}>
+                              <item.icon />
+                              <span>{item.label}</span>
+                            </NavLink>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+
+              {bottomNav.map((item) => (
+                <SidebarMenuItem key={item.to}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname.startsWith(item.to)}
+                    tooltip={item.label}
+                  >
+                    <NavLink to={item.to}>
                       <item.icon />
                       <span>{item.label}</span>
                     </NavLink>

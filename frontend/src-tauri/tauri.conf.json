@@ -29,6 +29,13 @@
             "capabilities": ["default"]
         }
     },
+    "plugins": {
+        "deep-link": {
+            "desktop": {
+                "schemes": ["achillesvault"]
+            }
+        }
+    },
     "bundle": {
         "active": true,
         "targets": ["dmg", "app"],

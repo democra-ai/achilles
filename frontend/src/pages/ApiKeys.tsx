@@ -57,7 +57,7 @@ const fadeUp = {
 };
 
 export default function ApiKeys() {
-  const { apiKeys, setApiKeys, serverStatus, addToast } = useStore();
+  const { apiKeys, setApiKeys, addToast } = useStore();
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [selectedScopes, setSelectedScopes] = useState<string[]>(["read"]);
@@ -67,23 +67,14 @@ export default function ApiKeys() {
   const [copiedKey, setCopiedKey] = useState(false);
 
   useEffect(() => {
-    if (!serverStatus.running) return;
     apiKeysApi
       .list()
       .then((r) => setApiKeys(r.data))
       .catch(() => {});
-  }, [setApiKeys, serverStatus.running]);
+  }, [setApiKeys]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!serverStatus.running) {
-      addToast({
-        type: "error",
-        title: "Server offline",
-        message: "Start the server before creating API keys",
-      });
-      return;
-    }
     setLoading(true);
     try {
       const { data } = await apiKeysApi.create({
@@ -106,13 +97,13 @@ export default function ApiKeys() {
     }
   };
 
-  const handleRevoke = async (id: string) => {
-    if (!confirm("Revoke this API key? This cannot be undone.")) return;
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this API key? This cannot be undone.")) return;
     try {
       await apiKeysApi.revoke(id);
       const { data } = await apiKeysApi.list();
       setApiKeys(data);
-      addToast({ type: "success", title: "API key revoked" });
+      addToast({ type: "success", title: "API key deleted" });
     } catch {
       // handled by interceptor
     }
@@ -176,7 +167,7 @@ export default function ApiKeys() {
         className="flex items-center justify-between mb-8"
       >
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">API Keys</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Access Keys</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Manage programmatic access to your vault
           </p>
@@ -220,17 +211,12 @@ export default function ApiKeys() {
                   ease: [0.22, 1, 0.36, 1],
                 }}
               >
-                <Card
-                  className={`group ${!key.is_active ? "opacity-50" : ""}`}
-                >
+                <Card className="group">
                   <CardContent className="pt-0">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="text-sm font-semibold">{key.name}</h3>
-                          {!key.is_active && (
-                            <Badge variant="destructive">Revoked</Badge>
-                          )}
                         </div>
 
                         <div className="flex items-center gap-4 mt-2 flex-wrap">
@@ -263,16 +249,14 @@ export default function ApiKeys() {
                           </span>
                         </div>
                       </div>
-                      {key.is_active && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRevoke(key.id)}
-                          className="opacity-0 group-hover:opacity-100 hover:text-destructive shrink-0"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(key.id)}
+                        className="opacity-0 group-hover:opacity-100 hover:text-destructive shrink-0"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>

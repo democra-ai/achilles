@@ -366,6 +366,16 @@ export default function Settings() {
                       )}
                     </>
                   )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={refreshHealth}
+                    title="Refresh status"
+                  >
+                    <RefreshCw
+                      className={`size-4 ${checking ? "animate-spin" : ""}`}
+                    />
+                  </Button>
                 </div>
               </div>
             </CardHeader>

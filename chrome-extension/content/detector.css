@@ -1,0 +1,142 @@
+/* Achilles Vault — Content Script Styles */
+
+/* Inline detected token highlight */
+.achilles-detected {
+  position: relative;
+  background: rgba(16, 185, 129, 0.08);
+  border-bottom: 2px solid rgba(16, 185, 129, 0.4);
+  border-radius: 2px;
+  padding: 1px 2px;
+  cursor: default;
+}
+
+.achilles-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  padding: 1px 6px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 4px;
+  cursor: pointer;
+  vertical-align: middle;
+  line-height: 16px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.achilles-badge:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+/* ── Fill Picker Overlay ─────────────────────────────────────── */
+
+.achilles-fill-overlay {
+  width: 280px;
+  max-height: 250px;
+  background: #0a0a0a;
+  border: 1px solid #222;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #ccc;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.achilles-fill-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #0f0f0f;
+  border-bottom: 1px solid #1a1a1a;
+  font-size: 11px;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.achilles-fill-close {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.achilles-fill-close:hover {
+  color: #eee;
+}
+
+.achilles-fill-loading {
+  padding: 24px 12px;
+  text-align: center;
+  font-size: 11px;
+  color: #555;
+}
+
+.achilles-fill-list {
+  overflow-y: auto;
+  max-height: 200px;
+  padding: 4px;
+}
+
+.achilles-fill-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 10px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #ccc;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-align: left;
+}
+
+.achilles-fill-item:hover {
+  background: #141414;
+  border-color: #333;
+}
+
+.achilles-fill-key {
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: #eee;
+}
+
+.achilles-fill-env {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #555;
+  padding: 1px 5px;
+  background: #141414;
+  border-radius: 3px;
+}
+
+/* Scrollbar inside overlay */
+.achilles-fill-list::-webkit-scrollbar {
+  width: 4px;
+}
+.achilles-fill-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.achilles-fill-list::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 2px;
+}

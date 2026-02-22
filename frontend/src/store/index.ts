@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Project, Secret, ApiKey, ServerStatus, McpStatus } from "../types";
+import type { Project, Secret, ApiKey, ServerStatus, McpStatus, SecretCategory } from "../types";
 import { healthApi, mcpHealthApi } from "../api/client";
 
 export interface Toast {
@@ -32,6 +32,8 @@ interface AppStore {
   // Secrets
   secrets: Secret[];
   setSecrets: (secrets: Secret[]) => void;
+  selectedCategory: SecretCategory;
+  selectCategory: (cat: SecretCategory) => void;
 
   // API Keys
   apiKeys: ApiKey[];
@@ -83,6 +85,8 @@ export const useStore = create<AppStore>((set) => ({
   // Secrets
   secrets: [],
   setSecrets: (secrets) => set({ secrets }),
+  selectedCategory: "secret" as SecretCategory,
+  selectCategory: (cat) => set({ selectedCategory: cat }),
 
   // API Keys
   apiKeys: [],

@@ -44,9 +44,11 @@ CREATE TABLE IF NOT EXISTS secrets (
     version INTEGER NOT NULL DEFAULT 1,
     tags TEXT DEFAULT '[]',
     description TEXT DEFAULT '',
+    category TEXT NOT NULL DEFAULT 'secret',
     created_at REAL NOT NULL,
     updated_at REAL NOT NULL,
     created_by TEXT DEFAULT 'system',
+    deleted_at REAL,
     UNIQUE(project_id, environment_id, key)
 );
 
@@ -94,6 +96,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX IF NOT EXISTS idx_secrets_project ON secrets(project_id);
 CREATE INDEX IF NOT EXISTS idx_secrets_env ON secrets(environment_id);
 CREATE INDEX IF NOT EXISTS idx_secrets_key ON secrets(key);
+CREATE INDEX IF NOT EXISTS idx_secrets_category ON secrets(category);
+CREATE INDEX IF NOT EXISTS idx_secrets_deleted ON secrets(deleted_at);
 CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_log(timestamp);
 CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_log(action);
 """
@@ -110,6 +114,19 @@ class Database:
         await self._db.execute("PRAGMA journal_mode=WAL")
         await self._db.execute("PRAGMA foreign_keys=ON")
         await self._db.executescript(SCHEMA)
+
+        # Migrations for existing databases
+        cursor = await self._db.execute("PRAGMA table_info(secrets)")
+        columns = [row[1] for row in await cursor.fetchall()]
+        if "category" not in columns:
+            await self._db.execute(
+                "ALTER TABLE secrets ADD COLUMN category TEXT NOT NULL DEFAULT 'secret'"
+            )
+        if "deleted_at" not in columns:
+            await self._db.execute(
+                "ALTER TABLE secrets ADD COLUMN deleted_at REAL"
+            )
+
         await self._db.commit()
 
     async def close(self) -> None:
@@ -195,6 +212,7 @@ class Database:
         description: str = "",
         tags: list[str] | None = None,
         created_by: str = "system",
+        category: str = "secret",
     ) -> dict:
         now = time.time()
         secret_id = str(uuid.uuid4())
@@ -230,8 +248,8 @@ class Database:
         else:
             version = 1
             await self.db.execute(
-                "INSERT INTO secrets (id, project_id, environment_id, key, encrypted_value, version, tags, description, created_at, updated_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (secret_id, project_id, environment_id, key, encrypted_value, 1, tags_json, description, now, now, created_by),
+                "INSERT INTO secrets (id, project_id, environment_id, key, encrypted_value, version, tags, description, category, created_at, updated_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (secret_id, project_id, environment_id, key, encrypted_value, 1, tags_json, description, category, now, now, created_by),
             )
 
         await self.db.commit()
@@ -239,7 +257,7 @@ class Database:
 
     async def get_secret(self, project_id: str, environment_id: str, key: str) -> dict | None:
         cursor = await self.db.execute(
-            "SELECT * FROM secrets WHERE project_id = ? AND environment_id = ? AND key = ?",
+            "SELECT * FROM secrets WHERE project_id = ? AND environment_id = ? AND key = ? AND deleted_at IS NULL",
             (project_id, environment_id, key),
         )
         row = await cursor.fetchone()
@@ -250,9 +268,14 @@ class Database:
         project_id: str,
         environment_id: str,
         tag: str | None = None,
+        category: str | None = None,
     ) -> list[dict]:
-        query = "SELECT id, key, version, tags, description, created_at, updated_at, created_by FROM secrets WHERE project_id = ? AND environment_id = ?"
+        query = "SELECT id, key, version, tags, description, category, created_at, updated_at, created_by FROM secrets WHERE project_id = ? AND environment_id = ? AND deleted_at IS NULL"
         params: list[Any] = [project_id, environment_id]
+
+        if category:
+            query += " AND category = ?"
+            params.append(category)
 
         if tag:
             query += " AND tags LIKE ?"
@@ -264,12 +287,60 @@ class Database:
         return [dict(row) for row in rows]
 
     async def delete_secret(self, project_id: str, environment_id: str, key: str) -> bool:
+        """Soft-delete a secret (move to trash)."""
+        now = time.time()
         cursor = await self.db.execute(
-            "DELETE FROM secrets WHERE project_id = ? AND environment_id = ? AND key = ?",
-            (project_id, environment_id, key),
+            "UPDATE secrets SET deleted_at = ? WHERE project_id = ? AND environment_id = ? AND key = ? AND deleted_at IS NULL",
+            (now, project_id, environment_id, key),
         )
         await self.db.commit()
         return cursor.rowcount > 0
+
+    # --- Trash ---
+
+    async def list_trash(self) -> list[dict]:
+        """List all soft-deleted secrets across all projects."""
+        cursor = await self.db.execute(
+            """SELECT s.id, s.key, s.version, s.tags, s.description, s.category,
+                      s.created_at, s.updated_at, s.deleted_at,
+                      s.project_id, s.environment_id,
+                      p.name as project_name, e.name as env_name
+               FROM secrets s
+               JOIN projects p ON p.id = s.project_id
+               JOIN environments e ON e.id = s.environment_id
+               WHERE s.deleted_at IS NOT NULL
+               ORDER BY s.deleted_at DESC"""
+        )
+        rows = await cursor.fetchall()
+        return [dict(row) for row in rows]
+
+    async def restore_secret(self, secret_id: str) -> bool:
+        """Restore a soft-deleted secret from trash."""
+        cursor = await self.db.execute(
+            "UPDATE secrets SET deleted_at = NULL WHERE id = ? AND deleted_at IS NOT NULL",
+            (secret_id,),
+        )
+        await self.db.commit()
+        return cursor.rowcount > 0
+
+    async def purge_secret(self, secret_id: str) -> bool:
+        """Permanently delete a secret from trash."""
+        cursor = await self.db.execute(
+            "DELETE FROM secrets WHERE id = ? AND deleted_at IS NOT NULL",
+            (secret_id,),
+        )
+        await self.db.commit()
+        return cursor.rowcount > 0
+
+    async def purge_expired_trash(self, max_age_days: int = 30) -> int:
+        """Permanently delete all trash items older than max_age_days."""
+        cutoff = time.time() - (max_age_days * 86400)
+        cursor = await self.db.execute(
+            "DELETE FROM secrets WHERE deleted_at IS NOT NULL AND deleted_at < ?",
+            (cutoff,),
+        )
+        await self.db.commit()
+        return cursor.rowcount
 
     async def get_secret_versions(self, secret_id: str) -> list[dict]:
         cursor = await self.db.execute(
@@ -325,6 +396,13 @@ class Database:
     async def revoke_api_key(self, key_id: str) -> bool:
         cursor = await self.db.execute(
             "UPDATE api_keys SET is_active = 0 WHERE id = ?", (key_id,)
+        )
+        await self.db.commit()
+        return cursor.rowcount > 0
+
+    async def delete_api_key(self, key_id: str) -> bool:
+        cursor = await self.db.execute(
+            "DELETE FROM api_keys WHERE id = ?", (key_id,)
         )
         await self.db.commit()
         return cursor.rowcount > 0

@@ -48,7 +48,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!serverStatus.running) return;
     projectsApi
       .list()
       .then((r) => setProjects(r.data))
@@ -61,7 +60,7 @@ export default function Dashboard() {
       .list()
       .then((r) => setApiKeys(r.data))
       .catch(() => {});
-  }, [setProjects, setApiKeys, serverStatus.running]);
+  }, [setProjects, setApiKeys]);
 
   useEffect(() => {
     if (projects.length === 0) {
@@ -92,7 +91,7 @@ export default function Dashboard() {
       onClick: () => navigate("/projects"),
     },
     {
-      label: "Secrets",
+      label: "Vault Items",
       value: secretCount !== null ? secretCount : "\u2014",
       icon: KeyRound,
       color: "text-blue-400",
@@ -100,7 +99,7 @@ export default function Dashboard() {
       onClick: () => navigate("/secrets"),
     },
     {
-      label: "API Keys",
+      label: "Access Keys",
       value: apiKeys.length,
       icon: Key,
       color: "text-purple-400",
@@ -206,16 +205,16 @@ export default function Dashboard() {
                 {
                   to: "/secrets",
                   icon: KeyRound,
-                  title: "Manage Secrets",
-                  desc: "Add, view, or rotate your secrets",
+                  title: "Manage Vault",
+                  desc: "Secrets, API keys, env vars, and tokens",
                   color: "text-blue-400",
                   bg: "bg-blue-500/10",
                 },
                 {
                   to: "/api-keys",
                   icon: Key,
-                  title: "Generate API Key",
-                  desc: "Create keys for programmatic access",
+                  title: "Access Keys",
+                  desc: "Create keys for programmatic vault access",
                   color: "text-purple-400",
                   bg: "bg-purple-500/10",
                 },

@@ -21,7 +21,7 @@ from slowapi.util import get_remote_address
 
 from achilles.config import get_settings
 from achilles.database import Database
-from achilles.routers import ai_router, audit_router, auth_router, projects_router, secrets_router
+from achilles.routers import ai_router, audit_router, auth_router, projects_router, secrets_router, trash_router
 
 logger = logging.getLogger("achilles")
 
@@ -37,6 +37,11 @@ async def lifespan(app: FastAPI):
 
     app.state.settings = settings
     app.state.db = db
+
+    # Auto-purge trash items older than 30 days
+    purged = await db.purge_expired_trash(max_age_days=30)
+    if purged:
+        logger.info(f"Purged {purged} expired trash items")
 
     logger.info(f"Achilles Vault started on {settings.host}:{settings.port}")
     logger.info(f"Data directory: {settings.data_dir}")
@@ -104,11 +109,21 @@ def create_app() -> FastAPI:
     app.include_router(secrets_router.router)
     app.include_router(ai_router.router)
     app.include_router(audit_router.router)
+    app.include_router(trash_router.router)
 
-    # Health check
+    # Health check — verifies database connectivity
     @app.get("/health", tags=["system"])
-    async def health():
-        return {"status": "healthy", "version": "0.1.0"}
+    async def health(request: Request):
+        try:
+            db = request.app.state.db
+            cursor = await db.db.execute("SELECT 1")
+            await cursor.fetchone()
+            return {"status": "healthy", "version": "0.1.0"}
+        except Exception:
+            return JSONResponse(
+                status_code=503,
+                content={"status": "unhealthy", "version": "0.1.0"},
+            )
 
     # Serve web dashboard
     web_dir = Path(__file__).parent.parent / "web"

@@ -126,17 +126,17 @@ async def list_api_keys(
 
 
 @router.delete("/api-keys/{key_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def revoke_api_key(
+async def delete_api_key(
     request: Request,
     key_id: str,
     user: dict = Depends(get_current_user),
 ):
-    """Revoke an API key."""
+    """Delete an API key."""
     db = request.app.state.db
-    success = await db.revoke_api_key(key_id)
+    success = await db.delete_api_key(key_id)
     if not success:
         raise HTTPException(status_code=404, detail="API key not found")
-    await db.log_audit("api_key.revoke", "api_key", user["username"], key_id)
+    await db.log_audit("api_key.delete", "api_key", user["username"], key_id)
 
 
 @router.get("/me")

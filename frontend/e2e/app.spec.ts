@@ -3,13 +3,16 @@ import { test, expect } from "@playwright/test";
 // Mock all API responses since backend may not be running
 async function mockAPIs(page: import("@playwright/test").Page) {
   // Health check - server online
-  await page.route("**/health", (route) =>
-    route.fulfill({
+  await page.route("**/health", (route) => {
+    const url = route.request().url();
+    // Backend health returns "healthy", MCP health returns "ok"
+    const status = url.includes("8901") ? "ok" : "healthy";
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ status: "ok" }),
-    })
-  );
+      body: JSON.stringify({ status, version: "0.1.0" }),
+    });
+  });
 
   // Projects list
   await page.route("**/api/v1/projects", (route) => {

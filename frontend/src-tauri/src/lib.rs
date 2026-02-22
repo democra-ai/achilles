@@ -69,6 +69,7 @@ pub fn run() {
             Some(vec!["--hidden"]),
         ))
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_deep_link::init())
         .manage(Mutex::new(AppState {
             server_running: false,
             server_port: 8900,

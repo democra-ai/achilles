@@ -22,10 +22,16 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const { addToast } = useStore.getState();
+    const store = useStore.getState();
+    const { addToast } = store;
 
     if (!error.response) {
-      // Network error - server is down
+      // Network error - server is down. Immediately mark as offline
+      // and activate cooldown so health polls don't flip it back.
+      markApiFailed();
+      useStore.setState((state) => ({
+        serverStatus: { ...state.serverStatus, running: false },
+      }));
       addToast({
         type: "error",
         title: "Connection failed",
@@ -80,8 +86,10 @@ export const projectsApi = {
 
 // Secrets
 export const secretsApi = {
-  list: (projectId: string, env: string) =>
-    api.get<Secret[]>(`/projects/${projectId}/environments/${env}/secrets`),
+  list: (projectId: string, env: string, category?: string) =>
+    api.get<Secret[]>(`/projects/${projectId}/environments/${env}/secrets`, {
+      params: category ? { category } : undefined,
+    }),
 
   get: (projectId: string, env: string, key: string) =>
     api.get<Secret>(
@@ -108,6 +116,29 @@ export const apiKeysApi = {
   revoke: (id: string) => api.delete(`/auth/api-keys/${id}`),
 };
 
+// Trash
+export interface TrashItem {
+  id: string;
+  key: string;
+  version: number;
+  description: string;
+  tags: string[];
+  category: string;
+  created_at: number;
+  updated_at: number;
+  deleted_at: number;
+  project_id: string;
+  project_name: string;
+  env_name: string;
+}
+
+export const trashApi = {
+  list: () => api.get<TrashItem[]>("/trash"),
+  restore: (secretId: string) => api.post(`/trash/${secretId}/restore`),
+  purge: (secretId: string) => api.delete(`/trash/${secretId}`),
+  empty: () => api.delete("/trash"),
+};
+
 // Audit
 export const auditApi = {
   list: (params?: { limit?: number; action?: string }) =>
@@ -117,13 +148,40 @@ export const auditApi = {
     ),
 };
 
-// Health (no interceptor - health check failures are expected when server is off)
+// Track when the last API network failure happened.
+// Health polls within the cooldown period are skipped to prevent
+// the poll from flipping status back to "online" after a real failure.
+let _lastApiFail = 0;
+const API_FAIL_COOLDOWN = 15_000; // 15 seconds
+
+export function markApiFailed() {
+  _lastApiFail = Date.now();
+}
+
+// Health — verifies BOTH /health AND an actual API route (/api/v1/projects).
+// If the HTTP process is alive but API routes are broken, this returns false.
 export const healthApi = {
-  check: () =>
-    axios
-      .get(`${API_BASE}/health`, { timeout: 3000 })
-      .then(() => true)
-      .catch(() => false),
+  check: async (): Promise<boolean> => {
+    // Respect cooldown after a real API failure
+    if (Date.now() - _lastApiFail < API_FAIL_COOLDOWN) return false;
+
+    try {
+      const opts = {
+        timeout: 3000,
+        params: { _t: Date.now() },
+        headers: { "Cache-Control": "no-cache, no-store" },
+      };
+      // 1) /health endpoint must respond with "healthy"
+      const health = await axios.get(`${API_BASE}/health`, opts);
+      if (health.data?.status !== "healthy") return false;
+
+      // 2) An actual API route must also be reachable
+      await axios.get(`${API_BASE}/api/v1/projects`, opts);
+      return true;
+    } catch {
+      return false;
+    }
+  },
 };
 
 // MCP Health (check if MCP server port is responding)
@@ -132,8 +190,12 @@ const MCP_BASE = "http://127.0.0.1:8901";
 export const mcpHealthApi = {
   check: () =>
     axios
-      .get(`${MCP_BASE}/health`, { timeout: 3000 })
-      .then(() => true)
+      .get(`${MCP_BASE}/health`, {
+        timeout: 3000,
+        params: { _t: Date.now() },
+        headers: { "Cache-Control": "no-cache, no-store" },
+      })
+      .then((res) => res.data?.status === "ok")
       .catch(() => false),
 };
 

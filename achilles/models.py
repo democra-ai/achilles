@@ -4,8 +4,17 @@ Follows fastapi skill Pattern 2: Input Validation
 and rest-api-design-patterns skill: Consistent Error Response Format
 """
 
+from enum import Enum
+
 from pydantic import BaseModel, Field
 from typing import Any
+
+
+class SecretCategory(str, Enum):
+    SECRET = "secret"
+    API_KEY = "api_key"
+    ENV_VAR = "env_var"
+    TOKEN = "token"
 
 
 # --- Auth ---
@@ -53,6 +62,7 @@ class SecretCreate(BaseModel):
     value: str = Field(min_length=1)
     description: str = Field(default="", max_length=500)
     tags: list[str] = Field(default_factory=list)
+    category: SecretCategory = Field(default=SecretCategory.SECRET)
 
 
 class SecretBulkCreate(BaseModel):
@@ -66,6 +76,7 @@ class SecretResponse(BaseModel):
     version: int
     description: str
     tags: list[str]
+    category: str = "secret"
     created_at: float
     updated_at: float
 
@@ -77,6 +88,7 @@ class SecretMetadata(BaseModel):
     version: int
     description: str
     tags: list[str]
+    category: str = "secret"
     created_at: float
     updated_at: float
 

@@ -49,17 +49,18 @@ async def list_secrets(
     project_id: str,
     env_name: str,
     tag: str | None = None,
+    category: str | None = None,
     user: dict = Depends(require_scope("read")),
 ):
     """List all secrets in a project/environment (metadata only, no values)."""
     db = request.app.state.db
     _, env = await _resolve_env(request, project_id, env_name)
 
-    rows = await db.list_secrets(project_id, env["id"], tag=tag)
+    rows = await db.list_secrets(project_id, env["id"], tag=tag, category=category)
 
     await db.log_audit(
         "secret.list", "secret", user["username"],
-        details={"project_id": project_id, "environment": env_name},
+        details={"project_id": project_id, "environment": env_name, "category": category},
         ip_address=request.client.host if request.client else None,
     )
 
@@ -70,6 +71,7 @@ async def list_secrets(
             version=r["version"],
             description=r["description"],
             tags=json.loads(r["tags"]) if isinstance(r["tags"], str) else r["tags"],
+            category=r.get("category", "secret"),
             created_at=r["created_at"],
             updated_at=r["updated_at"],
         )
@@ -94,7 +96,17 @@ async def get_secret(
     if not secret:
         raise HTTPException(status_code=404, detail=f"Secret '{key}' not found")
 
-    decrypted = decrypt(secret["encrypted_value"], settings.master_key)
+    try:
+        decrypted = decrypt(secret["encrypted_value"], settings.master_key)
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                f"Failed to decrypt secret '{key}'. "
+                "The master key may have changed since this secret was encrypted. "
+                "Re-create the secret to fix this."
+            ),
+        )
 
     await db.log_audit(
         "secret.read", "secret", user["username"], secret["id"],
@@ -109,6 +121,7 @@ async def get_secret(
         version=secret["version"],
         description=secret["description"],
         tags=json.loads(secret["tags"]) if isinstance(secret["tags"], str) else secret["tags"],
+        category=secret.get("category", "secret"),
         created_at=secret["created_at"],
         updated_at=secret["updated_at"],
     )
@@ -138,6 +151,7 @@ async def set_secret(
         description=body.description,
         tags=body.tags,
         created_by=user["username"],
+        category=body.category.value,
     )
 
     await db.log_audit(
@@ -173,6 +187,7 @@ async def bulk_set_secrets(
             description=secret.description,
             tags=secret.tags,
             created_by=user["username"],
+            category=secret.category.value,
         )
         results.append(result)
 
