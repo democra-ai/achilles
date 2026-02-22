@@ -10,6 +10,7 @@ import {
   Globe,
   TestTube,
   Rocket,
+  Layers,
 } from "lucide-react";
 import { useStore } from "../store";
 import { projectsApi } from "../api/client";
@@ -22,13 +23,39 @@ const envIcons: Record<string, typeof Globe> = {
   production: Rocket,
 };
 
+const envStyles: Record<string, { hover: string; badge: string }> = {
+  development: {
+    hover: "hover:border-blue-500/20 hover:text-blue-400 hover:bg-blue-500/[0.04]",
+    badge: "badge-blue",
+  },
+  staging: {
+    hover: "hover:border-warn-500/20 hover:text-warn-400 hover:bg-warn-500/[0.04]",
+    badge: "badge-amber",
+  },
+  production: {
+    hover: "hover:border-accent-500/20 hover:text-accent-400 hover:bg-accent-500/[0.04]",
+    badge: "badge-green",
+  },
+};
+
 const fadeUp = {
-  hidden: { opacity: 0, y: 8 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" as const } },
+  hidden: { opacity: 0, y: 16 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
+  },
 };
 
 export default function Projects() {
-  const { projects, setProjects, selectProject, selectEnv, serverStatus, addToast } = useStore();
+  const {
+    projects,
+    setProjects,
+    selectProject,
+    selectEnv,
+    serverStatus,
+    addToast,
+  } = useStore();
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -40,13 +67,17 @@ export default function Projects() {
     projectsApi
       .list()
       .then((r) => setProjects(r.data))
-      .catch(() => {/* handled by interceptor */});
+      .catch(() => {});
   }, [setProjects, serverStatus.running]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!serverStatus.running) {
-      addToast({ type: "error", title: "Server offline", message: "Start the server before creating projects" });
+      addToast({
+        type: "error",
+        title: "Server offline",
+        message: "Start the server before creating projects",
+      });
       return;
     }
     setLoading(true);
@@ -57,7 +88,11 @@ export default function Projects() {
       setShowCreate(false);
       setName("");
       setDescription("");
-      addToast({ type: "success", title: "Project created", message: `"${name}" is ready to use` });
+      addToast({
+        type: "success",
+        title: "Project created",
+        message: `"${name}" is ready to use`,
+      });
     } catch {
       // handled by interceptor
     } finally {
@@ -84,96 +119,75 @@ export default function Projects() {
     navigate("/secrets");
   };
 
-  return (
-    <motion.div
-      initial="hidden"
-      animate="show"
-      variants={{ show: { transition: { staggerChildren: 0.04 } } }}
-    >
-      {/* Header */}
-      <motion.div
-        variants={fadeUp}
-        className="flex items-center justify-between mb-6"
-      >
-        <div>
-          <h1 className="font-display text-xl font-bold text-vault-50 tracking-tight leading-tight">
-            Projects
-          </h1>
-          <p className="text-sm text-vault-400 mt-1 leading-normal">
-            Organize secrets by project and environment
-          </p>
-        </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-accent-500 hover:bg-accent-600 text-vault-950 font-semibold text-[13px] rounded-lg transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          New Project
-        </button>
-      </motion.div>
+  const stagger = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.06 } },
+  };
 
-      {/* Create Modal */}
-      <AnimatePresence>
+  return (
+    <>
+    {/* Create Modal */}
+    <AnimatePresence>
         {showCreate && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 modal-overlay flex items-center justify-center z-50 p-4"
             onClick={() => setShowCreate(false)}
           >
             <motion.div
-              initial={{ scale: 0.96, opacity: 0, y: 8 }}
+              initial={{ scale: 0.95, opacity: 0, y: 16 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.96, opacity: 0, y: 8 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
+              exit={{ scale: 0.95, opacity: 0, y: 16 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-vault-900 border border-vault-700/50 rounded-xl p-5 w-full max-w-md shadow-2xl"
+              className="modal-content rounded-2xl p-6 w-full max-w-md"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display text-base font-semibold text-vault-50 leading-tight">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-display text-lg font-semibold text-vault-50">
                   New Project
                 </h2>
                 <button
                   onClick={() => setShowCreate(false)}
-                  className="p-1 rounded-md text-vault-400 hover:text-vault-200 hover:bg-vault-800 transition-colors"
+                  className="p-1.5 rounded-lg text-vault-400 hover:text-vault-200 hover:bg-white/[0.04] transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <form onSubmit={handleCreate} className="space-y-3">
+              <form onSubmit={handleCreate} className="space-y-4">
                 <div>
-                  <label className="block text-[11px] font-medium text-vault-300 mb-1.5 uppercase tracking-wider leading-tight">
+                  <label className="block text-[11px] font-semibold text-vault-400 mb-2 uppercase tracking-[0.1em]">
                     Project Name
                   </label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-vault-800 border border-vault-600/40 rounded-lg text-vault-50 placeholder-vault-500 focus:border-accent-500/50 transition-colors text-[13px]"
+                    className="input-premium w-full"
                     placeholder="my-app"
                     required
                     autoFocus
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-medium text-vault-300 mb-1.5 uppercase tracking-wider leading-tight">
+                  <label className="block text-[11px] font-semibold text-vault-400 mb-2 uppercase tracking-[0.1em]">
                     Description
                   </label>
                   <input
                     type="text"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-vault-800 border border-vault-600/40 rounded-lg text-vault-50 placeholder-vault-500 focus:border-accent-500/50 transition-colors text-[13px]"
+                    className="input-premium w-full"
                     placeholder="Optional description"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 bg-accent-500 hover:bg-accent-600 text-vault-950 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 text-[13px] disabled:opacity-50"
+                  className="w-full py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-[14px] disabled:opacity-50 shadow-lg shadow-accent-500/20"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -188,46 +202,87 @@ export default function Projects() {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+    </AnimatePresence>
+
+    <motion.div initial="hidden" animate="show" variants={stagger}>
+      {/* Header */}
+      <motion.div
+        variants={fadeUp}
+        className="flex items-center justify-between mb-10"
+      >
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-accent-500/10 border border-accent-500/15 flex items-center justify-center">
+              <Layers className="w-4 h-4 text-accent-400" />
+            </div>
+            <h1 className="font-display text-[28px] font-bold text-vault-50 tracking-tight">
+              Projects
+            </h1>
+          </div>
+          <p className="text-[14px] text-vault-400 ml-11">
+            Organize secrets by project and environment
+          </p>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setShowCreate(true)}
+          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-semibold text-[14px] rounded-xl transition-all duration-200 shadow-lg shadow-accent-500/20"
+        >
+          <Plus className="w-4 h-4" />
+          New Project
+        </motion.button>
+      </motion.div>
 
       {/* Projects Grid */}
       {projects.length === 0 ? (
         <motion.div
           variants={fadeUp}
-          className="flex flex-col items-center justify-center py-16 text-vault-500"
+          className="flex flex-col items-center justify-center py-24 text-vault-500"
         >
-          <div className="w-14 h-14 rounded-xl bg-vault-800/80 flex items-center justify-center mb-3">
-            <FolderKey className="w-7 h-7 opacity-30" />
+          <div className="w-20 h-20 rounded-3xl glass-card flex items-center justify-center mb-5">
+            <FolderKey className="w-9 h-9 text-vault-500 opacity-40" />
           </div>
-          <p className="text-[13px] font-medium text-vault-300">
+          <p className="text-[16px] font-medium text-vault-300 font-display">
             No projects yet
           </p>
-          <p className="text-[11px] text-vault-500 mt-1">
+          <p className="text-[13px] text-vault-500 mt-1.5">
             Create your first project to get started
           </p>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowCreate(true)}
+            className="mt-6 flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-accent-500 to-accent-600 text-white font-semibold text-[14px] rounded-xl shadow-lg shadow-accent-500/20"
+          >
+            <Plus className="w-4 h-4" />
+            Create Project
+          </motion.button>
         </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {projects.map((project) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {projects.map((project, i) => (
             <motion.div
               key={project.id}
-              variants={fadeUp}
-              className="bg-vault-900 border border-vault-700/40 rounded-xl p-4 hover:border-vault-600/60 transition-all duration-200 group"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] as const }}
+              className="glass-card rounded-2xl p-5 group"
             >
-              <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start justify-between mb-4">
                 <div
-                  className="flex items-center gap-3 cursor-pointer min-w-0 flex-1"
+                  className="flex items-center gap-3.5 cursor-pointer min-w-0 flex-1"
                   onClick={() => openProject(project)}
                 >
-                  <div className="w-9 h-9 rounded-lg bg-accent-500/10 flex items-center justify-center flex-shrink-0">
-                    <FolderKey className="w-[18px] h-[18px] text-accent-500" />
+                  <div className="w-11 h-11 rounded-xl bg-accent-500/10 border border-accent-500/15 flex items-center justify-center flex-shrink-0">
+                    <FolderKey className="w-5 h-5 text-accent-400" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-[13px] font-semibold text-vault-50 leading-tight truncate">
+                    <h3 className="text-[15px] font-semibold text-vault-50 leading-tight truncate font-display">
                       {project.name}
                     </h3>
                     {project.description && (
-                      <p className="text-[11px] text-vault-400 mt-0.5 leading-tight truncate">
+                      <p className="text-[13px] text-vault-400 mt-0.5 leading-tight truncate">
                         {project.description}
                       </p>
                     )}
@@ -235,43 +290,48 @@ export default function Projects() {
                 </div>
                 <button
                   onClick={(e) => handleDelete(project.id, e)}
-                  className="p-1.5 rounded-md text-vault-500 hover:text-danger-400 hover:bg-danger-500/10 transition-all opacity-0 group-hover:opacity-100 flex-shrink-0"
+                  className="p-2 rounded-lg text-vault-500 hover:text-danger-400 hover:bg-danger-500/10 transition-all opacity-0 group-hover:opacity-100 flex-shrink-0"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Environment Buttons */}
-              <div className="flex gap-1.5">
-                {["development", "staging", "production"].map((env) => {
-                  const Icon = envIcons[env] || Globe;
-                  return (
-                    <button
-                      key={env}
-                      onClick={() => openProject(project, env)}
-                      className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md bg-vault-800/60 hover:bg-vault-800 border border-vault-700/30 hover:border-vault-600/50 transition-all duration-150 text-[11px] text-vault-300 hover:text-vault-100 group/env"
-                    >
-                      <Icon className="w-3 h-3 flex-shrink-0" />
-                      <span>
-                        {env === "development"
-                          ? "Dev"
-                          : env === "production"
-                            ? "Prod"
-                            : "Staging"}
-                      </span>
-                      <ChevronRight className="w-3 h-3 opacity-0 group-hover/env:opacity-100 transition-opacity flex-shrink-0" />
-                    </button>
-                  );
-                })}
+              <div className="flex gap-2">
+                {(["development", "staging", "production"] as const).map(
+                  (env) => {
+                    const Icon = envIcons[env] || Globe;
+                    const style = envStyles[env];
+                    return (
+                      <button
+                        key={env}
+                        onClick={() => openProject(project, env)}
+                        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl glass-subtle transition-all duration-200 text-[12px] font-medium text-vault-400 group/env ${style.hover}`}
+                      >
+                        <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span>
+                          {env === "development"
+                            ? "Dev"
+                            : env === "production"
+                              ? "Prod"
+                              : "Staging"}
+                        </span>
+                        <ChevronRight className="w-3 h-3 opacity-0 group-hover/env:opacity-100 transition-opacity flex-shrink-0" />
+                      </button>
+                    );
+                  }
+                )}
               </div>
 
-              <p className="text-[10px] text-vault-500 mt-2.5 font-mono leading-tight">
-                Created {new Date(project.created_at * 1000).toLocaleDateString()}
+              <p className="text-[11px] text-vault-500 mt-3.5 font-mono">
+                Created{" "}
+                {new Date(project.created_at * 1000).toLocaleDateString()}
               </p>
             </motion.div>
           ))}
         </div>
       )}
     </motion.div>
+    </>
   );
 }

@@ -27,11 +27,6 @@
         "security": {
             "csp": "default-src 'self'; connect-src 'self' http://127.0.0.1:8900 http://localhost:8900 http://127.0.0.1:8901 http://localhost:8901; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:",
             "capabilities": ["default"]
-        },
-        "trayIcon": {
-            "iconPath": "icons/icon.png",
-            "iconAsTemplate": true,
-            "tooltip": "Achilles Vault"
         }
     },
     "bundle": {

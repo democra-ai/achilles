@@ -132,7 +132,7 @@ const MCP_BASE = "http://127.0.0.1:8901";
 export const mcpHealthApi = {
   check: () =>
     axios
-      .get(`${MCP_BASE}/sse`, { timeout: 3000 })
+      .get(`${MCP_BASE}/health`, { timeout: 3000 })
       .then(() => true)
       .catch(() => false),
 };

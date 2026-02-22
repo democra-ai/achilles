@@ -10,6 +10,8 @@ export interface Toast {
   duration?: number;
 }
 
+type Theme = "light" | "dark" | "system";
+
 interface AppStore {
   // Server
   serverStatus: ServerStatus;
@@ -38,6 +40,8 @@ interface AppStore {
   // UI
   sidebarCollapsed: boolean;
   toggleSidebar: () => void;
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
 
   // Toasts
   toasts: Toast[];
@@ -88,6 +92,11 @@ export const useStore = create<AppStore>((set) => ({
   sidebarCollapsed: false,
   toggleSidebar: () =>
     set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+  theme: (localStorage.getItem("achilles-theme") as Theme) || "system",
+  setTheme: (theme) => {
+    localStorage.setItem("achilles-theme", theme);
+    set({ theme });
+  },
 
   // Toasts
   toasts: [],

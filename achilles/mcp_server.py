@@ -14,6 +14,8 @@ import json
 import logging
 
 from mcp.server.fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 from achilles.config import Settings, get_settings
 from achilles.crypto import decrypt, encrypt
@@ -255,6 +257,18 @@ def main():
         host=args.host,
         port=args.port,
     )
+
+    # Register health endpoint for liveness checks (with CORS for Tauri webview)
+    @mcp.custom_route("/health", methods=["GET", "OPTIONS"])
+    async def health_check(request: Request) -> JSONResponse:
+        headers = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+        }
+        if request.method == "OPTIONS":
+            return JSONResponse({"ok": True}, headers=headers)
+        return JSONResponse({"status": "ok"}, headers=headers)
 
     # Register all tools
     register_tools(mcp)

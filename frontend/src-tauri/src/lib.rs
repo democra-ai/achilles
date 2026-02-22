@@ -1,5 +1,6 @@
 use std::sync::Mutex;
-use tauri::State;
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::{Manager, RunEvent, State};
 use tauri_plugin_autostart::MacosLauncher;
 
 mod server;
@@ -88,10 +89,37 @@ pub fn run() {
             stop_mcp_server,
         ])
         .setup(|app| {
+            // Create tray icon with click handler to show/focus window
+            let _tray = TrayIconBuilder::new()
+                .icon(app.default_window_icon().unwrap().clone())
+                .icon_as_template(true)
+                .tooltip("Achilles Vault")
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
+                        let app = tray.app_handle();
+                        if let Some(window) = app.get_webview_window("main") {
+                            window.show().unwrap_or_default();
+                            window.set_focus().unwrap_or_default();
+                        }
+                    }
+                })
+                .build(app)?;
+
             let app_handle = app.handle().clone();
-            // Start the Python backend server as a sidecar
+            let mcp_handle = app.handle().clone();
+            // Auto-start backend server
             tauri::async_runtime::spawn(async move {
                 server::start_backend_server(app_handle).await;
+            });
+            // Auto-start MCP server (wait for backend first)
+            tauri::async_runtime::spawn(async move {
+                tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                let _ = server::do_start_mcp(&mcp_handle).await;
             });
             Ok(())
         })
@@ -102,6 +130,22 @@ pub fn run() {
                 window.hide().unwrap_or_default();
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running Achilles Vault");
+        .build(tauri::generate_context!())
+        .expect("error while building Achilles Vault")
+        .run(|app_handle, event| {
+            match event {
+                RunEvent::Reopen { .. } => {
+                    // macOS: clicking dock icon should show the window
+                    if let Some(window) = app_handle.get_webview_window("main") {
+                        window.show().unwrap_or_default();
+                        window.set_focus().unwrap_or_default();
+                    }
+                }
+                RunEvent::ExitRequested { api, .. } => {
+                    // Keep running in background when window is closed
+                    api.prevent_exit();
+                }
+                _ => {}
+            }
+        });
 }

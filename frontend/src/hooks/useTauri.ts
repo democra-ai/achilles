@@ -32,8 +32,8 @@ export function useServerManager() {
       try {
         const invoke = await getInvoke();
         if (invoke) {
-          await invoke("start_server");
           addToast({ type: "info", title: "Starting server...", message: "The backend server is starting up" });
+          await invoke("start_server");
           // Poll for health
           for (let i = 0; i < 15; i++) {
             await new Promise((r) => setTimeout(r, 1000));
@@ -93,19 +93,29 @@ export function useServerManager() {
       try {
         const invoke = await getInvoke();
         if (invoke) {
-          await invoke("start_mcp_server");
           addToast({ type: "info", title: "Starting MCP server...", message: "The MCP server is starting on port 8901" });
-          for (let i = 0; i < 10; i++) {
+          // Rust side spawns and polls for up to 10s before returning
+          await invoke("start_mcp_server");
+          // Check if Rust confirmed it's running
+          await checkMcpHealth();
+          const { mcpStatus } = useStore.getState();
+          if (mcpStatus.running) {
+            addToast({ type: "success", title: "MCP server online", message: "AI tools can now connect to the vault" });
+            mcpStartingRef.current = false;
+            return;
+          }
+          // Extra frontend polling as fallback
+          for (let i = 0; i < 5; i++) {
             await new Promise((r) => setTimeout(r, 1000));
             await checkMcpHealth();
-            const { mcpStatus } = useStore.getState();
-            if (mcpStatus.running) {
+            const state = useStore.getState();
+            if (state.mcpStatus.running) {
               addToast({ type: "success", title: "MCP server online", message: "AI tools can now connect to the vault" });
               mcpStartingRef.current = false;
               return;
             }
           }
-          addToast({ type: "error", title: "MCP server failed to start", message: "Timeout waiting for MCP server" });
+          addToast({ type: "error", title: "MCP server failed to start", message: "Timeout waiting for MCP server. Check that achilles is installed." });
         }
       } catch (err) {
         addToast({ type: "error", title: "Failed to start MCP server", message: String(err) });

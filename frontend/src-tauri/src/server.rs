@@ -15,14 +15,52 @@ pub struct McpProcess {
     pub child: Option<CommandChild>,
 }
 
-pub async fn start_backend_server(app: tauri::AppHandle) {
-    // Try to use the bundled sidecar first, fall back to system python
-    let sidecar_ok = start_sidecar(&app).await;
+/// Build a shell command that finds the correct Python (with required module) and runs a command.
+/// Tries the project venv first, then falls back to system python3.
+fn build_python_command(module_check: &str, py_args: &str) -> String {
+    format!(
+        r#"for py in "$HOME/Achilles/.venv/bin/python3" "$HOME/achilles/.venv/bin/python3" python3; do if command -v "$py" >/dev/null 2>&1 && "$py" -c "import {module_check}" 2>/dev/null; then exec "$py" {py_args}; fi; done; exit 1"#,
+        module_check = module_check,
+        py_args = py_args,
+    )
+}
 
-    if !sidecar_ok {
-        // Fallback: try running with system python
-        start_with_python(&app).await;
+/// Spawn a Python command through the user's login shell so PATH/venv are inherited.
+fn spawn_via_login_shell(
+    app: &tauri::AppHandle,
+    py_command: &str,
+) -> Result<CommandChild, String> {
+    let shell = app.shell();
+
+    // Use the user's login shell to inherit PATH, pyenv, conda, venv, etc.
+    let result = shell
+        .command("/bin/zsh")
+        .args(["-l", "-c", py_command])
+        .spawn();
+
+    match result {
+        Ok((_rx, child)) => Ok(child),
+        Err(e) => {
+            // Fallback: try /bin/bash
+            let result2 = shell
+                .command("/bin/bash")
+                .args(["-l", "-c", py_command])
+                .spawn();
+            match result2 {
+                Ok((_rx, child)) => Ok(child),
+                Err(_) => Err(format!("Failed to spawn command: {}", e)),
+            }
+        }
     }
+}
+
+pub async fn start_backend_server(app: tauri::AppHandle) {
+    // Try sidecar first
+    if start_sidecar(&app).await {
+        return;
+    }
+    // Fallback: system python via login shell
+    start_with_python(&app).await;
 }
 
 async fn start_sidecar(app: &tauri::AppHandle) -> bool {
@@ -34,16 +72,12 @@ async fn start_sidecar(app: &tauri::AppHandle) -> bool {
 
     match sidecar.spawn() {
         Ok((_rx, child)) => {
-            // Store the child process
             if let Some(state) = app.try_state::<Mutex<ServerProcess>>() {
                 if let Ok(mut proc) = state.lock() {
                     proc.child = Some(child);
                 }
             }
-
-            // Wait a moment then check health
             tokio::time::sleep(std::time::Duration::from_secs(3)).await;
-
             if check_health("http://127.0.0.1:8900").await {
                 update_state(app, true);
                 app.emit("server-status", "running").unwrap_or_default();
@@ -56,74 +90,52 @@ async fn start_sidecar(app: &tauri::AppHandle) -> bool {
 }
 
 async fn start_with_python(app: &tauri::AppHandle) {
-    let shell = app.shell();
+    let cmd = build_python_command(
+        "uvicorn",
+        "-m uvicorn achilles.main:app --host 127.0.0.1 --port 8900",
+    );
 
-    // Try multiple Python executables
-    let python_cmds = ["python3", "python"];
-
-    for python_cmd in &python_cmds {
-        let result = shell
-            .command(python_cmd)
-            .args(["-m", "uvicorn", "achilles.main:app", "--host", "127.0.0.1", "--port", "8900"])
-            .spawn();
-
-        match result {
-            Ok((_rx, child)) => {
-                // Store the child process
-                if let Some(state) = app.try_state::<Mutex<ServerProcess>>() {
-                    if let Ok(mut proc) = state.lock() {
-                        proc.child = Some(child);
-                    }
+    match spawn_via_login_shell(app, &cmd) {
+        Ok(child) => {
+            if let Some(state) = app.try_state::<Mutex<ServerProcess>>() {
+                if let Ok(mut proc) = state.lock() {
+                    proc.child = Some(child);
                 }
-
-                // Wait for server to start
-                for _ in 0..15 {
-                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                    if check_health("http://127.0.0.1:8900").await {
-                        update_state(app, true);
-                        app.emit("server-status", "running").unwrap_or_default();
-                        return;
-                    }
-                }
-                // This python command was found but server didn't start, continue trying
             }
-            Err(_) => continue,
+            // Poll for startup
+            for _ in 0..15 {
+                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                if check_health("http://127.0.0.1:8900").await {
+                    update_state(app, true);
+                    app.emit("server-status", "running").unwrap_or_default();
+                    return;
+                }
+            }
         }
+        Err(_) => {}
     }
 
     app.emit("server-status", "failed").unwrap_or_default();
 }
 
 pub async fn do_start_server(app: &tauri::AppHandle) -> Result<(), String> {
-    // Check if already running
     if check_health("http://127.0.0.1:8900").await {
         update_state(app, true);
         return Ok(());
     }
 
-    let shell = app.shell();
-    let python_cmds = ["python3", "python"];
+    let cmd = build_python_command(
+        "uvicorn",
+        "-m uvicorn achilles.main:app --host 127.0.0.1 --port 8900",
+    );
+    let child = spawn_via_login_shell(app, &cmd)?;
 
-    for python_cmd in &python_cmds {
-        let result = shell
-            .command(python_cmd)
-            .args(["-m", "uvicorn", "achilles.main:app", "--host", "127.0.0.1", "--port", "8900"])
-            .spawn();
-
-        match result {
-            Ok((_rx, child)) => {
-                if let Some(state) = app.try_state::<Mutex<ServerProcess>>() {
-                    if let Ok(mut proc) = state.lock() {
-                        proc.child = Some(child);
-                    }
-                }
-                return Ok(());
-            }
-            Err(_) => continue,
+    if let Some(state) = app.try_state::<Mutex<ServerProcess>>() {
+        if let Ok(mut proc) = state.lock() {
+            proc.child = Some(child);
         }
     }
-
-    Err("Could not find python3 or python. Please install Python 3.11+.".to_string())
+    Ok(())
 }
 
 pub fn do_stop_server(app: &tauri::AppHandle) -> Result<(), String> {
@@ -158,45 +170,33 @@ fn update_state(app: &tauri::AppHandle, running: bool) {
 // --- MCP Server Management ---
 
 pub async fn do_start_mcp(app: &tauri::AppHandle) -> Result<(), String> {
-    // Check if already running
     if check_mcp_port().await {
         update_mcp_state(app, true);
         return Ok(());
     }
 
-    let shell = app.shell();
-    let python_cmds = ["python3", "python"];
+    let cmd = build_python_command(
+        "achilles.mcp_server",
+        "-m achilles.mcp_server --port 8901 --host 127.0.0.1 --transport sse",
+    );
+    let child = spawn_via_login_shell(app, &cmd)?;
 
-    for python_cmd in &python_cmds {
-        let result = shell
-            .command(python_cmd)
-            .args(["-m", "achilles.mcp_server", "--port", "8901", "--host", "127.0.0.1", "--transport", "sse"])
-            .spawn();
-
-        match result {
-            Ok((_rx, child)) => {
-                if let Some(state) = app.try_state::<Mutex<McpProcess>>() {
-                    if let Ok(mut proc) = state.lock() {
-                        proc.child = Some(child);
-                    }
-                }
-
-                // Wait for MCP server to start (poll up to 10 seconds)
-                for _ in 0..10 {
-                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                    if check_mcp_port().await {
-                        update_mcp_state(app, true);
-                        app.emit("mcp-status", "running").unwrap_or_default();
-                        return Ok(());
-                    }
-                }
-                return Ok(());
-            }
-            Err(_) => continue,
+    if let Some(state) = app.try_state::<Mutex<McpProcess>>() {
+        if let Ok(mut proc) = state.lock() {
+            proc.child = Some(child);
         }
     }
 
-    Err("Could not find python3 or python to start MCP server.".to_string())
+    // Poll for startup — must confirm here before returning to frontend
+    for _ in 0..10 {
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+        if check_mcp_port().await {
+            update_mcp_state(app, true);
+            app.emit("mcp-status", "running").unwrap_or_default();
+            return Ok(());
+        }
+    }
+    Ok(())
 }
 
 pub fn do_stop_mcp(app: &tauri::AppHandle) -> Result<(), String> {
@@ -214,7 +214,7 @@ pub fn do_stop_mcp(app: &tauri::AppHandle) -> Result<(), String> {
 
 async fn check_mcp_port() -> bool {
     match reqwest::Client::new()
-        .get("http://127.0.0.1:8901/sse")
+        .get("http://127.0.0.1:8901/health")
         .timeout(std::time::Duration::from_secs(2))
         .send()
         .await

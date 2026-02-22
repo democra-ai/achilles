@@ -16,6 +16,7 @@ import {
   Rocket,
   Tag,
   AlertCircle,
+  Lock,
 } from "lucide-react";
 import { useStore } from "../store";
 import { secretsApi, projectsApi } from "../api/client";
@@ -27,8 +28,12 @@ const envTabs = [
 ];
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 8 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" as const } },
+  hidden: { opacity: 0, y: 16 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
+  },
 };
 
 export default function Secrets() {
@@ -69,9 +74,15 @@ export default function Secrets() {
             selectProject(r.data[0]);
           }
         })
-        .catch(() => {/* handled by interceptor */});
+        .catch(() => {});
     }
-  }, [projects.length, setProjects, selectProject, selectedProject, serverStatus.running]);
+  }, [
+    projects.length,
+    setProjects,
+    selectProject,
+    selectedProject,
+    serverStatus.running,
+  ]);
 
   const loadSecrets = useCallback(async () => {
     if (!selectedProject || !serverStatus.running) return;
@@ -93,7 +104,11 @@ export default function Secrets() {
     e.preventDefault();
     if (!selectedProject) return;
     if (!serverStatus.running) {
-      addToast({ type: "error", title: "Server offline", message: "Start the server before adding secrets" });
+      addToast({
+        type: "error",
+        title: "Server offline",
+        message: "Start the server before adding secrets",
+      });
       return;
     }
     setLoading(true);
@@ -110,7 +125,11 @@ export default function Secrets() {
       setNewValue("");
       setNewDesc("");
       setNewTags("");
-      addToast({ type: "success", title: "Secret saved", message: `${newKey} has been encrypted and stored` });
+      addToast({
+        type: "success",
+        title: "Secret saved",
+        message: `${newKey} has been encrypted and stored`,
+      });
     } catch {
       // handled by interceptor
     } finally {
@@ -124,7 +143,11 @@ export default function Secrets() {
     try {
       await secretsApi.delete(selectedProject.id, selectedEnv, key);
       await loadSecrets();
-      addToast({ type: "success", title: "Secret deleted", message: `${key} has been removed` });
+      addToast({
+        type: "success",
+        title: "Secret deleted",
+        message: `${key} has been removed`,
+      });
     } catch {
       // handled by interceptor
     }
@@ -183,45 +206,55 @@ export default function Secrets() {
     <motion.div
       initial="hidden"
       animate="show"
-      variants={{ show: { transition: { staggerChildren: 0.04 } } }}
+      variants={{
+        hidden: { opacity: 0 },
+        show: { opacity: 1, transition: { staggerChildren: 0.06 } },
+      }}
     >
       {/* Header */}
       <motion.div
         variants={fadeUp}
-        className="flex items-center justify-between mb-5"
+        className="flex items-center justify-between mb-8"
       >
         <div>
-          <h1 className="font-display text-xl font-bold text-vault-50 tracking-tight leading-tight">
-            Secrets
-          </h1>
-          <p className="text-sm text-vault-400 mt-1 leading-normal">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/15 flex items-center justify-center">
+              <Lock className="w-4 h-4 text-blue-400" />
+            </div>
+            <h1 className="font-display text-[28px] font-bold text-vault-50 tracking-tight">
+              Secrets
+            </h1>
+          </div>
+          <p className="text-[14px] text-vault-400 ml-11">
             {selectedProject
               ? `Managing secrets for ${selectedProject.name}`
               : "Select a project to manage secrets"}
           </p>
         </div>
         {selectedProject && (
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-accent-500 hover:bg-accent-600 text-vault-950 font-semibold text-[13px] rounded-lg transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-semibold text-[14px] rounded-xl transition-all duration-200 shadow-lg shadow-accent-500/20"
           >
             <Plus className="w-4 h-4" />
             Add Secret
-          </button>
+          </motion.button>
         )}
       </motion.div>
 
       {/* Project Selector */}
-      <motion.div variants={fadeUp} className="mb-3">
-        <div className="flex gap-1.5 flex-wrap">
+      <motion.div variants={fadeUp} className="mb-4">
+        <div className="flex gap-2 flex-wrap">
           {projects.map((p) => (
             <button
               key={p.id}
               onClick={() => selectProject(p)}
-              className={`px-3 py-1.5 rounded-md text-[12px] font-medium transition-all duration-150 ${
+              className={`px-4 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 ${
                 selectedProject?.id === p.id
-                  ? "bg-accent-500/10 text-accent-400 border border-accent-500/25"
-                  : "bg-vault-800/60 text-vault-400 border border-vault-700/30 hover:border-vault-600/50 hover:text-vault-200"
+                  ? "bg-accent-500/[0.08] text-accent-400 border border-accent-500/20 shadow-sm shadow-accent-500/10"
+                  : "glass-subtle text-vault-400 hover:text-vault-200 hover:bg-white/[0.04]"
               }`}
             >
               {p.name}
@@ -232,19 +265,19 @@ export default function Secrets() {
 
       {/* Environment Tabs */}
       {selectedProject && (
-        <motion.div variants={fadeUp} className="mb-4">
-          <div className="inline-flex gap-0.5 p-0.5 bg-vault-800/50 rounded-lg border border-vault-700/30">
+        <motion.div variants={fadeUp} className="mb-5">
+          <div className="inline-flex gap-1 p-1 glass-subtle rounded-xl">
             {envTabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => selectEnv(tab.key)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all duration-150 whitespace-nowrap ${
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 whitespace-nowrap ${
                   selectedEnv === tab.key
-                    ? "bg-vault-700 text-vault-50 shadow-sm"
+                    ? "bg-white/[0.08] text-vault-50 shadow-sm border border-white/[0.06]"
                     : "text-vault-400 hover:text-vault-200"
                 }`}
               >
-                <tab.icon className="w-3 h-3 flex-shrink-0" />
+                <tab.icon className="w-3.5 h-3.5 flex-shrink-0" />
                 <span>{tab.label}</span>
               </button>
             ))}
@@ -254,15 +287,15 @@ export default function Secrets() {
 
       {/* Search */}
       {selectedProject && (
-        <motion.div variants={fadeUp} className="mb-4">
+        <motion.div variants={fadeUp} className="mb-5 relative z-0">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-vault-500" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-vault-500" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search secrets..."
-              className="w-full pl-10 pr-4 py-2 bg-vault-900 border border-vault-700/40 rounded-lg text-[13px] text-vault-100 placeholder-vault-500 focus:border-accent-500/40 transition-colors"
+              className="input-premium w-full pl-11"
             />
           </div>
         </motion.div>
@@ -270,50 +303,71 @@ export default function Secrets() {
 
       {/* Secrets List */}
       {!selectedProject ? (
-        <div className="flex flex-col items-center justify-center py-16 text-vault-500">
-          <AlertCircle className="w-7 h-7 mb-2 opacity-30" />
-          <p className="text-[13px] text-vault-400">Select a project first</p>
+        <div className="flex flex-col items-center justify-center py-24 text-vault-500">
+          <div className="w-20 h-20 rounded-3xl glass-card flex items-center justify-center mb-5">
+            <AlertCircle className="w-8 h-8 text-vault-500 opacity-40" />
+          </div>
+          <p className="text-[16px] font-medium text-vault-300 font-display">
+            Select a project first
+          </p>
+          <p className="text-[13px] text-vault-500 mt-1.5">
+            Choose a project from the list above
+          </p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-vault-500">
-          <KeyRound className="w-7 h-7 mb-2 opacity-30" />
-          <p className="text-[13px] font-medium text-vault-300">
+        <div className="flex flex-col items-center justify-center py-24 text-vault-500">
+          <div className="w-20 h-20 rounded-3xl glass-card flex items-center justify-center mb-5">
+            <KeyRound className="w-8 h-8 text-vault-500 opacity-40" />
+          </div>
+          <p className="text-[16px] font-medium text-vault-300 font-display">
             No secrets found
           </p>
-          <p className="text-[11px] mt-1 text-vault-500">
-            Add your first secret to get started
+          <p className="text-[13px] text-vault-500 mt-1.5">
+            {search
+              ? "Try a different search term"
+              : "Add your first secret to get started"}
           </p>
+          {!search && (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowCreate(true)}
+              className="mt-6 flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-accent-500 to-accent-600 text-white font-semibold text-[14px] rounded-xl shadow-lg shadow-accent-500/20"
+            >
+              <Plus className="w-4 h-4" />
+              Add Secret
+            </motion.button>
+          )}
         </div>
       ) : (
-        <motion.div variants={fadeUp} className="space-y-1.5">
-          {filtered.map((secret) => (
-            <div
+        <div className="space-y-2 relative z-10">
+          {filtered.map((secret, i) => (
+            <motion.div
               key={secret.key}
-              className="bg-vault-900 border border-vault-700/40 rounded-xl px-4 py-3 hover:border-vault-600/60 transition-all duration-200 group"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] as const }}
+              layout
+              className="glass-card rounded-2xl px-5 py-4 group"
             >
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <code className="font-mono text-[13px] font-semibold text-vault-50 leading-tight">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <code className="font-mono text-[14px] font-semibold text-vault-50">
                       {secret.key}
                     </code>
-                    <span className="text-[10px] font-mono text-vault-500 bg-vault-800 px-1.5 py-0.5 rounded leading-tight">
-                      v{secret.version}
-                    </span>
+                    <span className="badge badge-blue">v{secret.version}</span>
                   </div>
                   {secret.description && (
-                    <p className="text-[11px] text-vault-400 mt-1 leading-normal">
+                    <p className="text-[13px] text-vault-400 mt-1.5">
                       {secret.description}
                     </p>
                   )}
                   {secret.tags && secret.tags.length > 0 && (
-                    <div className="flex gap-1 mt-1.5 flex-wrap">
+                    <div className="flex gap-1.5 mt-2 flex-wrap">
                       {secret.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="inline-flex items-center gap-1 text-[10px] font-mono text-accent-400 bg-accent-500/8 px-1.5 py-0.5 rounded-md leading-tight"
-                        >
-                          <Tag className="w-2.5 h-2.5 flex-shrink-0" />
+                        <span key={tag} className="badge badge-green">
+                          <Tag className="w-3 h-3 flex-shrink-0" />
                           {tag}
                         </span>
                       ))}
@@ -328,9 +382,9 @@ export default function Secrets() {
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="mt-2"
+                        className="mt-3"
                       >
-                        <code className="secret-reveal block font-mono text-[11px] text-accent-400 bg-vault-800 rounded-lg px-3 py-2 break-all border border-vault-700/40 leading-relaxed">
+                        <code className="secret-reveal block font-mono text-[12px] text-accent-400 glass-subtle rounded-xl px-4 py-3 break-all leading-relaxed">
                           {revealedValues[secret.key]}
                         </code>
                       </motion.div>
@@ -339,41 +393,41 @@ export default function Secrets() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-0.5 flex-shrink-0">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     onClick={() => toggleReveal(secret.key)}
-                    className="p-1.5 rounded-md text-vault-400 hover:text-vault-200 hover:bg-vault-800 transition-colors"
+                    className="p-2 rounded-lg text-vault-400 hover:text-vault-200 hover:bg-white/[0.04] transition-colors"
                     title={revealedKeys.has(secret.key) ? "Hide" : "Reveal"}
                   >
                     {revealedKeys.has(secret.key) ? (
-                      <EyeOff className="w-3.5 h-3.5" />
+                      <EyeOff className="w-4 h-4" />
                     ) : (
-                      <Eye className="w-3.5 h-3.5" />
+                      <Eye className="w-4 h-4" />
                     )}
                   </button>
                   <button
                     onClick={() => copyValue(secret.key)}
-                    className="p-1.5 rounded-md text-vault-400 hover:text-vault-200 hover:bg-vault-800 transition-colors"
+                    className="p-2 rounded-lg text-vault-400 hover:text-vault-200 hover:bg-white/[0.04] transition-colors"
                     title="Copy value"
                   >
                     {copiedKey === secret.key ? (
-                      <Check className="w-3.5 h-3.5 text-accent-500" />
+                      <Check className="w-4 h-4 text-accent-500" />
                     ) : (
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-4 h-4" />
                     )}
                   </button>
                   <button
                     onClick={() => handleDelete(secret.key)}
-                    className="p-1.5 rounded-md text-vault-400 hover:text-danger-400 hover:bg-danger-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                    className="p-2 rounded-lg text-vault-400 hover:text-danger-400 hover:bg-danger-500/10 transition-colors opacity-0 group-hover:opacity-100"
                     title="Delete"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </motion.div>
+        </div>
       )}
 
       {/* Create Modal */}
@@ -383,33 +437,33 @@ export default function Secrets() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 modal-overlay flex items-center justify-center z-50 p-4"
             onClick={() => setShowCreate(false)}
           >
             <motion.div
-              initial={{ scale: 0.96, opacity: 0, y: 8 }}
+              initial={{ scale: 0.95, opacity: 0, y: 16 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.96, opacity: 0, y: 8 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
+              exit={{ scale: 0.95, opacity: 0, y: 16 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-vault-900 border border-vault-700/50 rounded-xl p-5 w-full max-w-md shadow-2xl"
+              className="modal-content rounded-2xl p-6 w-full max-w-md"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display text-base font-semibold text-vault-50 leading-tight">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-display text-lg font-semibold text-vault-50">
                   Add Secret
                 </h2>
                 <button
                   onClick={() => setShowCreate(false)}
-                  className="p-1 rounded-md text-vault-400 hover:text-vault-200 hover:bg-vault-800 transition-colors"
+                  className="p-1.5 rounded-lg text-vault-400 hover:text-vault-200 hover:bg-white/[0.04] transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <form onSubmit={handleCreate} className="space-y-3">
+              <form onSubmit={handleCreate} className="space-y-4">
                 <div>
-                  <label className="block text-[11px] font-medium text-vault-300 mb-1.5 uppercase tracking-wider leading-tight">
+                  <label className="block text-[11px] font-semibold text-vault-400 mb-2 uppercase tracking-[0.1em]">
                     Key
                   </label>
                   <input
@@ -420,52 +474,52 @@ export default function Secrets() {
                         e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "_")
                       )
                     }
-                    className="w-full px-3 py-2.5 bg-vault-800 border border-vault-600/40 rounded-lg text-vault-50 placeholder-vault-500 focus:border-accent-500/50 transition-colors font-mono text-[13px]"
+                    className="input-premium w-full font-mono"
                     placeholder="OPENAI_API_KEY"
                     required
                     autoFocus
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-medium text-vault-300 mb-1.5 uppercase tracking-wider leading-tight">
+                  <label className="block text-[11px] font-semibold text-vault-400 mb-2 uppercase tracking-[0.1em]">
                     Value
                   </label>
                   <textarea
                     value={newValue}
                     onChange={(e) => setNewValue(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-vault-800 border border-vault-600/40 rounded-lg text-vault-50 placeholder-vault-500 focus:border-accent-500/50 transition-colors font-mono text-[13px] resize-none h-20"
+                    className="input-premium w-full font-mono resize-none h-24"
                     placeholder="sk-..."
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-medium text-vault-300 mb-1.5 uppercase tracking-wider leading-tight">
+                  <label className="block text-[11px] font-semibold text-vault-400 mb-2 uppercase tracking-[0.1em]">
                     Description
                   </label>
                   <input
                     type="text"
                     value={newDesc}
                     onChange={(e) => setNewDesc(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-vault-800 border border-vault-600/40 rounded-lg text-vault-50 placeholder-vault-500 focus:border-accent-500/50 transition-colors text-[13px]"
+                    className="input-premium w-full"
                     placeholder="Optional description"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-medium text-vault-300 mb-1.5 uppercase tracking-wider leading-tight">
+                  <label className="block text-[11px] font-semibold text-vault-400 mb-2 uppercase tracking-[0.1em]">
                     Tags (comma-separated)
                   </label>
                   <input
                     type="text"
                     value={newTags}
                     onChange={(e) => setNewTags(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-vault-800 border border-vault-600/40 rounded-lg text-vault-50 placeholder-vault-500 focus:border-accent-500/50 transition-colors text-[13px]"
+                    className="input-premium w-full"
                     placeholder="ai, openai, production"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 bg-accent-500 hover:bg-accent-600 text-vault-950 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 text-[13px] disabled:opacity-50"
+                  className="w-full py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-[14px] disabled:opacity-50 shadow-lg shadow-accent-500/20"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
