@@ -182,17 +182,20 @@ export default function Layout() {
         }}
       >
         <Sidebar collapsible="icon" className="glass-sidebar">
-          <SidebarHeader className="border-b border-sidebar-border !p-0">
-            <div className="flex items-center gap-3 px-4 py-3 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:justify-center">
-              <div className="size-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/25 flex items-center justify-center shrink-0 shadow-[0_0_12px_oklch(0.696_0.17_162.48/0.15)]">
-                <Shield className="size-4 text-primary" />
+          <SidebarHeader className="!p-0">
+            {/* Traffic-light clearance — draggable empty zone */}
+            <div
+              data-tauri-drag-region
+              className="h-[var(--titlebar-inset,0px)] w-full shrink-0"
+            />
+            {/* Logo row — same height as main-header trigger row for alignment */}
+            <div className="flex h-11 items-center gap-3 px-4 mb-1 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:justify-center">
+              <div className="size-7 rounded-md bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/25 flex items-center justify-center shrink-0 shadow-[0_0_12px_oklch(0.696_0.17_162.48/0.15)]">
+                <Shield className="size-3.5 text-primary" />
               </div>
-              <div className="group-data-[state=collapsed]:hidden">
-                <h1 className="text-sm font-bold tracking-tight">Achilles</h1>
-                <p className="text-[10px] text-muted-foreground font-mono">
-                  Vault v0.1.0
-                </p>
-              </div>
+              <span className="text-sm font-semibold tracking-tight whitespace-nowrap group-data-[state=collapsed]:hidden">
+                Achilles Vault
+              </span>
             </div>
           </SidebarHeader>
 
@@ -312,8 +315,14 @@ export default function Layout() {
         </Sidebar>
 
         <SidebarInset className="overflow-y-auto relative z-[1]">
-          <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 px-4 sticky top-0 z-10 bg-background/80 backdrop-blur-md">
-            <SidebarTrigger className="-ml-1" />
+          <header className="shrink-0 sticky top-0 z-10 bg-background/80 backdrop-blur-md">
+            <div
+              data-tauri-drag-region
+              className="h-[var(--titlebar-inset,0px)] w-full"
+            />
+            <div className="flex h-11 items-center gap-2 px-4 mb-1">
+              <SidebarTrigger className="-ml-1" />
+            </div>
           </header>
 
           {!serverStatus.running && <OfflineBanner />}

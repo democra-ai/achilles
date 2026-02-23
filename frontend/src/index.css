@@ -116,6 +116,14 @@
   --sidebar-ring: oklch(0.56 0.15 162.48);
 }
 
+/* macOS overlay titlebar: space for traffic-light buttons */
+:root {
+  --titlebar-inset: 0px;
+}
+html[data-tauri] {
+  --titlebar-inset: 36px;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
