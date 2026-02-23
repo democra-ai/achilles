@@ -27,7 +27,6 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarHeader,
   SidebarInset,
   SidebarMenu,
   SidebarMenuButton,
@@ -181,25 +180,25 @@ export default function Layout() {
           if (open === sidebarCollapsed) toggleSidebar();
         }}
       >
-        <Sidebar collapsible="icon" className="glass-sidebar">
-          <SidebarHeader className="!p-0">
-            {/* Traffic-light clearance — draggable empty zone */}
-            <div
-              data-tauri-drag-region
-              className="h-[var(--titlebar-inset,0px)] w-full shrink-0"
-            />
-            {/* Logo row — same height as main-header trigger row for alignment */}
-            <div className="flex h-11 items-center gap-3 px-4 mb-1 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:justify-center">
-              <div className="size-7 rounded-md bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/25 flex items-center justify-center shrink-0 shadow-[0_0_12px_oklch(0.696_0.17_162.48/0.15)]">
-                <Shield className="size-3.5 text-primary" />
-              </div>
-              <span className="text-sm font-semibold tracking-tight whitespace-nowrap group-data-[state=collapsed]:hidden">
-                Achilles Vault
-              </span>
+        {/* ── VS Code-style unified title bar ── */}
+        <header
+          data-tauri-drag-region
+          className="fixed top-0 inset-x-0 z-50 flex items-center h-[var(--titlebar-inset,0px)] border-b border-border/40 bg-background/60 backdrop-blur-md select-none"
+        >
+          {/* Left: after traffic lights (~76px), sidebar toggle + brand */}
+          <div className="flex items-center gap-2.5 pl-[76px]">
+            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+            <div className="size-5 rounded bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/25 flex items-center justify-center shadow-[0_0_8px_oklch(0.696_0.17_162.48/0.12)]">
+              <Shield className="size-3 text-primary" />
             </div>
-          </SidebarHeader>
+            <span className="text-xs font-medium text-muted-foreground/70">
+              Achilles Vault
+            </span>
+          </div>
+        </header>
 
-          <SidebarContent className="px-2 py-4">
+        <Sidebar collapsible="icon" className="glass-sidebar !top-[var(--titlebar-inset,0px)] !h-[calc(100svh-var(--titlebar-inset,0px))]">
+          <SidebarContent className="px-2 py-2">
             <SidebarMenu>
               {topNav.map((item) => (
                 <SidebarMenuItem key={item.to}>
@@ -314,17 +313,7 @@ export default function Layout() {
           </SidebarFooter>
         </Sidebar>
 
-        <SidebarInset className="overflow-y-auto relative z-[1]">
-          <header className="shrink-0 sticky top-0 z-10 bg-background/80 backdrop-blur-md">
-            <div
-              data-tauri-drag-region
-              className="h-[var(--titlebar-inset,0px)] w-full"
-            />
-            <div className="flex h-11 items-center gap-2 px-4 mb-1">
-              <SidebarTrigger className="-ml-1" />
-            </div>
-          </header>
-
+        <SidebarInset className="overflow-y-auto relative z-[1] !mt-[var(--titlebar-inset,0px)]">
           {!serverStatus.running && <OfflineBanner />}
 
           <div className="max-w-[1200px] w-full px-6 lg:px-10 py-6 lg:py-8">

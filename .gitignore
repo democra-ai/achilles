@@ -30,7 +30,6 @@ frontend/src-tauri/gen/
 
 # Tauri generated icons (keep SVG source, regenerate PNGs)
 frontend/src-tauri/icons/*.png
-frontend/src-tauri/icons/*.ico
 frontend/src-tauri/icons/*.icns
 frontend/src-tauri/icons/chrome/
 !frontend/src-tauri/icons/icon.svg
