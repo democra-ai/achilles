@@ -5,24 +5,20 @@
       <stop offset="100%" stop-color="#059669"/>
     </linearGradient>
   </defs>
-  <!-- Shield shape -->
+  <!-- Shield shape (matches generate_pngs.py geometry) - 肩线调平，减少溜肩 -->
   <path d="
-    M 256 42
-    L 432 110
-    C 432 110 442 280 356 388
-    C 310 442 256 470 256 470
-    C 256 470 202 442 156 388
-    C 70 280 80 110 80 110
+    M 192 52 L 320 52
+    L 426 182
+    Q 426 339, 256 460
+    Q 86 339, 86 182
     Z
   " fill="url(#shieldGrad)" stroke="none"/>
   <!-- Inner shield border highlight -->
   <path d="
-    M 256 70
-    L 410 130
-    C 410 130 419 280 342 376
-    C 300 424 256 448 256 448
-    C 256 448 212 424 170 376
-    C 93 280 102 130 102 130
+    M 195 66 L 317 66
+    L 414 188
+    Q 414 333, 256 446
+    Q 98 333, 98 188
     Z
   " fill="none" stroke="#a7f3d0" stroke-width="3" opacity="0.5"/>
   <!-- Keyhole circle -->
