@@ -130,6 +130,99 @@
   }
 }
 
+/*
+ * Fix sidebar collapse/expand jump.
+ * The default `group-data-[collapsible=icon]:hidden` uses display:none,
+ * which causes instant layout shift. Override with max-height + opacity
+ * so the sub-menu smoothly collapses/expands with the sidebar width.
+ */
+[data-sidebar="menu-sub"] {
+  display: flex !important; /* override display:none from Tailwind hidden */
+  flex-direction: column;
+  transition: max-height 200ms ease-linear, opacity 150ms ease-linear,
+              padding-top 200ms ease-linear, padding-bottom 200ms ease-linear,
+              margin 200ms ease-linear;
+  max-height: 500px;
+  opacity: 1;
+  overflow: hidden;
+}
+[data-collapsible="icon"] [data-sidebar="menu-sub"] {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+  border-left-width: 0 !important;
+  pointer-events: none;
+}
+
+/* Also smoothly hide elements that use hidden in icon mode */
+[data-sidebar="menu-sub-button"] {
+  transition: opacity 150ms ease-linear;
+}
+[data-collapsible="icon"] [data-sidebar="menu-sub-button"] {
+  display: flex !important;
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+/* Ambient background with subtle gradient orbs */
+.ambient-bg {
+  position: relative;
+  background: var(--background);
+}
+.ambient-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 50% 40% at 20% 10%, oklch(0.696 0.17 162.48 / 0.04), transparent),
+    radial-gradient(ellipse 40% 50% at 85% 80%, oklch(0.488 0.243 264.376 / 0.03), transparent),
+    radial-gradient(ellipse 60% 30% at 60% 50%, oklch(0.627 0.265 303.9 / 0.02), transparent);
+}
+.light .ambient-bg::before {
+  background:
+    radial-gradient(ellipse 50% 40% at 20% 10%, oklch(0.56 0.15 162.48 / 0.06), transparent),
+    radial-gradient(ellipse 40% 50% at 85% 80%, oklch(0.6 0.118 184.704 / 0.04), transparent);
+}
+
+/* Noise texture overlay for depth */
+.noise-overlay::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Glass utility classes */
+@layer components {
+  .glass-card {
+    backdrop-filter: blur(12px);
+    background: oklch(1 0 0 / 0.03);
+    border: 1px solid oklch(1 0 0 / 0.07);
+  }
+  .light .glass-card {
+    background: oklch(1 0 0 / 0.6);
+    border-color: oklch(0 0 0 / 0.06);
+  }
+  .glass-sidebar {
+    backdrop-filter: blur(16px);
+    background: oklch(0.12 0.005 285.823 / 0.8);
+    border-right: 1px solid oklch(1 0 0 / 0.06);
+  }
+  .light .glass-sidebar {
+    background: oklch(0.99 0 0 / 0.8);
+    border-right-color: oklch(0 0 0 / 0.06);
+  }
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

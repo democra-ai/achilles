@@ -39,6 +39,9 @@ export interface Secret {
   created_at: number;
   updated_at: number;
   value?: string;
+  // Populated client-side when aggregating across projects/envs
+  _project_id?: string;
+  _env_name?: string;
 }
 
 export interface SecretCreate {

@@ -175,16 +175,16 @@ export default function Layout() {
   return (
     <TooltipProvider>
       <SidebarProvider
-        className="h-screen overflow-hidden"
+        className="h-screen overflow-hidden ambient-bg noise-overlay"
         open={!sidebarCollapsed}
         onOpenChange={(open) => {
           if (open === sidebarCollapsed) toggleSidebar();
         }}
       >
-        <Sidebar collapsible="icon">
+        <Sidebar collapsible="icon" className="glass-sidebar">
           <SidebarHeader className="border-b border-sidebar-border !p-0">
             <div className="flex items-center gap-3 px-4 py-3 group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:justify-center">
-              <div className="size-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+              <div className="size-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/25 flex items-center justify-center shrink-0 shadow-[0_0_12px_oklch(0.696_0.17_162.48/0.15)]">
                 <Shield className="size-4 text-primary" />
               </div>
               <div className="group-data-[state=collapsed]:hidden">
@@ -219,16 +219,24 @@ export default function Layout() {
                 className="group/collapsible"
               >
                 <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
+                  <div className="flex items-center">
                     <SidebarMenuButton
+                      asChild
                       tooltip="Vault"
-                      isActive={vaultItems.some((v) => location.pathname.startsWith(v.to)) || location.pathname === "/vault"}
+                      isActive={location.pathname === "/vault"}
+                      className="flex-1"
                     >
-                      <Lock />
-                      <span>Vault</span>
-                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                      <NavLink to="/vault">
+                        <Lock />
+                        <span>Vault</span>
+                      </NavLink>
                     </SidebarMenuButton>
-                  </CollapsibleTrigger>
+                    <CollapsibleTrigger asChild>
+                      <button className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors group-data-[state=collapsed]:hidden">
+                        <ChevronRight className="size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                      </button>
+                    </CollapsibleTrigger>
+                  </div>
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {vaultItems.map((item) => (
@@ -276,7 +284,7 @@ export default function Layout() {
                 {sidebarStarting ? (
                   <Loader2 className="size-4 text-yellow-400 animate-spin shrink-0" />
                 ) : (
-                  <div className="size-2 rounded-full bg-destructive shrink-0" />
+                  <div className="size-2 rounded-full bg-destructive shrink-0 shadow-[0_0_6px_oklch(0.704_0.191_22.216/0.5)]" />
                 )}
                 <div className="min-w-0 flex-1 text-left group-data-[collapsible=icon]:hidden">
                   <p className="text-xs font-medium text-foreground">
@@ -289,7 +297,7 @@ export default function Layout() {
               </button>
             ) : (
               <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/5 border border-primary/10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
-                <div className="size-2 rounded-full bg-primary pulse-online shrink-0" />
+                <div className="size-2 rounded-full bg-primary pulse-online shrink-0 shadow-[0_0_6px_oklch(0.696_0.17_162.48/0.4)]" />
                 <div className="min-w-0 group-data-[collapsible=icon]:hidden">
                   <p className="text-xs font-medium text-foreground">
                     Server Online
@@ -303,8 +311,8 @@ export default function Layout() {
           </SidebarFooter>
         </Sidebar>
 
-        <SidebarInset className="overflow-y-auto">
-          <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4 sticky top-0 z-10 bg-background">
+        <SidebarInset className="overflow-y-auto relative z-[1]">
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 px-4 sticky top-0 z-10 bg-background/80 backdrop-blur-md">
             <SidebarTrigger className="-ml-1" />
           </header>
 

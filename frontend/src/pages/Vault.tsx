@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   KeyRound,
@@ -18,6 +18,7 @@ import {
   Rocket,
   Tag,
   AlertCircle,
+  Layers,
 } from "lucide-react";
 import { useStore } from "@/store";
 import { secretsApi, projectsApi } from "@/api/client";
@@ -39,7 +40,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { SecretCategory } from "@/types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { Secret, SecretCategory } from "@/types";
+
+type FilterCategory = SecretCategory | "all";
 
 const CATEGORIES: {
   value: SecretCategory;
@@ -53,6 +73,13 @@ const CATEGORIES: {
   { value: "env_var", label: "Env Vars", singular: "Env Variable", icon: Terminal, placeholder: "DATABASE_URL" },
   { value: "token", label: "Tokens", singular: "Token", icon: Shield, placeholder: "OAUTH_REFRESH_TOKEN" },
 ];
+
+const CATEGORY_BADGE: Record<SecretCategory, { label: string; icon: typeof KeyRound }> = {
+  secret: { label: "Secret", icon: KeyRound },
+  api_key: { label: "API Key", icon: Key },
+  env_var: { label: "Env Var", icon: Terminal },
+  token: { label: "Token", icon: Shield },
+};
 
 const stagger = {
   hidden: { opacity: 0 },
@@ -81,12 +108,13 @@ export default function Vault() {
     selectEnv,
     secrets,
     setSecrets,
-    selectedCategory,
-    selectCategory,
     addToast,
   } = useStore();
 
+  const composingRef = useRef(false);
+  const [filterCategory, setFilterCategory] = useState<FilterCategory>("all");
   const [showCreate, setShowCreate] = useState(false);
+  const [createCategory, setCreateCategory] = useState<SecretCategory>("secret");
   const [newKey, setNewKey] = useState("");
   const [newValue, setNewValue] = useState("");
   const [newDesc, setNewDesc] = useState("");
@@ -98,8 +126,7 @@ export default function Vault() {
     Record<string, string>
   >({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-
-  const cat = CATEGORIES.find((c) => c.value === selectedCategory) ?? CATEGORIES[0];
+  const [deleteTarget, setDeleteTarget] = useState<{ key: string; secret: Secret } | null>(null);
 
   useEffect(() => {
     if (projects.length === 0) {
@@ -115,37 +142,49 @@ export default function Vault() {
     }
   }, [projects.length, setProjects, selectProject, selectedProject]);
 
+  const ENVS = ["development", "staging", "production"];
+
   const loadSecrets = useCallback(async () => {
-    if (!selectedProject) return;
+    const targetProjects = selectedProject ? [selectedProject] : projects;
+    if (targetProjects.length === 0) return;
     try {
-      const { data } = await secretsApi.list(
-        selectedProject.id,
-        selectedEnv,
-        selectedCategory
+      const category = filterCategory === "all" ? undefined : filterCategory;
+      const targetEnvs = selectedEnv === "all" ? ENVS : [selectedEnv];
+      const calls = targetProjects.flatMap((p) =>
+        targetEnvs.map((env) => ({ projectId: p.id, env }))
       );
-      setSecrets(data);
+      const results = await Promise.all(
+        calls.map((c) => secretsApi.list(c.projectId, c.env, category))
+      );
+      const all = results.flatMap((r, i) =>
+        r.data.map((s) => ({ ...s, _project_id: calls[i].projectId, _env_name: calls[i].env }))
+      );
+      setSecrets(all);
     } catch {
       setSecrets([]);
     }
-  }, [selectedProject, selectedEnv, selectedCategory, setSecrets]);
+  }, [selectedProject, projects, selectedEnv, filterCategory, setSecrets]);
 
   useEffect(() => {
+    setSecrets([]);
     loadSecrets();
     setRevealedKeys(new Set());
     setRevealedValues({});
-  }, [loadSecrets]);
+  }, [loadSecrets, setSecrets]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProject) return;
+    const env = selectedEnv === "all" ? "development" : selectedEnv;
     setLoading(true);
+    const cat = CATEGORIES.find((c) => c.value === createCategory)!;
     try {
-      await secretsApi.set(selectedProject.id, selectedEnv, newKey, {
+      await secretsApi.set(selectedProject.id, env, newKey, {
         key: newKey,
         value: newValue,
         description: newDesc || undefined,
         tags: newTags ? newTags.split(",").map((t) => t.trim()) : undefined,
-        category: selectedCategory,
+        category: createCategory,
       });
       await loadSecrets();
       setShowCreate(false);
@@ -165,23 +204,27 @@ export default function Vault() {
     }
   };
 
-  const handleDelete = async (key: string) => {
-    if (!selectedProject) return;
-    if (!confirm(`Delete ${cat.singular.toLowerCase()} "${key}"?`)) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const { key, secret } = deleteTarget;
+    const pid = secret._project_id || selectedProject?.id;
+    const env = secret._env_name || selectedEnv;
+    if (!pid || env === "all") return;
+    setDeleteTarget(null);
     try {
-      await secretsApi.delete(selectedProject.id, selectedEnv, key);
+      await secretsApi.delete(pid, env, key);
       await loadSecrets();
       addToast({
         type: "success",
-        title: `${cat.singular} deleted`,
-        message: `${key} has been removed`,
+        title: "Deleted",
+        message: `${key} has been moved to trash`,
       });
     } catch {
       // handled by interceptor
     }
   };
 
-  const toggleReveal = async (key: string) => {
+  const toggleReveal = async (key: string, secret: typeof secrets[0]) => {
     if (revealedKeys.has(key)) {
       setRevealedKeys((prev) => {
         const next = new Set(prev);
@@ -190,13 +233,11 @@ export default function Vault() {
       });
       return;
     }
-    if (!selectedProject) return;
+    const pid = secret._project_id || selectedProject?.id;
+    const env = secret._env_name || selectedEnv;
+    if (!pid || env === "all") return;
     try {
-      const { data } = await secretsApi.get(
-        selectedProject.id,
-        selectedEnv,
-        key
-      );
+      const { data } = await secretsApi.get(pid, env, key);
       setRevealedValues((prev) => ({ ...prev, [key]: data.value || "" }));
       setRevealedKeys((prev) => new Set(prev).add(key));
     } catch {
@@ -204,16 +245,14 @@ export default function Vault() {
     }
   };
 
-  const copyValue = async (key: string) => {
-    if (!selectedProject) return;
+  const copyValue = async (key: string, secret: typeof secrets[0]) => {
+    const pid = secret._project_id || selectedProject?.id;
+    const env = secret._env_name || selectedEnv;
+    if (!pid || env === "all") return;
     try {
       let value = revealedValues[key];
       if (!value) {
-        const { data } = await secretsApi.get(
-          selectedProject.id,
-          selectedEnv,
-          key
-        );
+        const { data } = await secretsApi.get(pid, env, key);
         value = data.value || "";
       }
       await navigator.clipboard.writeText(value);
@@ -230,6 +269,11 @@ export default function Vault() {
       s.description?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const currentLabel =
+    filterCategory === "all"
+      ? "items"
+      : CATEGORIES.find((c) => c.value === filterCategory)!.label.toLowerCase();
+
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible">
       {/* Header */}
@@ -241,8 +285,10 @@ export default function Vault() {
           <h1 className="text-2xl font-semibold tracking-tight">Vault</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {selectedProject
-              ? `Managing ${cat.label.toLowerCase()} for ${selectedProject.name}`
-              : "Select a project to manage your vault"}
+              ? `Managing all secrets for ${selectedProject.name}`
+              : projects.length > 0
+                ? "Managing secrets across all projects"
+                : "Select a project to manage your vault"}
           </p>
         </div>
         {projects.length > 0 && (
@@ -254,7 +300,7 @@ export default function Vault() {
             }}
           >
             <Plus className="size-4" />
-            Add {cat.singular}
+            Add New
           </Button>
         )}
       </motion.div>
@@ -262,6 +308,16 @@ export default function Vault() {
       {/* Project Selector */}
       <motion.div variants={fadeUp} className="mb-4">
         <div className="flex gap-2 flex-wrap">
+          {projects.length > 1 && (
+            <Button
+              variant={selectedProject === null ? "default" : "outline"}
+              size="sm"
+              onClick={() => selectProject(null)}
+            >
+              <Layers className="size-3.5" />
+              All
+            </Button>
+          )}
           {projects.map((p) => (
             <Button
               key={p.id}
@@ -276,10 +332,14 @@ export default function Vault() {
       </motion.div>
 
       {/* Environment Tabs */}
-      {selectedProject && (
+      {(selectedProject || projects.length > 0) && (
         <motion.div variants={fadeUp} className="mb-4">
           <Tabs value={selectedEnv} onValueChange={selectEnv}>
             <TabsList>
+              <TabsTrigger value="all">
+                <Layers className="size-3.5" />
+                All
+              </TabsTrigger>
               <TabsTrigger value="development">
                 <TestTube className="size-3.5" />
                 Development
@@ -297,14 +357,18 @@ export default function Vault() {
         </motion.div>
       )}
 
-      {/* Category Sub-tabs */}
-      {selectedProject && (
+      {/* Category Filter Tabs */}
+      {(selectedProject || projects.length > 0) && (
         <motion.div variants={fadeUp} className="mb-4">
           <Tabs
-            value={selectedCategory}
-            onValueChange={(v) => selectCategory(v as SecretCategory)}
+            value={filterCategory}
+            onValueChange={(v) => setFilterCategory(v as FilterCategory)}
           >
             <TabsList>
+              <TabsTrigger value="all">
+                <Layers className="size-3.5" />
+                All
+              </TabsTrigger>
               {CATEGORIES.map(({ value, label, icon: Icon }) => (
                 <TabsTrigger key={value} value={value}>
                   <Icon className="size-3.5" />
@@ -317,20 +381,20 @@ export default function Vault() {
       )}
 
       {/* Search */}
-      {selectedProject && (
+      {(selectedProject || projects.length > 0) && (
         <motion.div variants={fadeUp} className="mb-5 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={`Search ${cat.label.toLowerCase()}...`}
+            placeholder={`Search ${currentLabel}...`}
             className="pl-9"
           />
         </motion.div>
       )}
 
       {/* Secrets List */}
-      {!selectedProject ? (
+      {!selectedProject && projects.length === 0 ? (
         <motion.div
           variants={fadeUp}
           className="flex flex-col items-center justify-center py-28"
@@ -338,9 +402,9 @@ export default function Vault() {
           <div className="size-20 rounded-2xl bg-muted flex items-center justify-center mb-5">
             <AlertCircle className="size-8 text-muted-foreground" />
           </div>
-          <p className="text-base font-medium">Select a project first</p>
+          <p className="text-base font-medium">No projects yet</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Choose a project from the list above
+            Create a project to get started
           </p>
         </motion.div>
       ) : filtered.length === 0 ? (
@@ -349,157 +413,215 @@ export default function Vault() {
           className="flex flex-col items-center justify-center py-28"
         >
           <div className="size-20 rounded-2xl bg-muted flex items-center justify-center mb-5">
-            <cat.icon className="size-8 text-muted-foreground" />
+            <KeyRound className="size-8 text-muted-foreground" />
           </div>
-          <p className="text-base font-medium">No {cat.label.toLowerCase()} found</p>
+          <p className="text-base font-medium">No {currentLabel} found</p>
           <p className="text-sm text-muted-foreground mt-1">
             {search
               ? "Try a different search term"
-              : `Add your first ${cat.singular.toLowerCase()} to get started`}
+              : "Add your first item to get started"}
           </p>
           {!search && (
             <Button onClick={() => setShowCreate(true)} className="mt-5">
               <Plus className="size-4" />
-              Add {cat.singular}
+              Add New
             </Button>
           )}
         </motion.div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((secret, i) => (
-            <motion.div
-              key={secret.key}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                delay: i * 0.04,
-                duration: 0.3,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-            >
-              <Card className="group">
-                <CardContent className="pt-0">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <code className="font-mono text-sm font-semibold">
-                          {secret.key}
-                        </code>
-                        <Badge variant="secondary">v{secret.version}</Badge>
-                      </div>
-                      {secret.description && (
-                        <p className="text-xs text-muted-foreground mt-1.5">
-                          {secret.description}
-                        </p>
-                      )}
-                      {secret.tags && secret.tags.length > 0 && (
-                        <div className="flex gap-1.5 mt-2 flex-wrap">
-                          {secret.tags.map((tag) => (
-                            <Badge key={tag} variant="outline">
-                              <Tag className="size-3" />
-                              {tag}
+          {filtered.map((secret, i) => {
+            const catBadge = CATEGORY_BADGE[secret.category as SecretCategory];
+            const CatBadgeIcon = catBadge?.icon;
+            return (
+              <motion.div
+                key={secret.key}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: i * 0.04,
+                  duration: 0.3,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+              >
+                <Card className="group">
+                  <CardContent className="pt-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <code className="font-mono text-sm font-semibold">
+                            {secret.key}
+                          </code>
+                          <Badge variant="secondary">v{secret.version}</Badge>
+                          {catBadge && (
+                            <Badge variant="outline" className="gap-1">
+                              {CatBadgeIcon && <CatBadgeIcon className="size-3" />}
+                              {catBadge.label}
                             </Badge>
-                          ))}
+                          )}
                         </div>
-                      )}
-
-                      {/* Revealed value */}
-                      <AnimatePresence>
-                        {revealedKeys.has(secret.key) && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.15 }}
-                            className="mt-3"
-                          >
-                            <code className="block font-mono text-xs text-primary bg-muted border rounded-lg px-4 py-3 break-all">
-                              {revealedValues[secret.key]}
-                            </code>
-                          </motion.div>
+                        {secret.description && (
+                          <p className="text-xs text-muted-foreground mt-1.5">
+                            {secret.description}
+                          </p>
                         )}
-                      </AnimatePresence>
+                        {secret.tags && secret.tags.length > 0 && (
+                          <div className="flex gap-1.5 mt-2 flex-wrap">
+                            {secret.tags.map((tag) => (
+                              <Badge key={tag} variant="outline">
+                                <Tag className="size-3" />
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Revealed value */}
+                        <AnimatePresence>
+                          {revealedKeys.has(secret.key) && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.15 }}
+                              className="mt-3"
+                            >
+                              <code className="block font-mono text-xs text-primary bg-muted border rounded-lg px-4 py-3 break-all">
+                                {revealedValues[secret.key]}
+                              </code>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => toggleReveal(secret.key, secret)}
+                            >
+                              {revealedKeys.has(secret.key) ? (
+                                <EyeOff className="size-4" />
+                              ) : (
+                                <Eye className="size-4" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {revealedKeys.has(secret.key) ? "Hide" : "Reveal"}
+                          </TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => copyValue(secret.key, secret)}
+                            >
+                              {copiedKey === secret.key ? (
+                                <Check className="size-4 text-primary" />
+                              ) : (
+                                <Copy className="size-4" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Copy value</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeleteTarget({ key: secret.key, secret })}
+                              className="opacity-0 group-hover:opacity-100 hover:text-destructive"
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Delete</TooltipContent>
+                        </Tooltip>
+                      </div>
                     </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => toggleReveal(secret.key)}
-                          >
-                            {revealedKeys.has(secret.key) ? (
-                              <EyeOff className="size-4" />
-                            ) : (
-                              <Eye className="size-4" />
-                            )}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {revealedKeys.has(secret.key) ? "Hide" : "Reveal"}
-                        </TooltipContent>
-                      </Tooltip>
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => copyValue(secret.key)}
-                          >
-                            {copiedKey === secret.key ? (
-                              <Check className="size-4 text-primary" />
-                            ) : (
-                              <Copy className="size-4" />
-                            )}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Copy value</TooltipContent>
-                      </Tooltip>
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(secret.key)}
-                            className="opacity-0 group-hover:opacity-100 hover:text-destructive"
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Delete</TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <code className="font-mono font-semibold text-foreground">{deleteTarget?.key}</code>? It will be moved to the trash.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Create Modal */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add {cat.singular}</DialogTitle>
+            <DialogTitle>Add to Vault</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select
+                value={createCategory}
+                onValueChange={(v) => setCreateCategory(v as SecretCategory)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map(({ value, label, icon: Icon }) => (
+                    <SelectItem key={value} value={value}>
+                      <div className="flex items-center gap-2">
+                        <Icon className="size-3.5" />
+                        {label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="secret-key">Key</Label>
               <Input
                 id="secret-key"
                 value={newKey}
-                onChange={(e) =>
+                onChange={(e) => {
+                  if (composingRef.current) {
+                    setNewKey(e.target.value);
+                  } else {
+                    setNewKey(
+                      e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "_")
+                    );
+                  }
+                }}
+                onCompositionStart={() => { composingRef.current = true; }}
+                onCompositionEnd={(e) => {
+                  composingRef.current = false;
                   setNewKey(
-                    e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "_")
-                  )
-                }
+                    (e.target as HTMLInputElement).value.toUpperCase().replace(/[^A-Z0-9_]/g, "_")
+                  );
+                }}
                 className="font-mono"
-                placeholder={cat.placeholder}
+                placeholder={CATEGORIES.find((c) => c.value === createCategory)?.placeholder}
                 required
                 autoFocus
               />
@@ -539,7 +661,7 @@ export default function Vault() {
               ) : (
                 <Plus className="size-4" />
               )}
-              Add {cat.singular}
+              Add {CATEGORIES.find((c) => c.value === createCategory)?.singular}
             </Button>
           </form>
         </DialogContent>

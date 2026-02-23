@@ -96,8 +96,6 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX IF NOT EXISTS idx_secrets_project ON secrets(project_id);
 CREATE INDEX IF NOT EXISTS idx_secrets_env ON secrets(environment_id);
 CREATE INDEX IF NOT EXISTS idx_secrets_key ON secrets(key);
-CREATE INDEX IF NOT EXISTS idx_secrets_category ON secrets(category);
-CREATE INDEX IF NOT EXISTS idx_secrets_deleted ON secrets(deleted_at);
 CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_log(timestamp);
 CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_log(action);
 """
@@ -126,6 +124,10 @@ class Database:
             await self._db.execute(
                 "ALTER TABLE secrets ADD COLUMN deleted_at REAL"
             )
+
+        # Create indexes that depend on migrated columns
+        await self._db.execute("CREATE INDEX IF NOT EXISTS idx_secrets_category ON secrets(category)")
+        await self._db.execute("CREATE INDEX IF NOT EXISTS idx_secrets_deleted ON secrets(deleted_at)")
 
         await self._db.commit()
 
@@ -388,7 +390,7 @@ class Database:
 
     async def list_api_keys(self) -> list[dict]:
         cursor = await self.db.execute(
-            "SELECT id, name, scopes, project_ids, created_at, last_used_at, expires_at, is_active FROM api_keys ORDER BY created_at DESC"
+            "SELECT id, name, scopes, project_ids, created_at, last_used_at, expires_at, is_active FROM api_keys WHERE is_active = 1 ORDER BY created_at DESC"
         )
         rows = await cursor.fetchall()
         return [dict(row) for row in rows]

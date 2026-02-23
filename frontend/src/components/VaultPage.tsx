@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   KeyRound,
@@ -18,6 +18,7 @@ import {
   Rocket,
   Tag,
   AlertCircle,
+  Layers,
 } from "lucide-react";
 import { useStore } from "@/store";
 import { secretsApi, projectsApi } from "@/api/client";
@@ -39,7 +40,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { SecretCategory } from "@/types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import type { Secret, SecretCategory } from "@/types";
 
 const CATEGORY_META: Record<
   SecretCategory,
@@ -127,9 +138,11 @@ export default function VaultPage({ category }: VaultPageProps) {
     Record<string, string>
   >({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ key: string; secret: Secret } | null>(null);
 
   const meta = CATEGORY_META[category];
   const CatIcon = meta.icon;
+  const composingRef = useRef(false);
 
   useEffect(() => {
     if (projects.length === 0) {
@@ -145,32 +158,42 @@ export default function VaultPage({ category }: VaultPageProps) {
     }
   }, [projects.length, setProjects, selectProject, selectedProject]);
 
+  const ENVS = ["development", "staging", "production"];
+
   const loadSecrets = useCallback(async () => {
-    if (!selectedProject) return;
+    const targetProjects = selectedProject ? [selectedProject] : projects;
+    if (targetProjects.length === 0) return;
     try {
-      const { data } = await secretsApi.list(
-        selectedProject.id,
-        selectedEnv,
-        category
+      const targetEnvs = selectedEnv === "all" ? ENVS : [selectedEnv];
+      const calls = targetProjects.flatMap((p) =>
+        targetEnvs.map((env) => ({ projectId: p.id, env }))
       );
-      setSecrets(data);
+      const results = await Promise.all(
+        calls.map((c) => secretsApi.list(c.projectId, c.env, category))
+      );
+      const all = results.flatMap((r, i) =>
+        r.data.map((s) => ({ ...s, _project_id: calls[i].projectId, _env_name: calls[i].env }))
+      );
+      setSecrets(all);
     } catch {
       setSecrets([]);
     }
-  }, [selectedProject, selectedEnv, category, setSecrets]);
+  }, [selectedProject, projects, selectedEnv, category, setSecrets]);
 
   useEffect(() => {
+    setSecrets([]);
     loadSecrets();
     setRevealedKeys(new Set());
     setRevealedValues({});
-  }, [loadSecrets]);
+  }, [loadSecrets, setSecrets]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProject) return;
+    const env = selectedEnv === "all" ? "development" : selectedEnv;
     setLoading(true);
     try {
-      await secretsApi.set(selectedProject.id, selectedEnv, newKey, {
+      await secretsApi.set(selectedProject.id, env, newKey, {
         key: newKey,
         value: newValue,
         description: newDesc || undefined,
@@ -195,11 +218,15 @@ export default function VaultPage({ category }: VaultPageProps) {
     }
   };
 
-  const handleDelete = async (key: string) => {
-    if (!selectedProject) return;
-    if (!confirm(`Delete ${meta.singular.toLowerCase()} "${key}"?`)) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const { key, secret } = deleteTarget;
+    const pid = secret._project_id || selectedProject?.id;
+    const env = secret._env_name || selectedEnv;
+    if (!pid || env === "all") return;
+    setDeleteTarget(null);
     try {
-      await secretsApi.delete(selectedProject.id, selectedEnv, key);
+      await secretsApi.delete(pid, env, key);
       await loadSecrets();
       addToast({
         type: "success",
@@ -211,7 +238,7 @@ export default function VaultPage({ category }: VaultPageProps) {
     }
   };
 
-  const toggleReveal = async (key: string) => {
+  const toggleReveal = async (key: string, secret: typeof secrets[0]) => {
     if (revealedKeys.has(key)) {
       setRevealedKeys((prev) => {
         const next = new Set(prev);
@@ -220,13 +247,11 @@ export default function VaultPage({ category }: VaultPageProps) {
       });
       return;
     }
-    if (!selectedProject) return;
+    const pid = secret._project_id || selectedProject?.id;
+    const env = secret._env_name || selectedEnv;
+    if (!pid || env === "all") return;
     try {
-      const { data } = await secretsApi.get(
-        selectedProject.id,
-        selectedEnv,
-        key
-      );
+      const { data } = await secretsApi.get(pid, env, key);
       setRevealedValues((prev) => ({ ...prev, [key]: data.value || "" }));
       setRevealedKeys((prev) => new Set(prev).add(key));
     } catch {
@@ -234,16 +259,14 @@ export default function VaultPage({ category }: VaultPageProps) {
     }
   };
 
-  const copyValue = async (key: string) => {
-    if (!selectedProject) return;
+  const copyValue = async (key: string, secret: typeof secrets[0]) => {
+    const pid = secret._project_id || selectedProject?.id;
+    const env = secret._env_name || selectedEnv;
+    if (!pid || env === "all") return;
     try {
       let value = revealedValues[key];
       if (!value) {
-        const { data } = await secretsApi.get(
-          selectedProject.id,
-          selectedEnv,
-          key
-        );
+        const { data } = await secretsApi.get(pid, env, key);
         value = data.value || "";
       }
       await navigator.clipboard.writeText(value);
@@ -274,7 +297,9 @@ export default function VaultPage({ category }: VaultPageProps) {
           <p className="text-sm text-muted-foreground mt-1">
             {selectedProject
               ? `${meta.description} for ${selectedProject.name}`
-              : "Select a project to get started"}
+              : projects.length > 0
+                ? `${meta.description} across all projects`
+                : "Select a project to get started"}
           </p>
         </div>
         {projects.length > 0 && (
@@ -294,6 +319,16 @@ export default function VaultPage({ category }: VaultPageProps) {
       {/* Project Selector */}
       <motion.div variants={fadeUp} className="mb-4">
         <div className="flex gap-2 flex-wrap">
+          {projects.length > 1 && (
+            <Button
+              variant={selectedProject === null ? "default" : "outline"}
+              size="sm"
+              onClick={() => selectProject(null)}
+            >
+              <Layers className="size-3.5" />
+              All
+            </Button>
+          )}
           {projects.map((p) => (
             <Button
               key={p.id}
@@ -308,10 +343,14 @@ export default function VaultPage({ category }: VaultPageProps) {
       </motion.div>
 
       {/* Environment Tabs */}
-      {selectedProject && (
+      {(selectedProject || projects.length > 0) && (
         <motion.div variants={fadeUp} className="mb-4">
           <Tabs value={selectedEnv} onValueChange={selectEnv}>
             <TabsList>
+              <TabsTrigger value="all">
+                <Layers className="size-3.5" />
+                All
+              </TabsTrigger>
               <TabsTrigger value="development">
                 <TestTube className="size-3.5" />
                 Development
@@ -330,7 +369,7 @@ export default function VaultPage({ category }: VaultPageProps) {
       )}
 
       {/* Search */}
-      {selectedProject && (
+      {(selectedProject || projects.length > 0) && (
         <motion.div variants={fadeUp} className="mb-5 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
@@ -343,7 +382,7 @@ export default function VaultPage({ category }: VaultPageProps) {
       )}
 
       {/* List */}
-      {!selectedProject ? (
+      {!selectedProject && projects.length === 0 ? (
         <motion.div
           variants={fadeUp}
           className="flex flex-col items-center justify-center py-28"
@@ -351,9 +390,9 @@ export default function VaultPage({ category }: VaultPageProps) {
           <div className="size-20 rounded-2xl bg-muted flex items-center justify-center mb-5">
             <AlertCircle className="size-8 text-muted-foreground" />
           </div>
-          <p className="text-base font-medium">Select a project first</p>
+          <p className="text-base font-medium">No projects yet</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Choose a project from the list above
+            Create a project to get started
           </p>
         </motion.div>
       ) : filtered.length === 0 ? (
@@ -443,7 +482,7 @@ export default function VaultPage({ category }: VaultPageProps) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => toggleReveal(secret.key)}
+                            onClick={() => toggleReveal(secret.key, secret)}
                           >
                             {revealedKeys.has(secret.key) ? (
                               <EyeOff className="size-4" />
@@ -462,7 +501,7 @@ export default function VaultPage({ category }: VaultPageProps) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => copyValue(secret.key)}
+                            onClick={() => copyValue(secret.key, secret)}
                           >
                             {copiedKey === secret.key ? (
                               <Check className="size-4 text-primary" />
@@ -479,7 +518,7 @@ export default function VaultPage({ category }: VaultPageProps) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleDelete(secret.key)}
+                            onClick={() => setDeleteTarget({ key: secret.key, secret })}
                             className="opacity-0 group-hover:opacity-100 hover:text-destructive"
                           >
                             <Trash2 className="size-4" />
@@ -496,6 +535,22 @@ export default function VaultPage({ category }: VaultPageProps) {
         </div>
       )}
 
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <code className="font-mono font-semibold text-foreground">{deleteTarget?.key}</code>? It will be moved to the trash.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Create Modal */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent>
@@ -508,11 +563,23 @@ export default function VaultPage({ category }: VaultPageProps) {
               <Input
                 id="secret-key"
                 value={newKey}
-                onChange={(e) =>
+                onChange={(e) => {
+                  if (composingRef.current) {
+                    // During composition, store raw value without transformation
+                    setNewKey(e.target.value);
+                  } else {
+                    setNewKey(
+                      e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "_")
+                    );
+                  }
+                }}
+                onCompositionStart={() => { composingRef.current = true; }}
+                onCompositionEnd={(e) => {
+                  composingRef.current = false;
                   setNewKey(
-                    e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "_")
-                  )
-                }
+                    (e.target as HTMLInputElement).value.toUpperCase().replace(/[^A-Z0-9_]/g, "_")
+                  );
+                }}
                 className="font-mono"
                 placeholder={meta.placeholder}
                 required
