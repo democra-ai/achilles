@@ -357,9 +357,42 @@ body {
 }
 
 .secret-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  font-size: 9px;
+  line-height: 1.4;
+  border-radius: 999px;
+  color: #7a7a7a;
+  border: 1px solid rgba(48, 48, 48, 0.7);
+  background: rgba(20, 20, 20, 0.8);
+}
+
+.meta-chip-category {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.meta-chip-tag {
+  color: #9ca3af;
+}
+
+.secret-desc {
+  margin-top: 4px;
   font-size: 10px;
-  color: #555;
-  margin-top: 2px;
+  color: #6b7280;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .secret-actions {
@@ -452,6 +485,21 @@ body {
   padding: 1px 6px;
   border-radius: 4px;
   margin-bottom: 3px;
+}
+
+.detected-source {
+  color: #93c5fd;
+  border-color: rgba(147, 197, 253, 0.35);
+  background: rgba(96, 165, 250, 0.12);
+  margin-left: 4px;
+}
+
+.detected-name {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.1);
+  margin-left: 4px;
+  text-transform: none;
 }
 
 .detected-value {

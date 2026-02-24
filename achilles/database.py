@@ -243,8 +243,8 @@ class Database:
                 )
 
             await self.db.execute(
-                "UPDATE secrets SET encrypted_value = ?, version = ?, tags = ?, description = ?, updated_at = ?, created_by = ? WHERE id = ?",
-                (encrypted_value, new_version, tags_json, description, now, created_by, secret_id),
+                "UPDATE secrets SET encrypted_value = ?, version = ?, tags = ?, description = ?, category = ?, updated_at = ?, created_by = ? WHERE id = ?",
+                (encrypted_value, new_version, tags_json, description, category, now, created_by, secret_id),
             )
             version = new_version
         else:

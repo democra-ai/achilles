@@ -3,6 +3,73 @@ const API_BASE = "http://127.0.0.1:8900/api/v1";
 // ── Detected secrets storage (per-tab) ──────────────────────────────
 // Map<tabId, Array<{value, type, url, timestamp}>>
 const detectedByTab = new Map();
+const DEFAULT_ENV = "development";
+
+async function getUserPrefs() {
+  const prefs = await chrome.storage.local.get(["lastProjectId", "lastEnv"]);
+  return {
+    lastProjectId: prefs.lastProjectId ? String(prefs.lastProjectId) : null,
+    lastEnv: prefs.lastEnv || DEFAULT_ENV,
+  };
+}
+
+async function setUserPrefs(patch = {}) {
+  const next = {};
+  if (Object.prototype.hasOwnProperty.call(patch, "lastProjectId")) {
+    next.lastProjectId = patch.lastProjectId ? String(patch.lastProjectId) : null;
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, "lastEnv")) {
+    next.lastEnv = patch.lastEnv || DEFAULT_ENV;
+  }
+  if (Object.keys(next).length > 0) {
+    await chrome.storage.local.set(next);
+  }
+}
+
+function sanitizeKey(value) {
+  const s = String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return s;
+}
+
+function cleanKey(value) {
+  return String(value || "").trim();
+}
+
+function inferCategory(explicitCategory, typeName = "") {
+  if (explicitCategory && ["secret", "api_key", "env_var", "token"].includes(explicitCategory)) {
+    return explicitCategory;
+  }
+  const t = String(typeName || "").toLowerCase();
+  if (t.includes("token") || t.includes("pat") || t.includes("jwt")) return "token";
+  if (t.includes("api") || t.includes("access")) return "api_key";
+  return "secret";
+}
+
+function normalizeTags(tags) {
+  if (!Array.isArray(tags)) return [];
+  const out = [];
+  for (const tag of tags) {
+    const t = String(tag || "").trim().toLowerCase();
+    if (!t) continue;
+    if (!out.includes(t)) out.push(t);
+  }
+  return out.slice(0, 24);
+}
+
+function normalizeSourceTag(source) {
+  const raw = String(source || "").trim().toLowerCase();
+  if (!raw) return "";
+  const normalized = raw
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .split(/[\/:@|,;\s]/)[0]
+    .split(".")[0];
+  return normalized ? `source:${normalized}` : "";
+}
 
 async function apiRequest(path, options = {}) {
   const headers = {
@@ -24,17 +91,41 @@ async function apiRequest(path, options = {}) {
 
 // ── Context menu ─────────────────────────────────────────────────────
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: "achilles-fill",
-    title: "Fill from Achilles Vault",
-    contexts: ["editable"],
+function ensureContextMenus() {
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: "achilles-fill",
+      title: "Fill from Achilles Vault",
+      contexts: ["editable"],
+    });
+    chrome.contextMenus.create({
+      id: "achilles-import-selection",
+      title: "Import Selection to Achilles Vault",
+      contexts: ["selection"],
+    });
   });
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+  ensureContextMenus();
+});
+
+chrome.runtime.onStartup.addListener(() => {
+  ensureContextMenus();
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "achilles-fill" && tab?.id) {
     chrome.tabs.sendMessage(tab.id, { type: "FILL_FROM_VAULT" });
+    return;
+  }
+  if (info.menuItemId === "achilles-import-selection" && tab?.id) {
+    const text = (info.selectionText || "").trim();
+    if (!text) return;
+    chrome.tabs.sendMessage(tab.id, {
+      type: "IMPORT_SELECTED_TEXT",
+      text,
+    });
   }
 });
 
@@ -59,6 +150,16 @@ async function handleMessage(message, sender) {
 
     case "GET_PROJECTS":
       return await apiRequest("/projects");
+
+    case "GET_USER_PREFS":
+      return await getUserPrefs();
+
+    case "SET_USER_PREFS":
+      await setUserPrefs({
+        lastProjectId: message.lastProjectId,
+        lastEnv: message.lastEnv,
+      });
+      return { ok: true };
 
     case "GET_SECRETS":
       return await apiRequest(
@@ -107,26 +208,93 @@ async function handleMessage(message, sender) {
         throw new Error("No projects. Create one in the vault first.");
       }
 
-      const project = message.projectId
-        ? projects.find((p) => String(p.id) === String(message.projectId))
+      const prefs = await getUserPrefs();
+      const preferredProjectId = message.projectId || prefs.lastProjectId;
+      const project = preferredProjectId
+        ? projects.find((p) => String(p.id) === String(preferredProjectId))
         : projects[0];
       if (!project) throw new Error("Project not found");
 
-      const env = message.env || "development";
-      const key =
-        message.key ||
-        (s.type || "SECRET").toUpperCase().replace(/[^A-Z0-9]/g, "_") +
-          "_" +
-          Date.now().toString(36).toUpperCase();
+      const env = message.env || prefs.lastEnv || DEFAULT_ENV;
+      const explicitKey = message.key
+        ? cleanKey(message.key)
+        : sanitizeKey(s.suggestedKey || s.tokenName || "");
+      const defaultKeyPrefix = sanitizeKey(s.type || "SECRET") || "SECRET";
+      const key = explicitKey || `${defaultKeyPrefix}_${Date.now().toString(36).toUpperCase()}`;
+      if (!/^[a-zA-Z0-9_./-]+$/.test(key)) throw new Error("Invalid key format");
+      const category = inferCategory(message.category || s.category, s.type);
+      const sourceTag = normalizeSourceTag(message.source || s.source);
+      const baseTags = normalizeTags([
+        ...(s.tags || []),
+        ...(message.tags || []),
+        ...(sourceTag ? [sourceTag] : []),
+      ]);
+      const permissions = Array.isArray(s.permissions)
+        ? s.permissions.map((p) => String(p).trim()).filter(Boolean)
+        : [];
+      const descriptionParts = [
+        message.description ? String(message.description).trim() : "",
+        s.tokenName ? `name=${s.tokenName}` : "",
+        permissions.length > 0 ? `permissions=${permissions.join(",")}` : "",
+      ].filter(Boolean);
+      const description = descriptionParts.join(" | ").slice(0, 500);
 
       await apiRequest(
         `/projects/${project.id}/environments/${env}/secrets/${key}`,
         {
           method: "PUT",
-          body: JSON.stringify({ key, value: s.value }),
+          body: JSON.stringify({
+            key,
+            value: s.value,
+            category,
+            description,
+            tags: baseTags,
+          }),
         }
       );
-      return { success: true, key, project: project.name, env };
+      await setUserPrefs({ lastProjectId: project.id, lastEnv: env });
+      return { success: true, key, project: project.name, env, category, tags: baseTags, description };
+    }
+
+    case "SET_SECRET": {
+      if (!message.projectId || !message.env || !message.key || !Object.prototype.hasOwnProperty.call(message, "value")) {
+        throw new Error("Missing projectId/env/key/value");
+      }
+      const key = cleanKey(message.key);
+      if (!key) throw new Error("Invalid key");
+      if (!/^[a-zA-Z0-9_./-]+$/.test(key)) throw new Error("Invalid key format");
+      const sourceTag = normalizeSourceTag(message.source);
+
+      const payload = {
+        key,
+        value: String(message.value),
+        category: inferCategory(message.category, ""),
+        description: String(message.description || ""),
+        tags: normalizeTags([
+          ...(message.tags || []),
+          ...(sourceTag ? [sourceTag] : []),
+        ]),
+      };
+      const result = await apiRequest(
+        `/projects/${message.projectId}/environments/${message.env}/secrets/${key}`,
+        { method: "PUT", body: JSON.stringify(payload) }
+      );
+      await setUserPrefs({ lastProjectId: message.projectId, lastEnv: message.env });
+      return result;
+    }
+
+    case "DELETE_SECRET": {
+      if (!message.projectId || !message.env || !message.key) {
+        throw new Error("Missing projectId/env/key");
+      }
+      const resp = await fetch(
+        `${API_BASE}/projects/${message.projectId}/environments/${message.env}/secrets/${encodeURIComponent(message.key)}`,
+        { method: "DELETE", headers: { "Content-Type": "application/json" } }
+      );
+      if (!resp.ok && resp.status !== 204) {
+        throw new Error(`API error: ${resp.status}`);
+      }
+      return { ok: true };
     }
 
     case "GET_FILL_SECRETS": {

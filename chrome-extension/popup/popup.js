@@ -2,6 +2,14 @@ let currentProject = null;
 let currentEnv = "development";
 let revealedSecrets = {};
 let activeTab = "vault";
+const DEFAULT_ENV = "development";
+
+const CATEGORY_LABEL = {
+  secret: "Secret",
+  api_key: "API Key",
+  env_var: "Env Var",
+  token: "Token",
+};
 
 // Init — local mode, no login required
 document.addEventListener("DOMContentLoaded", async () => {
@@ -39,6 +47,43 @@ function showMainView() {
   loadProjects();
 }
 
+async function getUserPrefs() {
+  try {
+    const resp = await chrome.runtime.sendMessage({ type: "GET_USER_PREFS" });
+    return {
+      lastProjectId: resp?.lastProjectId ? String(resp.lastProjectId) : null,
+      lastEnv: resp?.lastEnv || DEFAULT_ENV,
+    };
+  } catch {
+    return { lastProjectId: null, lastEnv: DEFAULT_ENV };
+  }
+}
+
+async function setUserPrefs(patch) {
+  try {
+    await chrome.runtime.sendMessage({ type: "SET_USER_PREFS", ...patch });
+  } catch {
+    // no-op
+  }
+}
+
+function setActiveEnv(env, options = {}) {
+  const { persist = false, shouldLoad = true } = options;
+  const targetEnv = env || DEFAULT_ENV;
+  currentEnv = targetEnv;
+
+  document.querySelectorAll(".env-tab").forEach((tab) => {
+    tab.classList.toggle("active", tab.dataset.env === targetEnv);
+  });
+
+  if (persist) {
+    setUserPrefs({ lastEnv: targetEnv });
+  }
+  if (shouldLoad && currentProject) {
+    loadSecrets();
+  }
+}
+
 // Event Listeners
 function setupEventListeners() {
   // Open App — launch native desktop app via custom URL scheme
@@ -49,17 +94,18 @@ function setupEventListeners() {
   // Project select
   document.getElementById("project-select").addEventListener("change", (e) => {
     currentProject = e.target.value || null;
-    if (currentProject) loadSecrets();
-    else showEmptyState();
+    setUserPrefs({ lastProjectId: currentProject || null });
+    if (currentProject) {
+      loadSecrets();
+    } else {
+      showEmptyState();
+    }
   });
 
   // Environment tabs
   document.querySelectorAll(".env-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
-      document.querySelectorAll(".env-tab").forEach((t) => t.classList.remove("active"));
-      tab.classList.add("active");
-      currentEnv = tab.dataset.env;
-      if (currentProject) loadSecrets();
+      setActiveEnv(tab.dataset.env, { persist: true, shouldLoad: true });
     });
   });
 
@@ -133,6 +179,8 @@ function renderDetectedSecrets(secrets) {
     <div class="detected-item" data-index="${i}">
       <div class="detected-info">
         <span class="detected-type">${escapeHtml(s.type)}</span>
+        ${s.source ? `<span class="detected-type detected-source">${escapeHtml(String(s.source))}</span>` : ""}
+        ${s.tokenName ? `<span class="detected-type detected-name">${escapeHtml(String(s.tokenName))}</span>` : ""}
         <code class="detected-value">${escapeHtml(maskValue(s.value))}</code>
       </div>
       <button class="action-btn import-btn" data-index="${i}" title="Import to Vault">
@@ -156,6 +204,8 @@ function renderDetectedSecrets(secrets) {
         const resp = await chrome.runtime.sendMessage({
           type: "IMPORT_SECRET",
           secret,
+          projectId: currentProject || undefined,
+          env: currentEnv,
         });
         if (resp.error) {
           alert("Import failed: " + resp.error);
@@ -181,17 +231,41 @@ function maskValue(value) {
 // Load Projects
 async function loadProjects() {
   try {
-    const projects = await chrome.runtime.sendMessage({ type: "GET_PROJECTS" });
+    const [projects, prefs] = await Promise.all([
+      chrome.runtime.sendMessage({ type: "GET_PROJECTS" }),
+      getUserPrefs(),
+    ]);
     if (projects.error) return;
 
+    setActiveEnv(prefs.lastEnv || DEFAULT_ENV, { persist: false, shouldLoad: false });
+
+    const projectList = Array.isArray(projects) ? projects : [];
     const select = document.getElementById("project-select");
-    select.innerHTML = '<option value="">Select project...</option>';
-    (Array.isArray(projects) ? projects : []).forEach((p) => {
+    select.innerHTML = "";
+    projectList.forEach((p) => {
       const opt = document.createElement("option");
-      opt.value = p.id;
+      opt.value = String(p.id);
       opt.textContent = p.name;
       select.appendChild(opt);
     });
+
+    if (projectList.length === 0) {
+      currentProject = null;
+      showEmptyState("No projects found");
+      return;
+    }
+
+    const preferredProject = prefs.lastProjectId
+      ? projectList.find((p) => String(p.id) === String(prefs.lastProjectId))
+      : null;
+    const selectedProject = preferredProject || projectList[0];
+    currentProject = String(selectedProject.id);
+    select.value = currentProject;
+    setUserPrefs({
+      lastProjectId: currentProject,
+      lastEnv: currentEnv,
+    });
+    loadSecrets();
   } catch (err) {
     console.error("Failed to load projects:", err);
   }
@@ -236,7 +310,12 @@ function renderSecrets(secrets) {
     <div class="secret-item" data-key="${s.key}">
       <div>
         <div class="secret-key">${s.key}</div>
-        <div class="secret-meta">v${s.version}${s.description ? " · " + s.description : ""}</div>
+        <div class="secret-meta">
+          <span class="meta-chip meta-chip-category">${escapeHtml(CATEGORY_LABEL[s.category] || "Secret")}</span>
+          <span class="meta-chip">v${s.version}</span>
+          ${(Array.isArray(s.tags) ? s.tags : []).slice(0, 4).map((tag) => `<span class="meta-chip meta-chip-tag">${escapeHtml(tag)}</span>`).join("")}
+        </div>
+        ${s.description ? `<div class="secret-desc">${escapeHtml(s.description)}</div>` : ""}
       </div>
       <div class="secret-actions">
         <button class="action-btn" data-action="reveal" data-key="${s.key}" title="Reveal">
@@ -244,6 +323,9 @@ function renderSecrets(secrets) {
         </button>
         <button class="action-btn" data-action="copy" data-key="${s.key}" title="Copy">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <button class="action-btn" data-action="edit" data-key="${s.key}" title="Edit">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
         </button>
       </div>
     </div>
@@ -264,6 +346,8 @@ function renderSecrets(secrets) {
         await copySecret(key);
         btn.classList.add("copied");
         setTimeout(() => btn.classList.remove("copied"), 1500);
+      } else if (action === "edit") {
+        await editSecret(key);
       }
     });
   });
@@ -321,6 +405,87 @@ async function copySecret(key) {
   } catch (err) {
     console.error("Failed to copy:", err);
   }
+}
+
+async function editSecret(oldKey) {
+  const meta = (window._allSecrets || []).find((s) => s.key === oldKey);
+  if (!meta || !currentProject) return;
+
+  const keyInput = window.prompt("Edit key", oldKey);
+  if (keyInput === null) return;
+  const newKey = keyInput.trim();
+  if (!newKey) return;
+
+  const categoryInput = window.prompt(
+    "Category: secret / api_key / token / env_var",
+    meta.category || "secret"
+  );
+  if (categoryInput === null) return;
+  const category = categoryInput.trim().toLowerCase();
+  if (!["secret", "api_key", "token", "env_var"].includes(category)) {
+    alert("Invalid category");
+    return;
+  }
+
+  const descInput = window.prompt("Description", meta.description || "");
+  if (descInput === null) return;
+  const tagsInput = window.prompt(
+    "Tags (comma separated)",
+    Array.isArray(meta.tags) ? meta.tags.join(", ") : ""
+  );
+  if (tagsInput === null) return;
+  const tags = tagsInput
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  const currentValResp = await chrome.runtime.sendMessage({
+    type: "GET_SECRET_VALUE",
+    projectId: currentProject,
+    env: currentEnv,
+    key: oldKey,
+  });
+  if (currentValResp?.error) {
+    alert("Load value failed: " + currentValResp.error);
+    return;
+  }
+
+  const valueInput = window.prompt("Secret value", currentValResp.value || "");
+  if (valueInput === null) return;
+  const value = valueInput;
+  if (!value) {
+    alert("Value cannot be empty");
+    return;
+  }
+
+  const saveResp = await chrome.runtime.sendMessage({
+    type: "SET_SECRET",
+    projectId: currentProject,
+    env: currentEnv,
+    key: newKey,
+    value,
+    description: descInput,
+    tags,
+    category,
+  });
+  if (saveResp?.error) {
+    alert("Save failed: " + saveResp.error);
+    return;
+  }
+
+  if (newKey !== oldKey) {
+    const delResp = await chrome.runtime.sendMessage({
+      type: "DELETE_SECRET",
+      projectId: currentProject,
+      env: currentEnv,
+      key: oldKey,
+    });
+    if (delResp?.error) {
+      alert("Renamed but failed to delete old key: " + delResp.error);
+    }
+  }
+
+  await loadSecrets();
 }
 
 // Filter

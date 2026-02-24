@@ -11,6 +11,7 @@ import {
   EyeOff,
   Copy,
   Check,
+  Pencil,
   Search,
   Loader2,
   TestTube,
@@ -29,6 +30,13 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Tooltip,
   TooltipContent,
@@ -92,6 +100,44 @@ const CATEGORY_META: Record<
   },
 };
 
+const CATEGORY_OPTIONS = (Object.keys(CATEGORY_META) as SecretCategory[]).map((key) => ({
+  value: key,
+  label: CATEGORY_META[key].label,
+  icon: CATEGORY_META[key].icon,
+}));
+
+const SOURCE_LABELS: Record<string, string> = {
+  github: "GitHub",
+  gitlab: "GitLab",
+  huggingface: "Hugging Face",
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  stripe: "Stripe",
+  aws: "AWS",
+  npm: "npm",
+  pypi: "PyPI",
+  vercel: "Vercel",
+  supabase: "Supabase",
+  cloudflare: "Cloudflare",
+  digitalocean: "DigitalOcean",
+};
+
+const SOURCE_KEY_HINTS: Array<{ pattern: RegExp; source: keyof typeof SOURCE_LABELS }> = [
+  { pattern: /^GITHUB(?:_|$)/i, source: "github" },
+  { pattern: /^GITLAB(?:_|$)/i, source: "gitlab" },
+  { pattern: /^(HUGGINGFACE|HUGGING_FACE|HF)(?:_|$)/i, source: "huggingface" },
+  { pattern: /^OPENAI(?:_|$)/i, source: "openai" },
+  { pattern: /^ANTHROPIC(?:_|$)/i, source: "anthropic" },
+  { pattern: /^STRIPE(?:_|$)/i, source: "stripe" },
+  { pattern: /^AWS(?:_|$)/i, source: "aws" },
+  { pattern: /^NPM(?:_|$)/i, source: "npm" },
+  { pattern: /^PYPI(?:_|$)/i, source: "pypi" },
+  { pattern: /^VERCEL(?:_|$)/i, source: "vercel" },
+  { pattern: /^SUPABASE(?:_|$)/i, source: "supabase" },
+  { pattern: /^CLOUDFLARE(?:_|$)/i, source: "cloudflare" },
+  { pattern: /^DIGITALOCEAN(?:_|$)/i, source: "digitalocean" },
+];
+
 const stagger = {
   hidden: { opacity: 0 },
   visible: {
@@ -139,6 +185,14 @@ export default function VaultPage({ category }: VaultPageProps) {
   >({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ key: string; secret: Secret } | null>(null);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editTarget, setEditTarget] = useState<Secret | null>(null);
+  const [editKey, setEditKey] = useState("");
+  const [editValue, setEditValue] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [editTags, setEditTags] = useState("");
+  const [editCategory, setEditCategory] = useState<SecretCategory>(category);
+  const [editLoading, setEditLoading] = useState(false);
 
   const meta = CATEGORY_META[category];
   const CatIcon = meta.icon;
@@ -274,6 +328,118 @@ export default function VaultPage({ category }: VaultPageProps) {
       setTimeout(() => setCopiedKey(null), 2000);
     } catch {
       // handled by interceptor
+    }
+  };
+
+  const formatSourceLabel = (raw: string): string => {
+    const key = raw
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .split(/[\/:@|,;\s]/)[0]
+      .split(".")[0];
+    if (!key) return "";
+    if (SOURCE_LABELS[key]) return SOURCE_LABELS[key];
+    return key
+      .replace(/[_-]+/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+  };
+
+  const getSourceFromTag = (tag: string): string | null => {
+    const chunks = String(tag)
+      .split(",")
+      .map((chunk) => chunk.trim())
+      .filter(Boolean);
+    for (const chunk of chunks) {
+      const sourceMatch = chunk.match(/^source[:=]\s*(.+)$/i);
+      if (sourceMatch?.[1]) {
+        return formatSourceLabel(sourceMatch[1]);
+      }
+      const normalized = chunk
+        .toLowerCase()
+        .replace(/^https?:\/\//, "")
+        .replace(/^www\./, "")
+        .split(/[\/:@|,;\s]/)[0]
+        .split(".")[0];
+      if (normalized && SOURCE_LABELS[normalized]) {
+        return SOURCE_LABELS[normalized];
+      }
+    }
+    return null;
+  };
+
+  const getSourceFromSecret = (secret: Secret): string | null => {
+    for (const tag of secret.tags || []) {
+      const source = getSourceFromTag(String(tag));
+      if (source) return source;
+    }
+    const m = secret.description?.match(/(?:^|[|,;])\s*source[:=]\s*([^|,;]+)/i);
+    if (m?.[1]) return formatSourceLabel(m[1]);
+
+    const keyUpper = secret.key.toUpperCase();
+    const hintedSource = SOURCE_KEY_HINTS.find((item) => item.pattern.test(keyUpper));
+    if (hintedSource) return SOURCE_LABELS[hintedSource.source];
+
+    const keyPrefix = secret.key.split("_")[0]?.toLowerCase();
+    if (keyPrefix && SOURCE_LABELS[keyPrefix]) return SOURCE_LABELS[keyPrefix];
+    return null;
+  };
+
+  const openEdit = async (secret: Secret) => {
+    const pid = secret._project_id || selectedProject?.id;
+    const env = secret._env_name || selectedEnv;
+    if (!pid || env === "all") return;
+    try {
+      const { data } = await secretsApi.get(pid, env, secret.key);
+      setEditTarget(secret);
+      setEditKey(secret.key);
+      setEditValue(data.value || "");
+      setEditDesc(secret.description || "");
+      setEditTags((secret.tags || []).join(", "));
+      setEditCategory((secret.category as SecretCategory) || category);
+      setShowEdit(true);
+    } catch {
+      // handled by interceptor
+    }
+  };
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTarget) return;
+    const pid = editTarget._project_id || selectedProject?.id;
+    const env = editTarget._env_name || selectedEnv;
+    if (!pid || env === "all") return;
+    setEditLoading(true);
+    try {
+      const nextKey = editKey.trim();
+      if (!nextKey) return;
+      const tags = editTags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      await secretsApi.set(pid, env, nextKey, {
+        key: nextKey,
+        value: editValue,
+        description: editDesc || undefined,
+        tags,
+        category: editCategory,
+      });
+      if (nextKey !== editTarget.key) {
+        await secretsApi.delete(pid, env, editTarget.key);
+      }
+      await loadSecrets();
+      setShowEdit(false);
+      setEditTarget(null);
+      addToast({
+        type: "success",
+        title: `${meta.singular} updated`,
+        message: `${nextKey} has been updated`,
+      });
+    } catch {
+      // handled by interceptor
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -420,7 +586,21 @@ export default function VaultPage({ category }: VaultPageProps) {
         </motion.div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((secret, i) => (
+          {filtered.map((secret, i) => {
+            const source = getSourceFromSecret(secret);
+            const visibleTags = (secret.tags || []).filter((tag) => {
+              const text = String(tag).trim();
+              if (!text) return false;
+              if (/^source[:=]/i.test(text)) return false;
+              const normalized = text
+                .toLowerCase()
+                .replace(/^https?:\/\//, "")
+                .replace(/^www\./, "")
+                .split(/[\/:@|,;\s]/)[0]
+                .split(".")[0];
+              return !SOURCE_LABELS[normalized];
+            });
+            return (
             <motion.div
               key={secret.key}
               initial={{ opacity: 0, y: 10 }}
@@ -440,15 +620,25 @@ export default function VaultPage({ category }: VaultPageProps) {
                           {secret.key}
                         </code>
                         <Badge variant="secondary">v{secret.version}</Badge>
+                        <Badge variant="outline" className="gap-1">
+                          <CatIcon className="size-3" />
+                          {meta.singular}
+                        </Badge>
+                        {source && (
+                          <Badge variant="outline" className="gap-1">
+                            <Globe className="size-3" />
+                            {source}
+                          </Badge>
+                        )}
                       </div>
                       {secret.description && (
                         <p className="text-xs text-muted-foreground mt-1.5">
                           {secret.description}
                         </p>
                       )}
-                      {secret.tags && secret.tags.length > 0 && (
+                      {visibleTags.length > 0 && (
                         <div className="flex gap-1.5 mt-2 flex-wrap">
-                          {secret.tags.map((tag) => (
+                          {visibleTags.map((tag) => (
                             <Badge key={tag} variant="outline">
                               <Tag className="size-3" />
                               {tag}
@@ -477,6 +667,20 @@ export default function VaultPage({ category }: VaultPageProps) {
 
                     {/* Actions */}
                     <div className="flex items-center gap-1 shrink-0">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEdit(secret)}
+                            className="opacity-0 group-hover:opacity-100"
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Edit</TooltipContent>
+                      </Tooltip>
+
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
@@ -531,7 +735,8 @@ export default function VaultPage({ category }: VaultPageProps) {
                 </CardContent>
               </Card>
             </motion.div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -622,6 +827,105 @@ export default function VaultPage({ category }: VaultPageProps) {
                 <Plus className="size-4" />
               )}
               Add {meta.singular}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Modal */}
+      <Dialog
+        open={showEdit}
+        onOpenChange={(open) => {
+          setShowEdit(open);
+          if (!open) setEditTarget(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit {meta.singular}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEdit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select
+                value={editCategory}
+                onValueChange={(v) => setEditCategory(v as SecretCategory)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORY_OPTIONS.map(({ value, label, icon: Icon }) => (
+                    <SelectItem key={value} value={value}>
+                      <div className="flex items-center gap-2">
+                        <Icon className="size-3.5" />
+                        {label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-key">Key</Label>
+              <Input
+                id="edit-key"
+                value={editKey}
+                onChange={(e) => {
+                  if (composingRef.current) {
+                    setEditKey(e.target.value);
+                  } else {
+                    setEditKey(
+                      e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "_")
+                    );
+                  }
+                }}
+                onCompositionStart={() => { composingRef.current = true; }}
+                onCompositionEnd={(e) => {
+                  composingRef.current = false;
+                  setEditKey(
+                    (e.target as HTMLInputElement).value.toUpperCase().replace(/[^A-Z0-9_]/g, "_")
+                  );
+                }}
+                className="font-mono"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-value">Value</Label>
+              <Textarea
+                id="edit-value"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="font-mono resize-none h-24"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-desc">Description</Label>
+              <Input
+                id="edit-desc"
+                value={editDesc}
+                onChange={(e) => setEditDesc(e.target.value)}
+                placeholder="Optional description"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-tags">Tags (comma-separated)</Label>
+              <Input
+                id="edit-tags"
+                value={editTags}
+                onChange={(e) => setEditTags(e.target.value)}
+                placeholder="source:github, scope:repo"
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={editLoading}>
+              {editLoading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Pencil className="size-4" />
+              )}
+              Save Changes
             </Button>
           </form>
         </DialogContent>

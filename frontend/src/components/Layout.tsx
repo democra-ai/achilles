@@ -36,6 +36,7 @@ import {
   SidebarMenuSubButton,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Collapsible,
@@ -46,6 +47,7 @@ import { ChevronRight, Trash2 } from "lucide-react";
 import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 const topNav = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -123,6 +125,115 @@ function OfflineBanner() {
       </Alert>
     </div>
   );
+}
+
+type SidebarServerStatusProps = {
+  running: boolean;
+  port: number;
+  isTauri: boolean;
+  sidebarStarting: boolean;
+  onStart: () => Promise<void>;
+};
+
+function SidebarServerStatus({
+  running,
+  port,
+  isTauri,
+  sidebarStarting,
+  onStart,
+}: SidebarServerStatusProps) {
+  const { state, isMobile } = useSidebar();
+  const isCollapsed = state === "collapsed" && !isMobile;
+  const isOffline = !running;
+  const title = sidebarStarting
+    ? "Starting..."
+    : isOffline
+      ? "Server Offline"
+      : "Server Online";
+  const subtitle = isOffline
+    ? isTauri
+      ? "Click to start"
+      : "Start manually"
+    : `localhost:${port}`;
+
+  if (isCollapsed) {
+    const dotClass = cn(
+      "mx-auto block size-2.5 rounded-full transition-colors",
+      sidebarStarting
+        ? "bg-yellow-400 animate-pulse"
+        : isOffline
+          ? "bg-destructive"
+          : "bg-primary pulse-online shadow-[0_0_8px_oklch(0.696_0.17_162.48/0.6)]"
+    );
+
+    if (isOffline) {
+      return (
+        <button
+          onClick={onStart}
+          disabled={sidebarStarting}
+          className="mx-auto block p-0.5"
+          aria-label={title}
+        >
+          <span className={dotClass} />
+        </button>
+      );
+    }
+
+    return (
+      <div className="mx-auto block p-0.5" aria-label={title}>
+        <span className={dotClass} />
+      </div>
+    );
+  }
+
+  const statusDot = sidebarStarting ? (
+    <Loader2 className="size-4 text-yellow-400 animate-spin shrink-0" />
+  ) : isOffline ? (
+    <div className="size-2.5 rounded-full bg-destructive shrink-0 shadow-[0_0_8px_oklch(0.704_0.191_22.216/0.55)]" />
+  ) : (
+    <div className="size-2.5 rounded-full bg-primary pulse-online shrink-0 shadow-[0_0_8px_oklch(0.696_0.17_162.48/0.45)]" />
+  );
+
+  const sharedClassName = cn(
+    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all",
+    "group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-10",
+    "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0",
+    isOffline
+      ? "border-destructive/20 bg-destructive/5 hover:bg-destructive/10 group-data-[collapsible=icon]:border-destructive/30 group-data-[collapsible=icon]:bg-destructive/8"
+      : "border-primary/10 bg-primary/5 group-data-[collapsible=icon]:border-primary/20 group-data-[collapsible=icon]:bg-primary/10"
+  );
+
+  const statusContent = (
+    <>
+      {statusDot}
+      <div className="min-w-0 flex-1 text-left group-data-[collapsible=icon]:hidden">
+        <p className="text-xs font-medium text-foreground">{title}</p>
+        <p
+          className={cn(
+            "text-[10px] text-muted-foreground",
+            !isOffline && "font-mono"
+          )}
+        >
+          {subtitle}
+        </p>
+      </div>
+    </>
+  );
+
+  const statusNode = isOffline ? (
+    <button
+      onClick={onStart}
+      disabled={sidebarStarting}
+      className={sharedClassName}
+    >
+      {statusContent}
+    </button>
+  ) : (
+    <div className={sharedClassName}>
+      {statusContent}
+    </div>
+  );
+  return statusNode;
 }
 
 export default function Layout() {
@@ -276,40 +387,14 @@ export default function Layout() {
             </SidebarMenu>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-sidebar-border p-4">
-            {!serverStatus.running ? (
-              <button
-                onClick={handleSidebarStart}
-                disabled={sidebarStarting}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-destructive/20 bg-destructive/5 hover:bg-destructive/10 transition-all group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
-              >
-                {sidebarStarting ? (
-                  <Loader2 className="size-4 text-yellow-400 animate-spin shrink-0" />
-                ) : (
-                  <div className="size-2 rounded-full bg-destructive shrink-0 shadow-[0_0_6px_oklch(0.704_0.191_22.216/0.5)]" />
-                )}
-                <div className="min-w-0 flex-1 text-left group-data-[collapsible=icon]:hidden">
-                  <p className="text-xs font-medium text-foreground">
-                    {sidebarStarting ? "Starting..." : "Server Offline"}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {isTauri ? "Click to start" : "Start manually"}
-                  </p>
-                </div>
-              </button>
-            ) : (
-              <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/5 border border-primary/10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
-                <div className="size-2 rounded-full bg-primary pulse-online shrink-0 shadow-[0_0_6px_oklch(0.696_0.17_162.48/0.4)]" />
-                <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-                  <p className="text-xs font-medium text-foreground">
-                    Server Online
-                  </p>
-                  <p className="text-[10px] font-mono text-muted-foreground">
-                    localhost:{serverStatus.port}
-                  </p>
-                </div>
-              </div>
-            )}
+          <SidebarFooter className="border-t border-sidebar-border p-4 group-data-[collapsible=icon]:p-2">
+            <SidebarServerStatus
+              running={serverStatus.running}
+              port={serverStatus.port}
+              isTauri={isTauri}
+              sidebarStarting={sidebarStarting}
+              onStart={handleSidebarStart}
+            />
           </SidebarFooter>
         </Sidebar>
 
