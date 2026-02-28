@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Achilles Vault",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Quick access to your locally encrypted secrets. Detects API keys on pages, one-click import, and auto-fill from vault.",
   "permissions": ["storage", "activeTab", "contextMenus"],
   "host_permissions": ["http://127.0.0.1:8900/*"],
