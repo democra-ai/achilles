@@ -1,3 +1,5 @@
+import { getSerializableRules, getRuleSummary } from "../rules/loader.js";
+
 const API_BASE = "http://127.0.0.1:8900/api/v1";
 
 // ── Detected secrets storage (per-tab) ──────────────────────────────
@@ -328,6 +330,14 @@ async function handleMessage(message, sender) {
       }
       return { secrets: results };
     }
+
+    // ── Rules messages ─────────────────────────────────────────────────
+
+    case "GET_RULES":
+      return { rules: await getSerializableRules() };
+
+    case "GET_RULE_SUMMARY":
+      return { summary: await getRuleSummary() };
 
     default:
       throw new Error(`Unknown message type: ${message.type}`);

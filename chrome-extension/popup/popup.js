@@ -165,6 +165,16 @@ async function loadDetectedSecrets() {
   }
 }
 
+function severityColor(severity) {
+  switch (severity) {
+    case "critical": return "#ef4444";
+    case "high": return "#f97316";
+    case "medium": return "#eab308";
+    case "low": return "#6b7280";
+    default: return "#6b7280";
+  }
+}
+
 function renderDetectedSecrets(secrets) {
   const list = document.getElementById("detected-list");
 
@@ -175,19 +185,34 @@ function renderDetectedSecrets(secrets) {
 
   list.innerHTML = secrets
     .map(
-      (s, i) => `
+      (s, i) => {
+        const rule = s.matchedRule;
+        const severityBadge = rule && rule.severity
+          ? `<span class="detected-severity" style="color:${severityColor(rule.severity)};border-color:${severityColor(rule.severity)}33;background:${severityColor(rule.severity)}18">${escapeHtml(rule.severity.toUpperCase())}</span>`
+          : "";
+        const ruleDetail = rule
+          ? `<div class="detected-rule-detail">
+              <span class="detected-rule-id" title="${escapeHtml(rule.description || "")}">${escapeHtml(rule.id)}</span>
+              ${rule.platform ? `<span class="detected-rule-platform">${escapeHtml(rule.platform)}</span>` : ""}
+              ${severityBadge}
+              ${rule.reference ? `<a class="detected-rule-ref" href="${escapeHtml(rule.reference)}" target="_blank" title="Reference docs">docs</a>` : ""}
+            </div>`
+          : "";
+        return `
     <div class="detected-item" data-index="${i}">
       <div class="detected-info">
         <span class="detected-type">${escapeHtml(s.type)}</span>
         ${s.source ? `<span class="detected-type detected-source">${escapeHtml(String(s.source))}</span>` : ""}
         ${s.tokenName ? `<span class="detected-type detected-name">${escapeHtml(String(s.tokenName))}</span>` : ""}
         <code class="detected-value">${escapeHtml(maskValue(s.value))}</code>
+        ${ruleDetail}
       </div>
       <button class="action-btn import-btn" data-index="${i}" title="Import to Vault">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       </button>
     </div>
-  `
+  `;
+      }
     )
     .join("");
 

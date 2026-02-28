@@ -12,39 +12,33 @@
   if (window.__achillesDetectorLoaded) return;
   window.__achillesDetectorLoaded = true;
 
-  // Pattern catalogue
-  const PATTERNS = [
-    { name: "OpenAI", re: /\bsk-[A-Za-z0-9_-]{20,}\b/g },
-    { name: "OpenAI Proj", re: /\bsk-proj-[A-Za-z0-9_-]{20,}\b/g },
-    { name: "Anthropic", re: /\bsk-ant-[A-Za-z0-9_-]{20,}\b/g },
-    { name: "AWS Access", re: /\bAKIA[0-9A-Z]{16}\b/g },
-    { name: "AWS Secret", re: /\b[A-Za-z0-9/+=]{40}\b/g },
-    { name: "GitHub PAT", re: /\bghp_[A-Za-z0-9]{36,}\b/g },
-    { name: "GitHub OAuth", re: /\bgho_[A-Za-z0-9]{36,}\b/g },
-    { name: "GitHub App", re: /\bghs_[A-Za-z0-9]{36,}\b/g },
-    { name: "GitHub Fine", re: /\bgithub_pat_[A-Za-z0-9_]{30,}\b/g },
-    { name: "GitLab", re: /\bglpat-[A-Za-z0-9_-]{20,}\b/g },
-    { name: "Stripe Live", re: /\bsk_live_[A-Za-z0-9]{24,}\b/g },
-    { name: "Stripe Test", re: /\bsk_test_[A-Za-z0-9]{24,}\b/g },
-    { name: "Stripe PK", re: /\bpk_live_[A-Za-z0-9]{24,}\b/g },
-    { name: "Slack Bot", re: /\bxoxb-[A-Za-z0-9-]{24,}\b/g },
-    { name: "Slack User", re: /\bxoxp-[A-Za-z0-9-]{24,}\b/g },
-    { name: "Twilio", re: /\bSK[0-9a-f]{32}\b/g },
-    { name: "SendGrid", re: /\bSG\.[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}\b/g },
-    { name: "Mailgun", re: /\bkey-[A-Za-z0-9]{32,}\b/g },
-    { name: "NPM Token", re: /\bnpm_[A-Za-z0-9]{36}\b/g },
-    { name: "PyPI Token", re: /\bpypi-[A-Za-z0-9_-]{40,}\b/g },
-    { name: "Heroku", re: /\bHRKU-[A-Za-z0-9_-]{30,}\b/g },
-    { name: "Google API", re: /\bAIza[A-Za-z0-9_-]{35}\b/g },
-    { name: "HuggingFace", re: /\bhf_[A-Za-z0-9]{30,}\b/g },
-    { name: "Supabase", re: /\bsbp_[A-Za-z0-9]{30,}\b/g },
-    { name: "Vercel", re: /\bvercel_[A-Za-z0-9_-]{20,}\b/g },
-    { name: "Groq", re: /\bgsk_[A-Za-z0-9]{40,}\b/g },
-    { name: "Replicate", re: /\br8_[A-Za-z0-9]{37,}\b/g },
-    { name: "Firebase", re: /\bAAAA[A-Za-z0-9_-]{100,}\b/g },
-    { name: "Discord Bot", re: /\b[A-Za-z0-9_-]{24}\.[A-Za-z0-9_-]{6}\.[A-Za-z0-9_-]{27,}\b/g },
-    { name: "JWT", re: /\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/g, minContext: true },
-  ];
+  // Rules loaded from rules.json via service worker
+  let PATTERNS = [];
+  let rulesLoaded = false;
+
+  async function loadRulesFromBackground() {
+    if (rulesLoaded) return;
+    try {
+      const resp = await new Promise((resolve) => {
+        chrome.runtime.sendMessage({ type: "GET_RULES" }, (r) => resolve(r));
+      });
+      if (resp && Array.isArray(resp.rules)) {
+        PATTERNS = resp.rules.map((rule) => ({
+          name: rule.name,
+          re: new RegExp(rule.pattern, rule.flags || "g"),
+          minContext: !!rule.contextRequired,
+          ruleId: rule.id,
+          platform: rule.platform,
+          severity: rule.severity,
+          description: rule.description,
+          reference: rule.reference || null,
+        }));
+        rulesLoaded = true;
+      }
+    } catch {
+      // Fallback: will retry on next scan
+    }
+  }
 
   const DETECTION_KEYWORDS = /api[ _-]?key|access[ _-]?key|token|secret|password|credential|auth|env(?:ironment)?(?:[_\s-]?(?:var|variable|vars))?|环境变量|密钥|令牌/i;
   const FILL_CONTEXT_KEYWORDS = /api[ _-]?key|access[ _-]?key|token|secret|credential|env(?:ironment)?(?:[_\s-]?(?:var|variable|vars))?|环境变量|密钥|令牌/i;
@@ -71,8 +65,12 @@
   const VALUE_SCAN_SELECTOR = 'input, textarea, code, pre, [contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"]';
   const SKIP_TEXT_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "IFRAME"]);
 
-  const SPECIFIC = PATTERNS.filter((p) => !p.minContext);
-  const CONTEXTUAL = PATTERNS.filter((p) => p.minContext);
+  function getSpecificPatterns() {
+    return PATTERNS.filter((p) => !p.minContext);
+  }
+  function getContextualPatterns() {
+    return PATTERNS.filter((p) => p.minContext);
+  }
 
   const seen = new Set();
   const detected = [];
@@ -90,23 +88,45 @@
     if (!hasContext) return [];
     const hits = [];
 
-    for (const pat of SPECIFIC) {
+    for (const pat of getSpecificPatterns()) {
       for (const m of source.matchAll(pat.re)) {
         const token = m[0];
         if (!seen.has(token)) {
           seen.add(token);
-          hits.push(enrichHit({ value: token, type: pat.name }, sourceEl, sourceText || source));
+          hits.push(enrichHit({
+            value: token,
+            type: pat.name,
+            matchedRule: {
+              id: pat.ruleId,
+              name: pat.name,
+              platform: pat.platform,
+              severity: pat.severity,
+              description: pat.description,
+              reference: pat.reference,
+            },
+          }, sourceEl, sourceText || source));
         }
       }
     }
 
-    for (const pat of CONTEXTUAL) {
+    for (const pat of getContextualPatterns()) {
       for (const m of source.matchAll(pat.re)) {
         const token = m[0];
         if (!isValidContextualMatch(pat, token)) continue;
         if (!seen.has(token)) {
           seen.add(token);
-          hits.push(enrichHit({ value: token, type: pat.name }, sourceEl, sourceText || source));
+          hits.push(enrichHit({
+            value: token,
+            type: pat.name,
+            matchedRule: {
+              id: pat.ruleId,
+              name: pat.name,
+              platform: pat.platform,
+              severity: pat.severity,
+              description: pat.description,
+              reference: pat.reference,
+            },
+          }, sourceEl, sourceText || source));
         }
       }
     }
@@ -311,7 +331,7 @@
 
   function enrichHit(hit, sourceEl, sourceText) {
     const enriched = { ...hit };
-    enriched.source = inferSourceFromPattern(hit.type);
+    enriched.source = hit.matchedRule?.platform?.toLowerCase() || inferSourceFromPattern(hit.type);
     enriched.category = inferCategoryFromPattern(hit.type);
     enriched.tags = [`source:${enriched.source}`];
 
@@ -452,7 +472,8 @@
     scheduleIndicatorRefresh();
   }
 
-  function initialScan() {
+  async function initialScan() {
+    await loadRulesFromBackground();
     const findings = scanAllRoots();
     pushFindings(findings);
     updateFillHint();
@@ -967,19 +988,7 @@
     return d.innerHTML;
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => {
-      initialScan();
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-        attributes: true,
-        attributeFilter: ["value", "placeholder", "name", "id", "class", "aria-label", "data-testid", "type"],
-      });
-    });
-  } else {
-    initialScan();
+  function startObserver() {
     observer.observe(document.body, {
       childList: true,
       subtree: true,
@@ -987,5 +996,13 @@
       attributes: true,
       attributeFilter: ["value", "placeholder", "name", "id", "class", "aria-label", "data-testid", "type"],
     });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      initialScan().then(startObserver);
+    });
+  } else {
+    initialScan().then(startObserver);
   }
 })();
