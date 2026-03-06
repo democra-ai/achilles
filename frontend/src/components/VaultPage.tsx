@@ -1,12 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  KeyRound,
-  Key,
-  Terminal,
-  Shield,
   Plus,
-  Trash2,
   Eye,
   EyeOff,
   Copy,
@@ -20,9 +15,14 @@ import {
   Tag,
   AlertCircle,
   Layers,
+  Eraser,
+  Trash2,
 } from "lucide-react";
 import { useStore } from "@/store";
-import { secretsApi, projectsApi } from "@/api/client";
+import { secretsApi, projectsApi, platformsApi } from "@/api/client";
+import type { PlatformSummary, Platform, PlatformSecret } from "@/api/client";
+import { PlatformIcon } from "@/components/PlatformIcon";
+import { CATEGORY_META, CATEGORY_LIST, SOURCE_LABELS, SOURCE_KEY_HINTS, SOURCE_PLATFORM_ID } from "@/lib/categories";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,95 +48,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import type { Secret, SecretCategory } from "@/types";
-
-const CATEGORY_META: Record<
-  SecretCategory,
-  {
-    label: string;
-    singular: string;
-    icon: typeof KeyRound;
-    placeholder: string;
-    description: string;
-  }
-> = {
-  secret: {
-    label: "Secrets",
-    singular: "Secret",
-    icon: KeyRound,
-    placeholder: "DATABASE_PASSWORD",
-    description: "Manage encrypted secrets",
-  },
-  api_key: {
-    label: "API Keys",
-    singular: "API Key",
-    icon: Key,
-    placeholder: "OPENAI_API_KEY",
-    description: "Manage external API keys",
-  },
-  env_var: {
-    label: "Env Variables",
-    singular: "Env Variable",
-    icon: Terminal,
-    placeholder: "DATABASE_URL",
-    description: "Manage environment variables",
-  },
-  token: {
-    label: "Tokens",
-    singular: "Token",
-    icon: Shield,
-    placeholder: "OAUTH_REFRESH_TOKEN",
-    description: "Manage authentication tokens",
-  },
-};
-
-const CATEGORY_OPTIONS = (Object.keys(CATEGORY_META) as SecretCategory[]).map((key) => ({
-  value: key,
-  label: CATEGORY_META[key].label,
-  icon: CATEGORY_META[key].icon,
-}));
-
-const SOURCE_LABELS: Record<string, string> = {
-  github: "GitHub",
-  gitlab: "GitLab",
-  huggingface: "Hugging Face",
-  openai: "OpenAI",
-  anthropic: "Anthropic",
-  stripe: "Stripe",
-  aws: "AWS",
-  npm: "npm",
-  pypi: "PyPI",
-  vercel: "Vercel",
-  supabase: "Supabase",
-  cloudflare: "Cloudflare",
-  digitalocean: "DigitalOcean",
-};
-
-const SOURCE_KEY_HINTS: Array<{ pattern: RegExp; source: keyof typeof SOURCE_LABELS }> = [
-  { pattern: /^GITHUB(?:_|$)/i, source: "github" },
-  { pattern: /^GITLAB(?:_|$)/i, source: "gitlab" },
-  { pattern: /^(HUGGINGFACE|HUGGING_FACE|HF)(?:_|$)/i, source: "huggingface" },
-  { pattern: /^OPENAI(?:_|$)/i, source: "openai" },
-  { pattern: /^ANTHROPIC(?:_|$)/i, source: "anthropic" },
-  { pattern: /^STRIPE(?:_|$)/i, source: "stripe" },
-  { pattern: /^AWS(?:_|$)/i, source: "aws" },
-  { pattern: /^NPM(?:_|$)/i, source: "npm" },
-  { pattern: /^PYPI(?:_|$)/i, source: "pypi" },
-  { pattern: /^VERCEL(?:_|$)/i, source: "vercel" },
-  { pattern: /^SUPABASE(?:_|$)/i, source: "supabase" },
-  { pattern: /^CLOUDFLARE(?:_|$)/i, source: "cloudflare" },
-  { pattern: /^DIGITALOCEAN(?:_|$)/i, source: "digitalocean" },
-];
 
 const stagger = {
   hidden: { opacity: 0 },
@@ -177,7 +89,14 @@ export default function VaultPage({ category }: VaultPageProps) {
   const [newValue, setNewValue] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newTags, setNewTags] = useState("");
+  const [newValueHint, setNewValueHint] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Platform template picker state
+  const [platforms, setPlatforms] = useState<PlatformSummary[]>([]);
+  const [selectedPlatformId, setSelectedPlatformId] = useState<string>("");
+  const [platformDetail, setPlatformDetail] = useState<Platform | null>(null);
+  const [platformLoading, setPlatformLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set());
   const [revealedValues, setRevealedValues] = useState<
@@ -185,10 +104,12 @@ export default function VaultPage({ category }: VaultPageProps) {
   >({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ key: string; secret: Secret } | null>(null);
+  const [clearTarget, setClearTarget] = useState<{ key: string; secret: Secret } | null>(null);
   const [showEdit, setShowEdit] = useState(false);
   const [editTarget, setEditTarget] = useState<Secret | null>(null);
   const [editKey, setEditKey] = useState("");
   const [editValue, setEditValue] = useState("");
+  const [editHint, setEditHint] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editTags, setEditTags] = useState("");
   const [editCategory, setEditCategory] = useState<SecretCategory>(category);
@@ -197,6 +118,7 @@ export default function VaultPage({ category }: VaultPageProps) {
   const meta = CATEGORY_META[category];
   const CatIcon = meta.icon;
   const composingRef = useRef(false);
+  const platformCacheRef = useRef<Map<string, Platform>>(new Map());
 
   useEffect(() => {
     if (projects.length === 0) {
@@ -211,6 +133,33 @@ export default function VaultPage({ category }: VaultPageProps) {
         .catch(() => {});
     }
   }, [projects.length, setProjects, selectProject, selectedProject]);
+
+  // Load platform catalog once on mount
+  useEffect(() => {
+    platformsApi.list()
+      .then((r) => setPlatforms(r.data.platforms))
+      .catch(() => {});
+  }, []);
+
+  // Fetch platform detail when user picks a platform in the create dialog
+  useEffect(() => {
+    if (!selectedPlatformId) {
+      setPlatformDetail(null);
+      return;
+    }
+    setPlatformLoading(true);
+    platformsApi.get(selectedPlatformId)
+      .then((r) => setPlatformDetail(r.data))
+      .catch(() => setPlatformDetail(null))
+      .finally(() => setPlatformLoading(false));
+  }, [selectedPlatformId]);
+
+  const applyPlatformSecret = (secret: PlatformSecret) => {
+    setNewKey(secret.key);
+    setNewDesc(secret.description);
+    setNewTags(`source:${selectedPlatformId}`);
+    setNewValueHint(secret.placeholder || "");
+  };
 
   const ENVS = ["development", "staging", "production"];
 
@@ -260,6 +209,9 @@ export default function VaultPage({ category }: VaultPageProps) {
       setNewValue("");
       setNewDesc("");
       setNewTags("");
+      setNewValueHint("");
+      setSelectedPlatformId("");
+      setPlatformDetail(null);
       addToast({
         type: "success",
         title: `${meta.singular} saved`,
@@ -277,10 +229,13 @@ export default function VaultPage({ category }: VaultPageProps) {
     const { key, secret } = deleteTarget;
     const pid = secret._project_id || selectedProject?.id;
     const env = secret._env_name || selectedEnv;
-    if (!pid || env === "all") return;
-    setDeleteTarget(null);
+    if (!pid || env === "all") {
+      setDeleteTarget(null);
+      return;
+    }
     try {
       await secretsApi.delete(pid, env, key);
+      setDeleteTarget(null);
       await loadSecrets();
       addToast({
         type: "success",
@@ -288,7 +243,7 @@ export default function VaultPage({ category }: VaultPageProps) {
         message: `${key} has been removed`,
       });
     } catch {
-      // handled by interceptor
+      setDeleteTarget(null);
     }
   };
 
@@ -310,6 +265,41 @@ export default function VaultPage({ category }: VaultPageProps) {
       setRevealedKeys((prev) => new Set(prev).add(key));
     } catch {
       // handled by interceptor
+    }
+  };
+
+  const confirmClear = async () => {
+    if (!clearTarget) return;
+    const { key, secret } = clearTarget;
+    const pid = secret._project_id || selectedProject?.id;
+    const env = secret._env_name || selectedEnv;
+    if (!pid || env === "all") {
+      setClearTarget(null);
+      return;
+    }
+    try {
+      await secretsApi.set(pid, env, key, {
+        key,
+        value: "",
+        description: secret.description,
+        tags: secret.tags,
+        category: secret.category as Parameters<typeof secretsApi.set>[3]["category"],
+      });
+      setRevealedKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+      setRevealedValues((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+      setClearTarget(null);
+      await loadSecrets();
+      addToast({ type: "success", title: "Value cleared", message: `${key} value has been wiped` });
+    } catch {
+      setClearTarget(null);
     }
   };
 
@@ -392,11 +382,31 @@ export default function VaultPage({ category }: VaultPageProps) {
     if (!pid || env === "all") return;
     try {
       const { data } = await secretsApi.get(pid, env, secret.key);
+      // Derive hint from platform definition (not from tags)
+      let hint = "";
+      const sourceTag = (secret.tags || []).find((t) => String(t).startsWith("source:"));
+      const platformId = sourceTag ? String(sourceTag).replace(/^source:/, "").trim() : null;
+      if (platformId) {
+        let pd = platformCacheRef.current.get(platformId);
+        if (!pd) {
+          try {
+            const { data: pdata } = await platformsApi.get(platformId);
+            pd = pdata;
+            platformCacheRef.current.set(platformId, pdata);
+          } catch { /* no hint */ }
+        }
+        if (pd) {
+          const ps = pd.secrets.find((s) => s.key === secret.key);
+          hint = ps?.placeholder ?? "";
+        }
+      }
       setEditTarget(secret);
       setEditKey(secret.key);
       setEditValue(data.value || "");
+      setEditHint(hint);
       setEditDesc(secret.description || "");
-      setEditTags((secret.tags || []).join(", "));
+      // Strip internal _hint: tags from the editable tags field
+      setEditTags((secret.tags || []).filter((t) => !String(t).startsWith("_hint:")).join(", "));
       setEditCategory((secret.category as SecretCategory) || category);
       setShowEdit(true);
     } catch {
@@ -592,6 +602,7 @@ export default function VaultPage({ category }: VaultPageProps) {
               const text = String(tag).trim();
               if (!text) return false;
               if (/^source[:=]/i.test(text)) return false;
+              if (/^_hint:/i.test(text)) return false;
               const normalized = text
                 .toLowerCase()
                 .replace(/^https?:\/\//, "")
@@ -625,9 +636,11 @@ export default function VaultPage({ category }: VaultPageProps) {
                           {meta.singular}
                         </Badge>
                         {source && (
-                          <Badge variant="outline" className="gap-1">
-                            <Globe className="size-3" />
-                            {source}
+                          <Badge variant="outline" className="p-1">
+                            <PlatformIcon
+                              platformId={SOURCE_PLATFORM_ID[source] ?? source.toLowerCase()}
+                              size={12}
+                            />
                           </Badge>
                         )}
                       </div>
@@ -717,6 +730,22 @@ export default function VaultPage({ category }: VaultPageProps) {
                         <TooltipContent>Copy value</TooltipContent>
                       </Tooltip>
 
+                      {secret.value !== "" && secret.value !== undefined && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setClearTarget({ key: secret.key, secret })}
+                              className="opacity-0 group-hover:opacity-100 hover:text-orange-400"
+                            >
+                              <Eraser className="size-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Clear value</TooltipContent>
+                        </Tooltip>
+                      )}
+
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
@@ -741,28 +770,122 @@ export default function VaultPage({ category }: VaultPageProps) {
       )}
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete <code className="font-mono font-semibold text-foreground">{deleteTarget?.key}</code>? It will be moved to the trash.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={confirmDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Dialog open={!!deleteTarget} onOpenChange={() => {}}>
+        <DialogContent
+          showCloseButton={false}
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={() => setDeleteTarget(null)}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete{" "}
+            <code className="font-mono font-semibold text-foreground">{deleteTarget?.key}</code>?
+            It will be moved to the trash.
+          </p>
+          <div className="flex justify-end gap-2 mt-2">
+            <Button autoFocus variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clear Value Confirmation */}
+      <Dialog open={!!clearTarget} onOpenChange={() => {}}>
+        <DialogContent
+          showCloseButton={false}
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={() => setClearTarget(null)}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Clear Value</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to wipe the value of{" "}
+            <code className="font-mono font-semibold text-foreground">{clearTarget?.key}</code>?
+            The key will remain but its value will be empty.
+          </p>
+          <div className="flex justify-end gap-2 mt-2">
+            <Button autoFocus variant="outline" onClick={() => setClearTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmClear}>Clear Value</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Create Modal */}
-      <Dialog open={showCreate} onOpenChange={setShowCreate}>
+      <Dialog open={showCreate} onOpenChange={(open) => {
+        setShowCreate(open);
+        if (!open) { setSelectedPlatformId(""); setPlatformDetail(null); }
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add {meta.singular}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
+            {/* Platform template picker */}
+            {platforms.length > 0 && (
+              <div className="space-y-2">
+                <Label>Platform template <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <Select value={selectedPlatformId} onValueChange={setSelectedPlatformId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pick a platform to auto-fill key names…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {platforms.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        <div className="flex items-center gap-2">
+                          <PlatformIcon platformId={p.id} size={14} />
+                          {p.name}
+                          <span className="text-xs text-muted-foreground">({p.secret_count} keys)</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Secret chips for selected platform */}
+                {platformLoading && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Loader2 className="size-3 animate-spin" /> Loading templates…
+                  </div>
+                )}
+                {platformDetail && !platformLoading && (() => {
+                  const filtered = platformDetail.secrets.filter((s) => s.category === category);
+                  if (filtered.length === 0) return (
+                    <p className="text-xs text-muted-foreground">
+                      No {meta.label.toLowerCase()} keys for this platform.
+                    </p>
+                  );
+                  return (
+                    <>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {filtered.map((s) => (
+                          <button
+                            key={s.key}
+                            type="button"
+                            onClick={() => applyPlatformSecret(s)}
+                            title={s.description}
+                            className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-mono hover:bg-accent hover:border-primary transition-colors"
+                          >
+                            {s.key}
+                            {s.required && <span className="text-destructive">*</span>}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Click a key to auto-fill the form. <span className="text-destructive">*</span> = required.
+                      </p>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="secret-key">Key</Label>
               <Input
@@ -798,8 +921,7 @@ export default function VaultPage({ category }: VaultPageProps) {
                 value={newValue}
                 onChange={(e) => setNewValue(e.target.value)}
                 className="font-mono resize-none h-24"
-                placeholder="sk-..."
-                required
+                placeholder={newValueHint || "sk-..."}
               />
             </div>
             <div className="space-y-2">
@@ -855,7 +977,7 @@ export default function VaultPage({ category }: VaultPageProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORY_OPTIONS.map(({ value, label, icon: Icon }) => (
+                  {CATEGORY_LIST.map(({ value, label, icon: Icon }) => (
                     <SelectItem key={value} value={value}>
                       <div className="flex items-center gap-2">
                         <Icon className="size-3.5" />
@@ -898,7 +1020,7 @@ export default function VaultPage({ category }: VaultPageProps) {
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
                 className="font-mono resize-none h-24"
-                required
+                placeholder={editHint || "(empty — fill in your value)"}
               />
             </div>
             <div className="space-y-2">

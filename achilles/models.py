@@ -11,10 +11,11 @@ from typing import Any
 
 
 class SecretCategory(str, Enum):
-    SECRET = "secret"
     API_KEY = "api_key"
-    ENV_VAR = "env_var"
     TOKEN = "token"
+    PASSWORD = "password"
+    CERTIFICATE = "certificate"
+    ENV_VAR = "env_var"
 
 
 # --- Auth ---
@@ -59,10 +60,10 @@ class EnvironmentCreate(BaseModel):
 
 class SecretCreate(BaseModel):
     key: str = Field(min_length=1, max_length=200, pattern=r"^[a-zA-Z0-9_./-]+$")
-    value: str = Field(min_length=1)
+    value: str = Field(default="")
     description: str = Field(default="", max_length=500)
     tags: list[str] = Field(default_factory=list)
-    category: SecretCategory = Field(default=SecretCategory.SECRET)
+    category: SecretCategory = Field(default=SecretCategory.API_KEY)
 
 
 class SecretBulkCreate(BaseModel):
@@ -76,7 +77,7 @@ class SecretResponse(BaseModel):
     version: int
     description: str
     tags: list[str]
-    category: str = "secret"
+    category: str = "api_key"
     created_at: float
     updated_at: float
 
@@ -88,7 +89,7 @@ class SecretMetadata(BaseModel):
     version: int
     description: str
     tags: list[str]
-    category: str = "secret"
+    category: str = "api_key"
     created_at: float
     updated_at: float
 

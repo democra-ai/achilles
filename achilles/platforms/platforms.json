@@ -1,0 +1,5145 @@
+{
+  "version": "3.0.0",
+  "updated_at": "2026-03-05",
+  "description": "Achilles Vault platform catalog — 3-layer: categories → platforms → secret keys.",
+  "categories": [
+    {
+      "id": "ai_ml",
+      "name": "AI / ML",
+      "color": "#6366F1",
+      "platforms": [
+        {
+          "id": "openai",
+          "name": "OpenAI",
+          "color": "#10A37F",
+          "docs_url": "https://platform.openai.com",
+          "key_prefixes": [
+            "OPENAI_"
+          ],
+          "secrets": [
+            {
+              "key": "OPENAI_API_KEY",
+              "name": "API Key",
+              "description": "OpenAI API key for GPT, DALL-E, Whisper, Embeddings.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "sk-proj-xxxx...",
+              "pattern": "^sk-"
+            },
+            {
+              "key": "OPENAI_ORG_ID",
+              "name": "Organization ID",
+              "description": "Organization identifier for billing.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "org-xxxx..."
+            },
+            {
+              "key": "OPENAI_PROJECT_ID",
+              "name": "Project ID",
+              "description": "Project scoping for API key usage.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "proj_xxxx..."
+            },
+            {
+              "key": "OPENAI_BASE_URL",
+              "name": "Base URL",
+              "description": "Custom base URL for OpenAI-compatible proxy.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://api.openai.com/v1"
+            }
+          ]
+        },
+        {
+          "id": "anthropic",
+          "name": "Anthropic",
+          "color": "#D4A853",
+          "docs_url": "https://docs.anthropic.com",
+          "key_prefixes": [
+            "ANTHROPIC_"
+          ],
+          "secrets": [
+            {
+              "key": "ANTHROPIC_API_KEY",
+              "name": "API Key",
+              "description": "API key for Claude models.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "sk-ant-api03-xxxx...",
+              "pattern": "^sk-ant-"
+            },
+            {
+              "key": "ANTHROPIC_BASE_URL",
+              "name": "Base URL",
+              "description": "Custom base URL for Anthropic-compatible proxy.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://api.anthropic.com"
+            }
+          ]
+        },
+        {
+          "id": "gemini",
+          "name": "Google Gemini",
+          "color": "#4285F4",
+          "docs_url": "https://ai.google.dev",
+          "key_prefixes": [
+            "GEMINI_",
+            "GOOGLE_AI_"
+          ],
+          "secrets": [
+            {
+              "key": "GEMINI_API_KEY",
+              "name": "Gemini API Key",
+              "description": "Google AI Studio key for Gemini models.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "AIzaxxxx...",
+              "pattern": "^AIza"
+            },
+            {
+              "key": "GOOGLE_AI_API_KEY",
+              "name": "Google AI API Key (alias)",
+              "description": "Alias used by some Google AI SDKs.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "AIzaxxxx..."
+            }
+          ]
+        },
+        {
+          "id": "xai",
+          "name": "xAI (Grok)",
+          "color": "#000000",
+          "docs_url": "https://docs.x.ai",
+          "key_prefixes": [
+            "XAI_"
+          ],
+          "secrets": [
+            {
+              "key": "XAI_API_KEY",
+              "name": "API Key",
+              "description": "xAI API key for Grok models.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xai-xxxx...",
+              "pattern": "^xai-"
+            }
+          ]
+        },
+        {
+          "id": "huggingface",
+          "name": "Hugging Face",
+          "color": "#FF9D00",
+          "docs_url": "https://huggingface.co/docs",
+          "key_prefixes": [
+            "HUGGINGFACE_",
+            "HF_"
+          ],
+          "secrets": [
+            {
+              "key": "HF_TOKEN",
+              "name": "Access Token",
+              "description": "HF token for model downloads, Spaces, and Inference API.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "hf_xxxx...",
+              "pattern": "^hf_"
+            },
+            {
+              "key": "HF_INFERENCE_ENDPOINT",
+              "name": "Inference Endpoint URL",
+              "description": "Dedicated inference endpoint URL.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://xxx.us-east-1.aws.endpoints.huggingface.cloud"
+            }
+          ]
+        },
+        {
+          "id": "groq",
+          "name": "Groq",
+          "color": "#F55036",
+          "docs_url": "https://console.groq.com/docs",
+          "key_prefixes": [
+            "GROQ_"
+          ],
+          "secrets": [
+            {
+              "key": "GROQ_API_KEY",
+              "name": "API Key",
+              "description": "Groq API key for ultra-fast LLM inference.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "gsk_xxxx...",
+              "pattern": "^gsk_"
+            }
+          ]
+        },
+        {
+          "id": "mistral",
+          "name": "Mistral AI",
+          "color": "#FF7000",
+          "docs_url": "https://docs.mistral.ai",
+          "key_prefixes": [
+            "MISTRAL_"
+          ],
+          "secrets": [
+            {
+              "key": "MISTRAL_API_KEY",
+              "name": "API Key",
+              "description": "Mistral AI API key for Mistral and Mixtral models.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "cohere",
+          "name": "Cohere",
+          "color": "#39594D",
+          "docs_url": "https://docs.cohere.com",
+          "key_prefixes": [
+            "COHERE_",
+            "CO_"
+          ],
+          "secrets": [
+            {
+              "key": "COHERE_API_KEY",
+              "name": "API Key",
+              "description": "Cohere key for text generation, embeddings, and reranking.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "together",
+          "name": "Together AI",
+          "color": "#0096FF",
+          "docs_url": "https://docs.together.ai",
+          "key_prefixes": [
+            "TOGETHER_"
+          ],
+          "secrets": [
+            {
+              "key": "TOGETHER_API_KEY",
+              "name": "API Key",
+              "description": "Together AI key for open-source model inference.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "perplexity",
+          "name": "Perplexity AI",
+          "color": "#20808D",
+          "docs_url": "https://docs.perplexity.ai",
+          "key_prefixes": [
+            "PERPLEXITY_"
+          ],
+          "secrets": [
+            {
+              "key": "PERPLEXITY_API_KEY",
+              "name": "API Key",
+              "description": "Perplexity key for online LLM search.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "pplx-xxxx...",
+              "pattern": "^pplx-"
+            }
+          ]
+        },
+        {
+          "id": "openrouter",
+          "name": "OpenRouter",
+          "color": "#6467F2",
+          "docs_url": "https://openrouter.ai/docs",
+          "key_prefixes": [
+            "OPENROUTER_"
+          ],
+          "secrets": [
+            {
+              "key": "OPENROUTER_API_KEY",
+              "name": "API Key",
+              "description": "OpenRouter key for routing to 200+ LLMs.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "sk-or-v1-xxxx...",
+              "pattern": "^sk-or-"
+            },
+            {
+              "key": "OPENROUTER_SITE_URL",
+              "name": "Site URL",
+              "description": "Your site URL for OpenRouter rankings.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://myapp.com"
+            }
+          ]
+        },
+        {
+          "id": "fireworks",
+          "name": "Fireworks AI",
+          "color": "#FF4500",
+          "docs_url": "https://readme.fireworks.ai",
+          "key_prefixes": [
+            "FIREWORKS_"
+          ],
+          "secrets": [
+            {
+              "key": "FIREWORKS_API_KEY",
+              "name": "API Key",
+              "description": "Fireworks AI key for fast open-source model inference.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "fw_xxxx...",
+              "pattern": "^fw_"
+            }
+          ]
+        },
+        {
+          "id": "cerebras",
+          "name": "Cerebras",
+          "color": "#F5821F",
+          "docs_url": "https://inference-docs.cerebras.ai",
+          "key_prefixes": [
+            "CEREBRAS_"
+          ],
+          "secrets": [
+            {
+              "key": "CEREBRAS_API_KEY",
+              "name": "API Key",
+              "description": "Cerebras API key for wafer-scale LLM inference.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "csk-xxxx...",
+              "pattern": "^csk-"
+            }
+          ]
+        },
+        {
+          "id": "elevenlabs",
+          "name": "ElevenLabs",
+          "color": "#0D0D0D",
+          "docs_url": "https://elevenlabs.io/docs",
+          "key_prefixes": [
+            "ELEVENLABS_",
+            "XI_"
+          ],
+          "secrets": [
+            {
+              "key": "ELEVENLABS_API_KEY",
+              "name": "API Key",
+              "description": "ElevenLabs key for text-to-speech and voice cloning.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "ELEVENLABS_VOICE_ID",
+              "name": "Voice ID",
+              "description": "ID of the ElevenLabs voice to use.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "21m00Tcm4TlvDq8ikWAM"
+            }
+          ]
+        },
+        {
+          "id": "stability",
+          "name": "Stability AI",
+          "color": "#7B2FFF",
+          "docs_url": "https://platform.stability.ai/docs",
+          "key_prefixes": [
+            "STABILITY_"
+          ],
+          "secrets": [
+            {
+              "key": "STABILITY_API_KEY",
+              "name": "API Key",
+              "description": "Stability AI key for image generation.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "sk-xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "replicate",
+          "name": "Replicate",
+          "color": "#000000",
+          "docs_url": "https://replicate.com/docs",
+          "key_prefixes": [
+            "REPLICATE_"
+          ],
+          "secrets": [
+            {
+              "key": "REPLICATE_API_TOKEN",
+              "name": "API Token",
+              "description": "Replicate token for running ML models.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "r8_xxxx...",
+              "pattern": "^r8_"
+            }
+          ]
+        },
+        {
+          "id": "deepseek",
+          "name": "DeepSeek",
+          "color": "#4D6BFE",
+          "docs_url": "https://api-docs.deepseek.com",
+          "key_prefixes": [
+            "DEEPSEEK_"
+          ],
+          "secrets": [
+            {
+              "key": "DEEPSEEK_API_KEY",
+              "name": "API Key",
+              "description": "DeepSeek API key for V3 and R1 models.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "sk-xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "voyage",
+          "name": "Voyage AI",
+          "color": "#0066CC",
+          "docs_url": "https://docs.voyageai.com",
+          "key_prefixes": [
+            "VOYAGE_"
+          ],
+          "secrets": [
+            {
+              "key": "VOYAGE_API_KEY",
+              "name": "API Key",
+              "description": "Voyage AI key for high-quality text embeddings.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "pa-xxxx...",
+              "pattern": "^pa-"
+            }
+          ]
+        },
+        {
+          "id": "fal",
+          "name": "fal.ai",
+          "color": "#7C3AED",
+          "docs_url": "https://fal.ai/docs",
+          "key_prefixes": [
+            "FAL_"
+          ],
+          "secrets": [
+            {
+              "key": "FAL_KEY",
+              "name": "API Key",
+              "description": "fal.ai key for fast image and video generation models.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx...:xxxx..."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud",
+      "name": "Cloud Providers",
+      "color": "#FF9900",
+      "platforms": [
+        {
+          "id": "aws",
+          "name": "AWS",
+          "color": "#FF9900",
+          "docs_url": "https://docs.aws.amazon.com",
+          "key_prefixes": [
+            "AWS_"
+          ],
+          "secrets": [
+            {
+              "key": "AWS_ACCESS_KEY_ID",
+              "name": "Access Key ID",
+              "description": "IAM access key for programmatic AWS access.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "AKIAIOSFODNN7EXAMPLE",
+              "pattern": "^AKIA[A-Z0-9]{16}$"
+            },
+            {
+              "key": "AWS_SECRET_ACCESS_KEY",
+              "name": "Secret Access Key",
+              "description": "IAM secret key. Never expose publicly.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+            },
+            {
+              "key": "AWS_DEFAULT_REGION",
+              "name": "Default Region",
+              "description": "Default AWS region for SDK and CLI.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "us-east-1"
+            },
+            {
+              "key": "AWS_SESSION_TOKEN",
+              "name": "Session Token",
+              "description": "Temporary session token for AssumeRole.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "AQoDYXdzEJr..."
+            },
+            {
+              "key": "AWS_S3_BUCKET",
+              "name": "S3 Bucket Name",
+              "description": "Name of your AWS S3 bucket.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my-app-bucket"
+            },
+            {
+              "key": "AWS_CLOUDFRONT_DISTRIBUTION_ID",
+              "name": "CloudFront Distribution ID",
+              "description": "Distribution ID for cache invalidation.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "EXXXXXXXXXX"
+            },
+            {
+              "key": "AWS_ECR_REGISTRY",
+              "name": "ECR Registry URL",
+              "description": "Elastic Container Registry URL.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "123456789.dkr.ecr.us-east-1.amazonaws.com"
+            },
+            {
+              "key": "AWS_SQS_QUEUE_URL",
+              "name": "SQS Queue URL",
+              "description": "URL of the SQS message queue.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://sqs.us-east-1.amazonaws.com/123456789/my-queue"
+            }
+          ]
+        },
+        {
+          "id": "gcp",
+          "name": "Google Cloud",
+          "color": "#4285F4",
+          "docs_url": "https://cloud.google.com/docs",
+          "key_prefixes": [
+            "GCP_",
+            "GOOGLE_CLOUD_"
+          ],
+          "secrets": [
+            {
+              "key": "GCP_PROJECT_ID",
+              "name": "Project ID",
+              "description": "Your Google Cloud project identifier.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "my-project-123456"
+            },
+            {
+              "key": "GCP_SERVICE_ACCOUNT_JSON",
+              "name": "Service Account JSON",
+              "description": "Full JSON of a GCP service account key file.",
+              "category": "certificate",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "{\"type\": \"service_account\", \"project_id\": \"...\"}"
+            },
+            {
+              "key": "GOOGLE_CLIENT_ID",
+              "name": "OAuth 2.0 Client ID",
+              "description": "Client ID for Google OAuth 2.0.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxx....apps.googleusercontent.com"
+            },
+            {
+              "key": "GOOGLE_CLIENT_SECRET",
+              "name": "OAuth 2.0 Client Secret",
+              "description": "Client secret for Google OAuth 2.0.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "GOCSPX-xxxx..."
+            },
+            {
+              "key": "GCP_STORAGE_BUCKET",
+              "name": "GCS Bucket Name",
+              "description": "Google Cloud Storage bucket name.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my-bucket"
+            }
+          ]
+        },
+        {
+          "id": "azure",
+          "name": "Microsoft Azure",
+          "color": "#0078D4",
+          "docs_url": "https://learn.microsoft.com/azure",
+          "key_prefixes": [
+            "AZURE_"
+          ],
+          "secrets": [
+            {
+              "key": "AZURE_SUBSCRIPTION_ID",
+              "name": "Subscription ID",
+              "description": "Azure subscription UUID.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            },
+            {
+              "key": "AZURE_TENANT_ID",
+              "name": "Tenant ID",
+              "description": "Azure Active Directory tenant UUID.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            },
+            {
+              "key": "AZURE_CLIENT_ID",
+              "name": "Client / App ID",
+              "description": "Service principal application client ID.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            },
+            {
+              "key": "AZURE_CLIENT_SECRET",
+              "name": "Client Secret",
+              "description": "Service principal client secret.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "AZURE_OPENAI_API_KEY",
+              "name": "Azure OpenAI API Key",
+              "description": "API key for Azure-hosted OpenAI service.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "AZURE_OPENAI_ENDPOINT",
+              "name": "Azure OpenAI Endpoint",
+              "description": "Endpoint URL for Azure OpenAI resource.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://my-resource.openai.azure.com/"
+            },
+            {
+              "key": "AZURE_OPENAI_DEPLOYMENT_NAME",
+              "name": "Deployment Name",
+              "description": "Name of the deployed model.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "gpt-4o"
+            },
+            {
+              "key": "AZURE_STORAGE_CONNECTION_STRING",
+              "name": "Storage Connection String",
+              "description": "Connection string for Azure Blob Storage.",
+              "category": "env_var",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "DefaultEndpointsProtocol=https;AccountName=..."
+            },
+            {
+              "key": "AZURE_COSMOS_CONNECTION_STRING",
+              "name": "Cosmos DB Connection String",
+              "description": "Connection string for Azure Cosmos DB.",
+              "category": "env_var",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "AccountEndpoint=https://xxx.documents.azure.com;AccountKey=xxx"
+            }
+          ]
+        },
+        {
+          "id": "digitalocean",
+          "name": "DigitalOcean",
+          "color": "#0080FF",
+          "docs_url": "https://docs.digitalocean.com",
+          "key_prefixes": [
+            "DIGITALOCEAN_",
+            "DO_"
+          ],
+          "secrets": [
+            {
+              "key": "DIGITALOCEAN_ACCESS_TOKEN",
+              "name": "Personal Access Token",
+              "description": "DigitalOcean API token for Droplets, Spaces, DBs.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "dop_v1_xxxx...",
+              "pattern": "^dop_v1_"
+            },
+            {
+              "key": "SPACES_ACCESS_KEY_ID",
+              "name": "Spaces Access Key ID",
+              "description": "Access key for DigitalOcean Spaces storage.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "XXXXXXXXXXXXXXXX"
+            },
+            {
+              "key": "SPACES_SECRET_ACCESS_KEY",
+              "name": "Spaces Secret Access Key",
+              "description": "Secret for DigitalOcean Spaces.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "SPACES_ENDPOINT",
+              "name": "Spaces Endpoint",
+              "description": "Spaces region endpoint URL.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://nyc3.digitaloceanspaces.com"
+            }
+          ]
+        },
+        {
+          "id": "hetzner",
+          "name": "Hetzner Cloud",
+          "color": "#D50C2D",
+          "docs_url": "https://docs.hetzner.cloud",
+          "key_prefixes": [
+            "HETZNER_"
+          ],
+          "secrets": [
+            {
+              "key": "HETZNER_API_TOKEN",
+              "name": "API Token",
+              "description": "Hetzner Cloud API token for server management.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "linode",
+          "name": "Linode / Akamai",
+          "color": "#00B159",
+          "docs_url": "https://www.linode.com/docs",
+          "key_prefixes": [
+            "LINODE_"
+          ],
+          "secrets": [
+            {
+              "key": "LINODE_TOKEN",
+              "name": "Personal Access Token",
+              "description": "Linode API token for compute and storage.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "LINODE_OBJ_ACCESS_KEY",
+              "name": "Object Storage Access Key",
+              "description": "Access key for Linode Object Storage.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "XXXXXXXXXXXXXXXXXXXX"
+            },
+            {
+              "key": "LINODE_OBJ_SECRET_KEY",
+              "name": "Object Storage Secret Key",
+              "description": "Secret for Linode Object Storage.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "vultr",
+          "name": "Vultr",
+          "color": "#007BFC",
+          "docs_url": "https://www.vultr.com/api/",
+          "key_prefixes": [
+            "VULTR_"
+          ],
+          "secrets": [
+            {
+              "key": "VULTR_API_KEY",
+              "name": "API Key",
+              "description": "Vultr API key for server and storage management.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+            }
+          ]
+        },
+        {
+          "id": "ibm",
+          "name": "IBM Cloud",
+          "color": "#1261FE",
+          "docs_url": "https://cloud.ibm.com/docs",
+          "key_prefixes": [
+            "IBM_",
+            "IBMCLOUD_"
+          ],
+          "secrets": [
+            {
+              "key": "IBM_API_KEY",
+              "name": "API Key",
+              "description": "IBM Cloud IAM API key for service access.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "IBM_CLOUD_REGION",
+              "name": "Region",
+              "description": "IBM Cloud region (e.g. us-south).",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "us-south"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "database",
+      "name": "Database",
+      "color": "#3ECF8E",
+      "platforms": [
+        {
+          "id": "supabase",
+          "name": "Supabase",
+          "color": "#3ECF8E",
+          "docs_url": "https://supabase.com/docs",
+          "key_prefixes": [
+            "SUPABASE_"
+          ],
+          "secrets": [
+            {
+              "key": "SUPABASE_URL",
+              "name": "Project URL",
+              "description": "Supabase project's unique API URL.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "https://xxxx....supabase.co"
+            },
+            {
+              "key": "SUPABASE_ANON_KEY",
+              "name": "Anon / Public Key",
+              "description": "Public API key. Respects Row Level Security.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            {
+              "key": "SUPABASE_SERVICE_ROLE_KEY",
+              "name": "Service Role Key",
+              "description": "Bypasses RLS. Server-side only.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            {
+              "key": "SUPABASE_DB_PASSWORD",
+              "name": "Database Password",
+              "description": "Direct PostgreSQL database password.",
+              "category": "password",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "SUPABASE_JWT_SECRET",
+              "name": "JWT Secret",
+              "description": "JWT secret for custom token verification.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "mongodb",
+          "name": "MongoDB Atlas",
+          "color": "#00ED64",
+          "docs_url": "https://www.mongodb.com/docs/atlas",
+          "key_prefixes": [
+            "MONGODB_",
+            "MONGO_"
+          ],
+          "secrets": [
+            {
+              "key": "MONGODB_URI",
+              "name": "Connection String",
+              "description": "Full MongoDB Atlas connection string.",
+              "category": "env_var",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "mongodb+srv://user:password@cluster0.xxxxx.mongodb.net/dbname",
+              "pattern": "^mongodb"
+            },
+            {
+              "key": "MONGODB_DB_NAME",
+              "name": "Database Name",
+              "description": "Name of the MongoDB database.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my_database"
+            }
+          ]
+        },
+        {
+          "id": "planetscale",
+          "name": "PlanetScale",
+          "color": "#000000",
+          "docs_url": "https://planetscale.com/docs",
+          "key_prefixes": [
+            "PLANETSCALE_",
+            "DATABASE_"
+          ],
+          "secrets": [
+            {
+              "key": "DATABASE_URL",
+              "name": "Database URL",
+              "description": "PlanetScale MySQL-compatible connection string.",
+              "category": "env_var",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "mysql://user:password@host/dbname?sslaccept=strict"
+            },
+            {
+              "key": "PLANETSCALE_SERVICE_TOKEN",
+              "name": "Service Token",
+              "description": "PlanetScale service token for CI/CD automation.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "pscale_tkn_xxxxxxxx"
+            }
+          ]
+        },
+        {
+          "id": "neon",
+          "name": "Neon",
+          "color": "#00E5BF",
+          "docs_url": "https://neon.tech/docs",
+          "key_prefixes": [
+            "NEON_",
+            "DATABASE_"
+          ],
+          "secrets": [
+            {
+              "key": "DATABASE_URL",
+              "name": "Database URL",
+              "description": "Neon serverless PostgreSQL connection string.",
+              "category": "env_var",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "postgresql://user:password@ep-xxx.us-east-2.aws.neon.tech/dbname"
+            },
+            {
+              "key": "DATABASE_URL_UNPOOLED",
+              "name": "Direct URL",
+              "description": "Direct Neon connection without pgBouncer. For migrations.",
+              "category": "env_var",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "postgresql://user:password@ep-xxx.us-east-2.aws.neon.tech/dbname"
+            }
+          ]
+        },
+        {
+          "id": "upstash",
+          "name": "Upstash",
+          "color": "#00E9A3",
+          "docs_url": "https://upstash.com/docs",
+          "key_prefixes": [
+            "UPSTASH_"
+          ],
+          "secrets": [
+            {
+              "key": "UPSTASH_REDIS_REST_URL",
+              "name": "Redis REST URL",
+              "description": "Upstash Redis REST API endpoint.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "https://xxxx....upstash.io"
+            },
+            {
+              "key": "UPSTASH_REDIS_REST_TOKEN",
+              "name": "Redis REST Token",
+              "description": "Upstash Redis REST authentication token.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "AXxxxx..."
+            },
+            {
+              "key": "UPSTASH_VECTOR_REST_URL",
+              "name": "Vector REST URL",
+              "description": "Upstash Vector database REST endpoint.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://xxxx....upstash.io"
+            },
+            {
+              "key": "UPSTASH_VECTOR_REST_TOKEN",
+              "name": "Vector REST Token",
+              "description": "Upstash Vector REST API token.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "AXxxxx..."
+            },
+            {
+              "key": "UPSTASH_QSTASH_TOKEN",
+              "name": "QStash Token",
+              "description": "Upstash QStash for message queuing and scheduling.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "eyJVc2VySUQiOiJ4eHgiLCJQYXNzd29yZCI6Inh4eCJ9"
+            },
+            {
+              "key": "UPSTASH_QSTASH_CURRENT_SIGNING_KEY",
+              "name": "QStash Current Signing Key",
+              "description": "Current key for QStash webhook verification.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "sig_xxxx..."
+            },
+            {
+              "key": "UPSTASH_QSTASH_NEXT_SIGNING_KEY",
+              "name": "QStash Next Signing Key",
+              "description": "Next key for QStash rotation.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "sig_xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "turso",
+          "name": "Turso (LibSQL)",
+          "color": "#4FF8D2",
+          "docs_url": "https://docs.turso.tech",
+          "key_prefixes": [
+            "TURSO_"
+          ],
+          "secrets": [
+            {
+              "key": "TURSO_DATABASE_URL",
+              "name": "Database URL",
+              "description": "Turso LibSQL database URL.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "libsql://db-name-org.turso.io"
+            },
+            {
+              "key": "TURSO_AUTH_TOKEN",
+              "name": "Auth Token",
+              "description": "Turso database authentication token.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9..."
+            }
+          ]
+        },
+        {
+          "id": "pinecone",
+          "name": "Pinecone",
+          "color": "#00A67E",
+          "docs_url": "https://docs.pinecone.io",
+          "key_prefixes": [
+            "PINECONE_"
+          ],
+          "secrets": [
+            {
+              "key": "PINECONE_API_KEY",
+              "name": "API Key",
+              "description": "Pinecone API key for vector database operations.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            },
+            {
+              "key": "PINECONE_INDEX",
+              "name": "Index Name",
+              "description": "Name of your Pinecone index.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my-index"
+            },
+            {
+              "key": "PINECONE_CLOUD",
+              "name": "Cloud Provider",
+              "description": "Cloud provider for the Pinecone index.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "aws"
+            },
+            {
+              "key": "PINECONE_REGION",
+              "name": "Region",
+              "description": "Region where the Pinecone index is deployed.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "us-east-1"
+            }
+          ]
+        },
+        {
+          "id": "weaviate",
+          "name": "Weaviate",
+          "color": "#FA0050",
+          "docs_url": "https://weaviate.io/developers/weaviate",
+          "key_prefixes": [
+            "WEAVIATE_"
+          ],
+          "secrets": [
+            {
+              "key": "WEAVIATE_URL",
+              "name": "Cluster URL",
+              "description": "Weaviate cluster endpoint URL.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "https://my-cluster.weaviate.network"
+            },
+            {
+              "key": "WEAVIATE_API_KEY",
+              "name": "API Key",
+              "description": "Weaviate authentication API key.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "qdrant",
+          "name": "Qdrant",
+          "color": "#DC244C",
+          "docs_url": "https://qdrant.tech/documentation",
+          "key_prefixes": [
+            "QDRANT_"
+          ],
+          "secrets": [
+            {
+              "key": "QDRANT_URL",
+              "name": "Cluster URL",
+              "description": "Qdrant cluster URL (cloud or self-hosted).",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "https://xxxxxxxx-xxxx-xxxx-xxxx-xxxx....us-east4-0.gcp.cloud.qdrant.io"
+            },
+            {
+              "key": "QDRANT_API_KEY",
+              "name": "API Key",
+              "description": "Qdrant API key for cloud authentication.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "QDRANT_COLLECTION",
+              "name": "Collection Name",
+              "description": "Default Qdrant collection name.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my_collection"
+            }
+          ]
+        },
+        {
+          "id": "airtable",
+          "name": "Airtable",
+          "color": "#FCB400",
+          "docs_url": "https://airtable.com/developers",
+          "key_prefixes": [
+            "AIRTABLE_"
+          ],
+          "secrets": [
+            {
+              "key": "AIRTABLE_API_KEY",
+              "name": "Personal Access Token",
+              "description": "Airtable personal access token.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "patxxxx...",
+              "pattern": "^pat"
+            },
+            {
+              "key": "AIRTABLE_BASE_ID",
+              "name": "Base ID",
+              "description": "ID of the Airtable base.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "appXXXXXXXXXXXXXX",
+              "pattern": "^app"
+            },
+            {
+              "key": "AIRTABLE_TABLE_NAME",
+              "name": "Table Name",
+              "description": "Name of the specific Airtable table.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "My Table"
+            }
+          ]
+        },
+        {
+          "id": "convex",
+          "name": "Convex",
+          "color": "#F47922",
+          "docs_url": "https://docs.convex.dev",
+          "key_prefixes": [
+            "CONVEX_"
+          ],
+          "secrets": [
+            {
+              "key": "CONVEX_DEPLOYMENT",
+              "name": "Deployment Name",
+              "description": "Convex deployment name.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "happy-fox-123"
+            },
+            {
+              "key": "NEXT_PUBLIC_CONVEX_URL",
+              "name": "Convex URL",
+              "description": "Public Convex deployment URL for client SDK.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "https://happy-fox-123.convex.cloud"
+            },
+            {
+              "key": "CONVEX_DEPLOY_KEY",
+              "name": "Deploy Key",
+              "description": "Convex deploy key for CI/CD.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "prod:xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "cockroachdb",
+          "name": "CockroachDB",
+          "color": "#6933FF",
+          "docs_url": "https://www.cockroachlabs.com/docs",
+          "key_prefixes": [
+            "COCKROACH_",
+            "CRDB_"
+          ],
+          "secrets": [
+            {
+              "key": "DATABASE_URL",
+              "name": "Database URL",
+              "description": "CockroachDB PostgreSQL-compatible connection string.",
+              "category": "env_var",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "postgresql://user:password@cluster.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full"
+            },
+            {
+              "key": "COCKROACH_API_KEY",
+              "name": "API Key",
+              "description": "CockroachDB Cloud API key for cluster management.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "fauna",
+          "name": "Fauna",
+          "color": "#4A1982",
+          "docs_url": "https://docs.fauna.com",
+          "key_prefixes": [
+            "FAUNA_"
+          ],
+          "secrets": [
+            {
+              "key": "FAUNA_SECRET",
+              "name": "Database Secret",
+              "description": "Fauna database secret for API authentication.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "fnAxxxx...",
+              "pattern": "^fnA"
+            }
+          ]
+        },
+        {
+          "id": "xata",
+          "name": "Xata",
+          "color": "#9F1D8E",
+          "docs_url": "https://xata.io/docs",
+          "key_prefixes": [
+            "XATA_"
+          ],
+          "secrets": [
+            {
+              "key": "XATA_API_KEY",
+              "name": "API Key",
+              "description": "Xata API key for database access.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xau_xxxx...",
+              "pattern": "^xau_"
+            },
+            {
+              "key": "XATA_WORKSPACE",
+              "name": "Workspace ID",
+              "description": "Your Xata workspace identifier.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my-workspace-xxxxxx"
+            },
+            {
+              "key": "XATA_BRANCH",
+              "name": "Branch",
+              "description": "Xata database branch name.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "main"
+            }
+          ]
+        },
+        {
+          "id": "redis",
+          "name": "Redis / Redis Cloud",
+          "color": "#DC382D",
+          "docs_url": "https://redis.io/docs",
+          "key_prefixes": [
+            "REDIS_"
+          ],
+          "secrets": [
+            {
+              "key": "REDIS_URL",
+              "name": "Connection URL",
+              "description": "Redis connection URL (redis:// or rediss://).",
+              "category": "env_var",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "redis://default:password@host:6379",
+              "pattern": "^redis"
+            },
+            {
+              "key": "REDIS_HOST",
+              "name": "Host",
+              "description": "Redis server hostname.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "localhost"
+            },
+            {
+              "key": "REDIS_PORT",
+              "name": "Port",
+              "description": "Redis server port.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "6379"
+            },
+            {
+              "key": "REDIS_PASSWORD",
+              "name": "Password",
+              "description": "Redis authentication password.",
+              "category": "password",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "devtools",
+      "name": "Dev Tools",
+      "color": "#181717",
+      "platforms": [
+        {
+          "id": "github",
+          "name": "GitHub",
+          "color": "#181717",
+          "docs_url": "https://docs.github.com",
+          "key_prefixes": [
+            "GITHUB_",
+            "GH_"
+          ],
+          "secrets": [
+            {
+              "key": "GITHUB_TOKEN",
+              "name": "Personal Access Token",
+              "description": "Classic or fine-grained PAT for GitHub API.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "ghp_xxxx..."
+            },
+            {
+              "key": "GITHUB_OAUTH_CLIENT_ID",
+              "name": "OAuth App Client ID",
+              "description": "Client ID for a GitHub OAuth App.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "Iv1.xxxx..."
+            },
+            {
+              "key": "GITHUB_OAUTH_CLIENT_SECRET",
+              "name": "OAuth App Client Secret",
+              "description": "Client secret for a GitHub OAuth App.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "GITHUB_APP_ID",
+              "name": "GitHub App ID",
+              "description": "Numeric ID of your GitHub App.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "123456"
+            },
+            {
+              "key": "GITHUB_APP_PRIVATE_KEY",
+              "name": "GitHub App Private Key",
+              "description": "RSA private key (.pem) for your GitHub App.",
+              "category": "certificate",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "-----BEGIN RSA PRIVATE KEY-----\n..."
+            },
+            {
+              "key": "GITHUB_WEBHOOK_SECRET",
+              "name": "Webhook Secret",
+              "description": "Secret to verify GitHub webhook payloads.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "whsec_xxxxxxxx"
+            }
+          ]
+        },
+        {
+          "id": "gitlab",
+          "name": "GitLab",
+          "color": "#FC6D26",
+          "docs_url": "https://docs.gitlab.com",
+          "key_prefixes": [
+            "GITLAB_",
+            "CI_"
+          ],
+          "secrets": [
+            {
+              "key": "GITLAB_TOKEN",
+              "name": "Personal / Project Access Token",
+              "description": "GitLab PAT for API and CI/CD.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "glpat-xxxx...",
+              "pattern": "^glpat-"
+            },
+            {
+              "key": "GITLAB_WEBHOOK_SECRET",
+              "name": "Webhook Secret Token",
+              "description": "Secret to verify GitLab webhook authenticity.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "my-secret-token"
+            }
+          ]
+        },
+        {
+          "id": "npm",
+          "name": "npm",
+          "color": "#CB3837",
+          "docs_url": "https://docs.npmjs.com",
+          "key_prefixes": [
+            "NPM_"
+          ],
+          "secrets": [
+            {
+              "key": "NPM_TOKEN",
+              "name": "Access Token",
+              "description": "npm token for publishing packages and private registry.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "npm_xxxx...",
+              "pattern": "^npm_"
+            }
+          ]
+        },
+        {
+          "id": "pypi",
+          "name": "PyPI",
+          "color": "#3775A9",
+          "docs_url": "https://pypi.org/help/",
+          "key_prefixes": [
+            "PYPI_",
+            "TWINE_"
+          ],
+          "secrets": [
+            {
+              "key": "PYPI_API_TOKEN",
+              "name": "API Token",
+              "description": "PyPI token for publishing Python packages.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "pypi-xxxx...",
+              "pattern": "^pypi-"
+            }
+          ]
+        },
+        {
+          "id": "sentry",
+          "name": "Sentry",
+          "color": "#362D59",
+          "docs_url": "https://docs.sentry.io",
+          "key_prefixes": [
+            "SENTRY_"
+          ],
+          "secrets": [
+            {
+              "key": "SENTRY_DSN",
+              "name": "DSN",
+              "description": "Data Source Name for Sentry SDK initialization.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "https://xxxx...@oxxxxxxx.ingest.sentry.io/xxxxxxx"
+            },
+            {
+              "key": "SENTRY_AUTH_TOKEN",
+              "name": "Auth Token",
+              "description": "Sentry token for source maps and release management.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "sntrys_xxxx..."
+            },
+            {
+              "key": "SENTRY_ORG",
+              "name": "Organization Slug",
+              "description": "Sentry organization slug for CLI.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my-org"
+            },
+            {
+              "key": "SENTRY_PROJECT",
+              "name": "Project Slug",
+              "description": "Sentry project slug.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my-project"
+            }
+          ]
+        },
+        {
+          "id": "datadog",
+          "name": "Datadog",
+          "color": "#632CA6",
+          "docs_url": "https://docs.datadoghq.com",
+          "key_prefixes": [
+            "DD_",
+            "DATADOG_"
+          ],
+          "secrets": [
+            {
+              "key": "DD_API_KEY",
+              "name": "API Key",
+              "description": "Datadog API key for sending metrics, logs, and traces.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "DD_APP_KEY",
+              "name": "Application Key",
+              "description": "Datadog application key for management operations.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "DD_SITE",
+              "name": "Site",
+              "description": "Datadog site (datadoghq.com, datadoghq.eu, etc.).",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "datadoghq.com"
+            }
+          ]
+        },
+        {
+          "id": "linear",
+          "name": "Linear",
+          "color": "#5E6AD2",
+          "docs_url": "https://developers.linear.app",
+          "key_prefixes": [
+            "LINEAR_"
+          ],
+          "secrets": [
+            {
+              "key": "LINEAR_API_KEY",
+              "name": "API Key",
+              "description": "Linear personal API key for issue management.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "lin_api_xxxx...",
+              "pattern": "^lin_api_"
+            },
+            {
+              "key": "LINEAR_WEBHOOK_SECRET",
+              "name": "Webhook Signing Secret",
+              "description": "Secret to verify Linear webhook payloads.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "LINEAR_TEAM_ID",
+              "name": "Team ID",
+              "description": "Linear team UUID for filtering issues.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "notion",
+          "name": "Notion",
+          "color": "#000000",
+          "docs_url": "https://developers.notion.com",
+          "key_prefixes": [
+            "NOTION_"
+          ],
+          "secrets": [
+            {
+              "key": "NOTION_TOKEN",
+              "name": "Integration Token",
+              "description": "Notion internal integration token.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "secret_xxxx...",
+              "pattern": "^secret_"
+            },
+            {
+              "key": "NOTION_DATABASE_ID",
+              "name": "Database ID",
+              "description": "ID of the Notion database to read/write.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            },
+            {
+              "key": "NOTION_PAGE_ID",
+              "name": "Page ID",
+              "description": "ID of a specific Notion page.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "figma",
+          "name": "Figma",
+          "color": "#F24E1E",
+          "docs_url": "https://www.figma.com/developers/api",
+          "key_prefixes": [
+            "FIGMA_"
+          ],
+          "secrets": [
+            {
+              "key": "FIGMA_ACCESS_TOKEN",
+              "name": "Personal Access Token",
+              "description": "Figma PAT for REST API access.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "figd_xxxx...",
+              "pattern": "^figd_"
+            },
+            {
+              "key": "FIGMA_WEBHOOK_SECRET",
+              "name": "Webhook Secret",
+              "description": "Secret for verifying Figma webhook events.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "FIGMA_FILE_KEY",
+              "name": "File Key",
+              "description": "Key of the Figma file to access.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "jira",
+          "name": "Jira / Atlassian",
+          "color": "#0052CC",
+          "docs_url": "https://developer.atlassian.com/cloud/jira",
+          "key_prefixes": [
+            "JIRA_",
+            "ATLASSIAN_"
+          ],
+          "secrets": [
+            {
+              "key": "JIRA_API_TOKEN",
+              "name": "API Token",
+              "description": "Atlassian account API token for Jira REST API.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "ATATT3xFfGF0xxxx...",
+              "pattern": "^ATATT"
+            },
+            {
+              "key": "JIRA_EMAIL",
+              "name": "Account Email",
+              "description": "Atlassian account email for Basic Auth.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "user@example.com"
+            },
+            {
+              "key": "JIRA_HOST",
+              "name": "Jira Host URL",
+              "description": "Base URL of your Jira instance.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "https://mycompany.atlassian.net"
+            },
+            {
+              "key": "JIRA_PROJECT_KEY",
+              "name": "Project Key",
+              "description": "Jira project key.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "PROJ"
+            }
+          ]
+        },
+        {
+          "id": "newrelic",
+          "name": "New Relic",
+          "color": "#1CE783",
+          "docs_url": "https://docs.newrelic.com",
+          "key_prefixes": [
+            "NEW_RELIC_",
+            "NEWRELIC_"
+          ],
+          "secrets": [
+            {
+              "key": "NEW_RELIC_LICENSE_KEY",
+              "name": "License Key",
+              "description": "New Relic ingest license key for sending telemetry.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "NRAK-xxxx..."
+            },
+            {
+              "key": "NEW_RELIC_APP_NAME",
+              "name": "Application Name",
+              "description": "Name to identify your app in New Relic.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "My App"
+            },
+            {
+              "key": "NEW_RELIC_ACCOUNT_ID",
+              "name": "Account ID",
+              "description": "New Relic account identifier.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "1234567"
+            }
+          ]
+        },
+        {
+          "id": "grafana",
+          "name": "Grafana Cloud",
+          "color": "#F46800",
+          "docs_url": "https://grafana.com/docs",
+          "key_prefixes": [
+            "GRAFANA_"
+          ],
+          "secrets": [
+            {
+              "key": "GRAFANA_API_KEY",
+              "name": "API Key",
+              "description": "Grafana Cloud API key for sending metrics and traces.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "glc_xxxx...",
+              "pattern": "^glc_"
+            },
+            {
+              "key": "GRAFANA_URL",
+              "name": "Grafana URL",
+              "description": "Your Grafana Cloud instance URL.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://myorg.grafana.net"
+            },
+            {
+              "key": "GRAFANA_PROMETHEUS_URL",
+              "name": "Prometheus Remote Write URL",
+              "description": "URL for Prometheus remote write endpoint.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://prometheus-prod-xx.grafana.net/api/prom/push"
+            }
+          ]
+        },
+        {
+          "id": "pagerduty",
+          "name": "PagerDuty",
+          "color": "#06AC38",
+          "docs_url": "https://developer.pagerduty.com",
+          "key_prefixes": [
+            "PAGERDUTY_"
+          ],
+          "secrets": [
+            {
+              "key": "PAGERDUTY_API_KEY",
+              "name": "API Key",
+              "description": "PagerDuty REST API key for incidents and services.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "PAGERDUTY_ROUTING_KEY",
+              "name": "Events API Routing Key",
+              "description": "Events API v2 routing key for alerts.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "rollbar",
+          "name": "Rollbar",
+          "color": "#E23D28",
+          "docs_url": "https://docs.rollbar.com",
+          "key_prefixes": [
+            "ROLLBAR_"
+          ],
+          "secrets": [
+            {
+              "key": "ROLLBAR_ACCESS_TOKEN",
+              "name": "Access Token",
+              "description": "Rollbar post_server_item token for error tracking.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "ROLLBAR_CLIENT_TOKEN",
+              "name": "Client Token",
+              "description": "Rollbar post_client_item token for browser errors.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "devops",
+      "name": "Deployment",
+      "color": "#000000",
+      "platforms": [
+        {
+          "id": "vercel",
+          "name": "Vercel",
+          "color": "#000000",
+          "docs_url": "https://vercel.com/docs",
+          "key_prefixes": [
+            "VERCEL_"
+          ],
+          "secrets": [
+            {
+              "key": "VERCEL_TOKEN",
+              "name": "API Token",
+              "description": "Vercel API token for deployments and management.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "VERCEL_PROJECT_ID",
+              "name": "Project ID",
+              "description": "Vercel project identifier.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "prj_xxxx..."
+            },
+            {
+              "key": "VERCEL_TEAM_ID",
+              "name": "Team ID",
+              "description": "Vercel team identifier for team-scoped API calls.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "team_xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "cloudflare",
+          "name": "Cloudflare",
+          "color": "#F38020",
+          "docs_url": "https://developers.cloudflare.com",
+          "key_prefixes": [
+            "CLOUDFLARE_",
+            "CF_"
+          ],
+          "secrets": [
+            {
+              "key": "CLOUDFLARE_API_TOKEN",
+              "name": "API Token",
+              "description": "Scoped Cloudflare API token.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "CLOUDFLARE_ZONE_ID",
+              "name": "Zone ID",
+              "description": "Identifier for a Cloudflare zone (domain).",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "CLOUDFLARE_ACCOUNT_ID",
+              "name": "Account ID",
+              "description": "Your Cloudflare account identifier.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "CLOUDFLARE_R2_ACCESS_KEY_ID",
+              "name": "R2 Access Key ID",
+              "description": "Access key for Cloudflare R2 object storage.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "CLOUDFLARE_R2_SECRET_ACCESS_KEY",
+              "name": "R2 Secret Access Key",
+              "description": "Secret for Cloudflare R2.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "CLOUDFLARE_R2_BUCKET",
+              "name": "R2 Bucket Name",
+              "description": "Name of your Cloudflare R2 bucket.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my-bucket"
+            }
+          ]
+        },
+        {
+          "id": "railway",
+          "name": "Railway",
+          "color": "#0B0D0E",
+          "docs_url": "https://docs.railway.app",
+          "key_prefixes": [
+            "RAILWAY_"
+          ],
+          "secrets": [
+            {
+              "key": "RAILWAY_TOKEN",
+              "name": "API Token",
+              "description": "Railway API token for deploying services.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "netlify",
+          "name": "Netlify",
+          "color": "#00C7B7",
+          "docs_url": "https://docs.netlify.com",
+          "key_prefixes": [
+            "NETLIFY_"
+          ],
+          "secrets": [
+            {
+              "key": "NETLIFY_AUTH_TOKEN",
+              "name": "Personal Access Token",
+              "description": "Netlify token for deployments and API.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "NETLIFY_SITE_ID",
+              "name": "Site ID",
+              "description": "Your Netlify site's unique identifier.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "flyio",
+          "name": "Fly.io",
+          "color": "#7B3FE4",
+          "docs_url": "https://fly.io/docs",
+          "key_prefixes": [
+            "FLY_"
+          ],
+          "secrets": [
+            {
+              "key": "FLY_API_TOKEN",
+              "name": "API Token",
+              "description": "Fly.io API token for deploying and managing apps.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "FlyV1 xxxx..."
+            },
+            {
+              "key": "FLY_APP_NAME",
+              "name": "App Name",
+              "description": "Name of your Fly.io application.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my-app"
+            },
+            {
+              "key": "FLY_REGION",
+              "name": "Primary Region",
+              "description": "Primary region for Fly.io deployment.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "lax"
+            }
+          ]
+        },
+        {
+          "id": "render",
+          "name": "Render",
+          "color": "#46E3B7",
+          "docs_url": "https://render.com/docs",
+          "key_prefixes": [
+            "RENDER_"
+          ],
+          "secrets": [
+            {
+              "key": "RENDER_API_KEY",
+              "name": "API Key",
+              "description": "Render API key for managing services.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "rnd_xxxx...",
+              "pattern": "^rnd_"
+            },
+            {
+              "key": "RENDER_SERVICE_ID",
+              "name": "Service ID",
+              "description": "Render service identifier.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "srv-xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "heroku",
+          "name": "Heroku",
+          "color": "#430098",
+          "docs_url": "https://devcenter.heroku.com",
+          "key_prefixes": [
+            "HEROKU_"
+          ],
+          "secrets": [
+            {
+              "key": "HEROKU_API_KEY",
+              "name": "API Key",
+              "description": "Heroku account API key for app management.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            },
+            {
+              "key": "HEROKU_APP_NAME",
+              "name": "App Name",
+              "description": "Name of your Heroku application.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my-app"
+            }
+          ]
+        },
+        {
+          "id": "deno",
+          "name": "Deno Deploy",
+          "color": "#000000",
+          "docs_url": "https://deno.com/deploy/docs",
+          "key_prefixes": [
+            "DENO_"
+          ],
+          "secrets": [
+            {
+              "key": "DENO_DEPLOY_TOKEN",
+              "name": "Deploy Token",
+              "description": "Deno Deploy token for CI/CD deployments.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "ddp_xxxx...",
+              "pattern": "^ddp_"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "payment",
+      "name": "Payments",
+      "color": "#635BFF",
+      "platforms": [
+        {
+          "id": "stripe",
+          "name": "Stripe",
+          "color": "#635BFF",
+          "docs_url": "https://stripe.com/docs",
+          "key_prefixes": [
+            "STRIPE_"
+          ],
+          "secrets": [
+            {
+              "key": "STRIPE_SECRET_KEY",
+              "name": "Secret Key (Live)",
+              "description": "Stripe live secret key. Never expose client-side.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "sk_live_xxxx..."
+            },
+            {
+              "key": "STRIPE_PUBLISHABLE_KEY",
+              "name": "Publishable Key (Live)",
+              "description": "Stripe live publishable key for payment forms.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "pk_live_xxxx..."
+            },
+            {
+              "key": "STRIPE_WEBHOOK_SECRET",
+              "name": "Webhook Signing Secret",
+              "description": "Secret to verify Stripe webhook event signatures.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "whsec_xxxx..."
+            },
+            {
+              "key": "STRIPE_SECRET_KEY_TEST",
+              "name": "Secret Key (Test)",
+              "description": "Stripe test mode secret key for development.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "sk_test_xxxx..."
+            },
+            {
+              "key": "STRIPE_PUBLISHABLE_KEY_TEST",
+              "name": "Publishable Key (Test)",
+              "description": "Stripe test publishable key.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "pk_test_xxxx..."
+            },
+            {
+              "key": "STRIPE_PRICE_ID",
+              "name": "Price ID",
+              "description": "Stripe price ID for a subscription or product.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "price_xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "paypal",
+          "name": "PayPal",
+          "color": "#003087",
+          "docs_url": "https://developer.paypal.com/docs",
+          "key_prefixes": [
+            "PAYPAL_"
+          ],
+          "secrets": [
+            {
+              "key": "PAYPAL_CLIENT_ID",
+              "name": "Client ID",
+              "description": "PayPal REST API client ID.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "AXxxxx..."
+            },
+            {
+              "key": "PAYPAL_CLIENT_SECRET",
+              "name": "Client Secret",
+              "description": "PayPal REST API client secret.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "EBxxxx..."
+            },
+            {
+              "key": "PAYPAL_WEBHOOK_ID",
+              "name": "Webhook ID",
+              "description": "PayPal webhook ID for signature verification.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "XXXXXXXXXXXXXX"
+            },
+            {
+              "key": "PAYPAL_ENVIRONMENT",
+              "name": "Environment",
+              "description": "PayPal environment: sandbox or live.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "sandbox"
+            }
+          ]
+        },
+        {
+          "id": "lemonsqueezy",
+          "name": "Lemon Squeezy",
+          "color": "#FFC233",
+          "docs_url": "https://docs.lemonsqueezy.com",
+          "key_prefixes": [
+            "LEMONSQUEEZY_",
+            "LEMON_"
+          ],
+          "secrets": [
+            {
+              "key": "LEMONSQUEEZY_API_KEY",
+              "name": "API Key",
+              "description": "Lemon Squeezy API key for products and subscriptions.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
+            },
+            {
+              "key": "LEMONSQUEEZY_WEBHOOK_SECRET",
+              "name": "Webhook Signing Secret",
+              "description": "Secret to verify Lemon Squeezy webhook payloads.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "LEMONSQUEEZY_STORE_ID",
+              "name": "Store ID",
+              "description": "Your Lemon Squeezy store ID.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "12345"
+            }
+          ]
+        },
+        {
+          "id": "revenuecat",
+          "name": "RevenueCat",
+          "color": "#E74E3E",
+          "docs_url": "https://docs.revenuecat.com",
+          "key_prefixes": [
+            "REVENUECAT_",
+            "RC_"
+          ],
+          "secrets": [
+            {
+              "key": "REVENUECAT_PUBLIC_SDK_KEY",
+              "name": "Public SDK Key",
+              "description": "RevenueCat public key for mobile SDK initialization.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "appl_xxxx..."
+            },
+            {
+              "key": "REVENUECAT_SECRET_API_KEY",
+              "name": "Secret API Key",
+              "description": "RevenueCat secret key for server-side API calls.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "sk_xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "paddle",
+          "name": "Paddle",
+          "color": "#00B88A",
+          "docs_url": "https://developer.paddle.com",
+          "key_prefixes": [
+            "PADDLE_"
+          ],
+          "secrets": [
+            {
+              "key": "PADDLE_API_KEY",
+              "name": "API Key",
+              "description": "Paddle API key for billing and subscription management.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "pdl_live_xxxx...",
+              "pattern": "^pdl_"
+            },
+            {
+              "key": "PADDLE_WEBHOOK_SECRET",
+              "name": "Webhook Secret",
+              "description": "Paddle webhook secret for signature verification.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "pdl_ntfset_xxxx..."
+            },
+            {
+              "key": "PADDLE_VENDOR_ID",
+              "name": "Vendor ID",
+              "description": "Paddle vendor ID.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "12345"
+            }
+          ]
+        },
+        {
+          "id": "square",
+          "name": "Square",
+          "color": "#3E4348",
+          "docs_url": "https://developer.squareup.com",
+          "key_prefixes": [
+            "SQUARE_"
+          ],
+          "secrets": [
+            {
+              "key": "SQUARE_ACCESS_TOKEN",
+              "name": "Access Token",
+              "description": "Square API access token for payments.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "EAAAxxxx..."
+            },
+            {
+              "key": "SQUARE_APPLICATION_ID",
+              "name": "Application ID",
+              "description": "Square application (client) ID.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "sq0idp-xxxx..."
+            },
+            {
+              "key": "SQUARE_LOCATION_ID",
+              "name": "Location ID",
+              "description": "Square location ID for processing payments.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "XXXXXXXXXXXXXXXX"
+            },
+            {
+              "key": "SQUARE_WEBHOOK_SIGNATURE_KEY",
+              "name": "Webhook Signature Key",
+              "description": "Key to verify Square webhook signatures.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "adyen",
+          "name": "Adyen",
+          "color": "#0ABF53",
+          "docs_url": "https://docs.adyen.com",
+          "key_prefixes": [
+            "ADYEN_"
+          ],
+          "secrets": [
+            {
+              "key": "ADYEN_API_KEY",
+              "name": "API Key",
+              "description": "Adyen API key for payment processing.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "AQEyhmfuXNWTK0Qc+iSXxxxx..."
+            },
+            {
+              "key": "ADYEN_MERCHANT_ACCOUNT",
+              "name": "Merchant Account",
+              "description": "Your Adyen merchant account name.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "MyCompanyECOM"
+            },
+            {
+              "key": "ADYEN_WEBHOOK_HMAC_KEY",
+              "name": "Webhook HMAC Key",
+              "description": "HMAC key for validating Adyen webhook notifications.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "plaid",
+          "name": "Plaid",
+          "color": "#00B2C9",
+          "docs_url": "https://plaid.com/docs",
+          "key_prefixes": [
+            "PLAID_"
+          ],
+          "secrets": [
+            {
+              "key": "PLAID_CLIENT_ID",
+              "name": "Client ID",
+              "description": "Plaid client ID for your application.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "PLAID_SECRET",
+              "name": "Secret Key",
+              "description": "Plaid secret key (environment-specific).",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "PLAID_ENV",
+              "name": "Environment",
+              "description": "Plaid environment: sandbox, development, or production.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "sandbox"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "communication",
+      "name": "Communication",
+      "color": "#4A154B",
+      "platforms": [
+        {
+          "id": "slack",
+          "name": "Slack",
+          "color": "#4A154B",
+          "docs_url": "https://api.slack.com",
+          "key_prefixes": [
+            "SLACK_"
+          ],
+          "secrets": [
+            {
+              "key": "SLACK_BOT_TOKEN",
+              "name": "Bot Token",
+              "description": "OAuth token for a Slack bot.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xoxb-xxxx...-xxxx...-xxxx...",
+              "pattern": "^xoxb-"
+            },
+            {
+              "key": "SLACK_SIGNING_SECRET",
+              "name": "Signing Secret",
+              "description": "Used to verify requests from Slack.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "SLACK_WEBHOOK_URL",
+              "name": "Incoming Webhook URL",
+              "description": "URL for sending messages to a Slack channel.",
+              "category": "env_var",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "https://hooks.slack.com/services/T.../B.../..."
+            },
+            {
+              "key": "SLACK_APP_TOKEN",
+              "name": "App-Level Token",
+              "description": "App-level token for Socket Mode connections.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xapp-1-xxxx...-xxxx...-xxxx...",
+              "pattern": "^xapp-"
+            }
+          ]
+        },
+        {
+          "id": "discord",
+          "name": "Discord",
+          "color": "#5865F2",
+          "docs_url": "https://discord.com/developers/docs",
+          "key_prefixes": [
+            "DISCORD_"
+          ],
+          "secrets": [
+            {
+              "key": "DISCORD_BOT_TOKEN",
+              "name": "Bot Token",
+              "description": "Authentication token for your Discord bot.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "MTxxxx....Gxxxxx.xxxx..."
+            },
+            {
+              "key": "DISCORD_CLIENT_ID",
+              "name": "Application Client ID",
+              "description": "Public client ID of your Discord application.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "123456789012345678"
+            },
+            {
+              "key": "DISCORD_CLIENT_SECRET",
+              "name": "Application Client Secret",
+              "description": "Secret for Discord OAuth2 flows.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "DISCORD_WEBHOOK_URL",
+              "name": "Webhook URL",
+              "description": "Discord channel webhook URL.",
+              "category": "env_var",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "https://discord.com/api/webhooks/xxx/xxx"
+            },
+            {
+              "key": "DISCORD_GUILD_ID",
+              "name": "Server (Guild) ID",
+              "description": "ID of your Discord server.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "123456789012345678"
+            },
+            {
+              "key": "DISCORD_PUBLIC_KEY",
+              "name": "Application Public Key",
+              "description": "Public key for verifying Discord interactions.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "twilio",
+          "name": "Twilio",
+          "color": "#F22F46",
+          "docs_url": "https://www.twilio.com/docs",
+          "key_prefixes": [
+            "TWILIO_"
+          ],
+          "secrets": [
+            {
+              "key": "TWILIO_ACCOUNT_SID",
+              "name": "Account SID",
+              "description": "Twilio account identifier.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "ACxxxx...",
+              "pattern": "^AC[a-f0-9]{32}$"
+            },
+            {
+              "key": "TWILIO_AUTH_TOKEN",
+              "name": "Auth Token",
+              "description": "Twilio authentication token.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "TWILIO_PHONE_NUMBER",
+              "name": "Phone Number",
+              "description": "Your Twilio phone number in E.164 format.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "+15551234567"
+            },
+            {
+              "key": "TWILIO_API_KEY",
+              "name": "API Key SID",
+              "description": "Twilio API key SID for narrower permissions.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "SKxxxx...",
+              "pattern": "^SK"
+            },
+            {
+              "key": "TWILIO_API_SECRET",
+              "name": "API Key Secret",
+              "description": "Twilio API key secret.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "sendgrid",
+          "name": "SendGrid",
+          "color": "#1A82E2",
+          "docs_url": "https://docs.sendgrid.com",
+          "key_prefixes": [
+            "SENDGRID_"
+          ],
+          "secrets": [
+            {
+              "key": "SENDGRID_API_KEY",
+              "name": "API Key",
+              "description": "SendGrid key for sending transactional emails.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "SG.xxxx....xxxx...",
+              "pattern": "^SG\\."
+            },
+            {
+              "key": "SENDGRID_FROM_EMAIL",
+              "name": "From Email",
+              "description": "Verified sender email for outgoing mail.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "noreply@example.com"
+            }
+          ]
+        },
+        {
+          "id": "resend",
+          "name": "Resend",
+          "color": "#000000",
+          "docs_url": "https://resend.com/docs",
+          "key_prefixes": [
+            "RESEND_"
+          ],
+          "secrets": [
+            {
+              "key": "RESEND_API_KEY",
+              "name": "API Key",
+              "description": "Resend API key for sending transactional emails.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "re_xxxx...",
+              "pattern": "^re_"
+            },
+            {
+              "key": "RESEND_FROM_EMAIL",
+              "name": "From Email",
+              "description": "Verified sender email address.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "noreply@example.com"
+            },
+            {
+              "key": "RESEND_AUDIENCE_ID",
+              "name": "Audience ID",
+              "description": "Resend audience ID for email list management.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "postmark",
+          "name": "Postmark",
+          "color": "#FFDD00",
+          "docs_url": "https://postmarkapp.com/developer",
+          "key_prefixes": [
+            "POSTMARK_"
+          ],
+          "secrets": [
+            {
+              "key": "POSTMARK_SERVER_TOKEN",
+              "name": "Server API Token",
+              "description": "Postmark server token for sending email.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            },
+            {
+              "key": "POSTMARK_ACCOUNT_TOKEN",
+              "name": "Account API Token",
+              "description": "Postmark account-level token for domain management.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "mailgun",
+          "name": "Mailgun",
+          "color": "#F06B66",
+          "docs_url": "https://documentation.mailgun.com",
+          "key_prefixes": [
+            "MAILGUN_"
+          ],
+          "secrets": [
+            {
+              "key": "MAILGUN_API_KEY",
+              "name": "Private API Key",
+              "description": "Mailgun private key for sending email.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "key-xxxx...",
+              "pattern": "^key-"
+            },
+            {
+              "key": "MAILGUN_DOMAIN",
+              "name": "Sending Domain",
+              "description": "Your Mailgun sending domain.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "mg.yourdomain.com"
+            },
+            {
+              "key": "MAILGUN_WEBHOOK_SIGNING_KEY",
+              "name": "Webhook Signing Key",
+              "description": "Key to verify Mailgun webhook authenticity.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "vonage",
+          "name": "Vonage / Nexmo",
+          "color": "#000000",
+          "docs_url": "https://developer.vonage.com",
+          "key_prefixes": [
+            "VONAGE_",
+            "NEXMO_"
+          ],
+          "secrets": [
+            {
+              "key": "VONAGE_API_KEY",
+              "name": "API Key",
+              "description": "Vonage API key for SMS and voice.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxxxxxx"
+            },
+            {
+              "key": "VONAGE_API_SECRET",
+              "name": "API Secret",
+              "description": "Vonage API secret.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "VONAGE_APPLICATION_ID",
+              "name": "Application ID",
+              "description": "Vonage application ID for advanced features.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            },
+            {
+              "key": "VONAGE_PRIVATE_KEY_PATH",
+              "name": "Private Key Path",
+              "description": "Path to Vonage application private key file.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "./private.key"
+            }
+          ]
+        },
+        {
+          "id": "pusher",
+          "name": "Pusher",
+          "color": "#300D4F",
+          "docs_url": "https://pusher.com/docs",
+          "key_prefixes": [
+            "PUSHER_"
+          ],
+          "secrets": [
+            {
+              "key": "PUSHER_APP_ID",
+              "name": "App ID",
+              "description": "Pusher application ID.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxxxxx"
+            },
+            {
+              "key": "PUSHER_KEY",
+              "name": "App Key",
+              "description": "Pusher app key (public).",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "PUSHER_SECRET",
+              "name": "App Secret",
+              "description": "Pusher app secret for server-side authentication.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "PUSHER_CLUSTER",
+              "name": "Cluster",
+              "description": "Pusher cluster (e.g. us2, eu, ap1).",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "us2"
+            }
+          ]
+        },
+        {
+          "id": "ably",
+          "name": "Ably",
+          "color": "#FF5416",
+          "docs_url": "https://ably.com/docs",
+          "key_prefixes": [
+            "ABLY_"
+          ],
+          "secrets": [
+            {
+              "key": "ABLY_API_KEY",
+              "name": "API Key",
+              "description": "Ably API key for Pub/Sub and realtime messaging.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxxxx.yyyyyy:zzzzzzzzzzzzzzzzzzzzzz"
+            }
+          ]
+        },
+        {
+          "id": "intercom",
+          "name": "Intercom",
+          "color": "#1F8DEE",
+          "docs_url": "https://developers.intercom.com",
+          "key_prefixes": [
+            "INTERCOM_"
+          ],
+          "secrets": [
+            {
+              "key": "INTERCOM_ACCESS_TOKEN",
+              "name": "Access Token",
+              "description": "Intercom OAuth access token for API calls.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "dG9rOxxxx..."
+            },
+            {
+              "key": "INTERCOM_SECRET_KEY",
+              "name": "Client Secret / Signing Key",
+              "description": "Used to validate Intercom webhooks.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "zendesk",
+          "name": "Zendesk",
+          "color": "#03363D",
+          "docs_url": "https://developer.zendesk.com",
+          "key_prefixes": [
+            "ZENDESK_"
+          ],
+          "secrets": [
+            {
+              "key": "ZENDESK_SUBDOMAIN",
+              "name": "Subdomain",
+              "description": "Your Zendesk subdomain.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "mycompany"
+            },
+            {
+              "key": "ZENDESK_EMAIL",
+              "name": "Agent Email",
+              "description": "Zendesk agent email for authentication.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "agent@example.com"
+            },
+            {
+              "key": "ZENDESK_API_TOKEN",
+              "name": "API Token",
+              "description": "Zendesk API token.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mobile",
+      "name": "Mobile",
+      "color": "#000000",
+      "platforms": [
+        {
+          "id": "apple",
+          "name": "Apple Developer",
+          "color": "#000000",
+          "docs_url": "https://developer.apple.com",
+          "key_prefixes": [
+            "APPLE_",
+            "APP_STORE_",
+            "APNS_"
+          ],
+          "secrets": [
+            {
+              "key": "APPLE_TEAM_ID",
+              "name": "Team ID",
+              "description": "10-character alphanumeric Apple Developer team ID.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "ABC1234DEF",
+              "pattern": "^[A-Z0-9]{10}$"
+            },
+            {
+              "key": "APPLE_BUNDLE_ID",
+              "name": "Bundle ID",
+              "description": "Unique iOS/macOS app identifier (reverse-domain).",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "com.company.appname"
+            },
+            {
+              "key": "APNS_KEY_ID",
+              "name": "APNs Key ID",
+              "description": "10-character key ID for Apple Push Notifications.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "ABCD123456"
+            },
+            {
+              "key": "APNS_AUTH_KEY",
+              "name": "APNs Auth Key (.p8)",
+              "description": "Private key from APNs Auth Key .p8 file.",
+              "category": "certificate",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+            },
+            {
+              "key": "APP_STORE_CONNECT_KEY_ID",
+              "name": "App Store Connect API Key ID",
+              "description": "Key ID for App Store Connect API.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "ABCD123456"
+            },
+            {
+              "key": "APP_STORE_CONNECT_ISSUER_ID",
+              "name": "Issuer ID",
+              "description": "UUID issuer ID from App Store Connect.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            },
+            {
+              "key": "APP_STORE_CONNECT_PRIVATE_KEY",
+              "name": "App Store Connect Private Key",
+              "description": "Private key (.p8) for App Store Connect API.",
+              "category": "certificate",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "-----BEGIN EC PRIVATE KEY-----\n...\n-----END EC PRIVATE KEY-----"
+            },
+            {
+              "key": "APPLE_IAP_SHARED_SECRET",
+              "name": "In-App Purchase Shared Secret",
+              "description": "Hex secret for validating App Store subscription receipts.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "a1b2c3d4e5f6..."
+            },
+            {
+              "key": "SIGN_IN_WITH_APPLE_KEY_ID",
+              "name": "Sign in with Apple Key ID",
+              "description": "Key ID for Sign in with Apple.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "ABCD123456"
+            },
+            {
+              "key": "SIGN_IN_WITH_APPLE_PRIVATE_KEY",
+              "name": "Sign in with Apple Private Key",
+              "description": "Private key (.p8) for Sign in with Apple.",
+              "category": "certificate",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+            }
+          ]
+        },
+        {
+          "id": "google",
+          "name": "Google / Firebase",
+          "color": "#FBBC04",
+          "docs_url": "https://console.firebase.google.com",
+          "key_prefixes": [
+            "GOOGLE_",
+            "FIREBASE_",
+            "ANDROID_"
+          ],
+          "secrets": [
+            {
+              "key": "FIREBASE_PROJECT_ID",
+              "name": "Firebase Project ID",
+              "description": "Unique identifier for your Firebase project.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "my-project-12345"
+            },
+            {
+              "key": "FIREBASE_SERVICE_ACCOUNT_JSON",
+              "name": "Firebase Service Account JSON",
+              "description": "Server-side Firebase Admin SDK credentials.",
+              "category": "certificate",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "{\"type\": \"service_account\", \"project_id\": \"...\"}"
+            },
+            {
+              "key": "FIREBASE_API_KEY",
+              "name": "Firebase API Key",
+              "description": "Firebase project API key (web/public).",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "AIzaxxxx..."
+            },
+            {
+              "key": "FIREBASE_AUTH_DOMAIN",
+              "name": "Firebase Auth Domain",
+              "description": "Firebase auth domain.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my-project.firebaseapp.com"
+            },
+            {
+              "key": "FIREBASE_STORAGE_BUCKET",
+              "name": "Firebase Storage Bucket",
+              "description": "Firebase Cloud Storage bucket.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my-project.appspot.com"
+            },
+            {
+              "key": "FIREBASE_MESSAGING_SENDER_ID",
+              "name": "Messaging Sender ID",
+              "description": "Firebase Cloud Messaging sender ID.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "123456789012"
+            },
+            {
+              "key": "FIREBASE_APP_ID",
+              "name": "Firebase App ID",
+              "description": "Firebase app ID for web/mobile SDK.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "1:123456789012:web:xxxx..."
+            },
+            {
+              "key": "ANDROID_KEYSTORE_PASSWORD",
+              "name": "Android Keystore Password",
+              "description": "Password for the Android .jks signing file.",
+              "category": "password",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "keystore-password"
+            },
+            {
+              "key": "ANDROID_KEY_ALIAS",
+              "name": "Android Key Alias",
+              "description": "Alias of the signing key within the Android keystore.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my-key-alias"
+            }
+          ]
+        },
+        {
+          "id": "expo",
+          "name": "Expo / EAS",
+          "color": "#000020",
+          "docs_url": "https://docs.expo.dev",
+          "key_prefixes": [
+            "EXPO_",
+            "EAS_"
+          ],
+          "secrets": [
+            {
+              "key": "EXPO_TOKEN",
+              "name": "Access Token",
+              "description": "Expo personal access token for EAS CLI authentication.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "EXPO_PUBLIC_API_URL",
+              "name": "API Base URL (Public)",
+              "description": "Public API base URL for the Expo app at build time.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://api.example.com"
+            },
+            {
+              "key": "EAS_PROJECT_ID",
+              "name": "EAS Project ID",
+              "description": "UUID of your project in Expo Application Services.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "onesignal",
+          "name": "OneSignal",
+          "color": "#E54B4D",
+          "docs_url": "https://documentation.onesignal.com",
+          "key_prefixes": [
+            "ONESIGNAL_"
+          ],
+          "secrets": [
+            {
+              "key": "ONESIGNAL_APP_ID",
+              "name": "App ID",
+              "description": "OneSignal Application ID (public, used by SDK).",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            },
+            {
+              "key": "ONESIGNAL_REST_API_KEY",
+              "name": "REST API Key",
+              "description": "OneSignal REST API key for server-side push notifications.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "appsflyer",
+          "name": "AppsFlyer",
+          "color": "#00B8FF",
+          "docs_url": "https://dev.appsflyer.com",
+          "key_prefixes": [
+            "APPSFLYER_",
+            "AF_"
+          ],
+          "secrets": [
+            {
+              "key": "APPSFLYER_DEV_KEY",
+              "name": "Dev Key",
+              "description": "AppsFlyer app-specific dev key for SDK initialization.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            },
+            {
+              "key": "APPSFLYER_APP_ID",
+              "name": "App ID",
+              "description": "App ID (iOS bundle ID or Android package name).",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "com.example.app"
+            }
+          ]
+        },
+        {
+          "id": "branchio",
+          "name": "Branch.io",
+          "color": "#00C0F3",
+          "docs_url": "https://help.branch.io",
+          "key_prefixes": [
+            "BRANCH_"
+          ],
+          "secrets": [
+            {
+              "key": "BRANCH_KEY",
+              "name": "Branch Key",
+              "description": "Branch.io key for deep linking SDK.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "key_live_xxxx..."
+            },
+            {
+              "key": "BRANCH_SECRET",
+              "name": "Branch Secret",
+              "description": "Branch.io secret for server-side API calls.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "secret_live_xxxx..."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "auth",
+      "name": "Auth & Identity",
+      "color": "#EA4335",
+      "platforms": [
+        {
+          "id": "auth0",
+          "name": "Auth0",
+          "color": "#EB5424",
+          "docs_url": "https://auth0.com/docs",
+          "key_prefixes": [
+            "AUTH0_"
+          ],
+          "secrets": [
+            {
+              "key": "AUTH0_DOMAIN",
+              "name": "Domain",
+              "description": "Your Auth0 tenant domain.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "my-app.us.auth0.com"
+            },
+            {
+              "key": "AUTH0_CLIENT_ID",
+              "name": "Client ID",
+              "description": "Auth0 application client ID.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "AUTH0_CLIENT_SECRET",
+              "name": "Client Secret",
+              "description": "Auth0 application client secret.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "AUTH0_MANAGEMENT_API_TOKEN",
+              "name": "Management API Token",
+              "description": "M2M token for Auth0 Management API.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            {
+              "key": "AUTH0_AUDIENCE",
+              "name": "API Audience",
+              "description": "Auth0 API audience identifier.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://api.myapp.com"
+            }
+          ]
+        },
+        {
+          "id": "clerk",
+          "name": "Clerk",
+          "color": "#6C47FF",
+          "docs_url": "https://clerk.com/docs",
+          "key_prefixes": [
+            "CLERK_",
+            "NEXT_PUBLIC_CLERK_"
+          ],
+          "secrets": [
+            {
+              "key": "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+              "name": "Publishable Key",
+              "description": "Clerk publishable key for frontend SDK.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "pk_test_xxxx..."
+            },
+            {
+              "key": "CLERK_SECRET_KEY",
+              "name": "Secret Key",
+              "description": "Clerk backend secret key. Server-side only.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "sk_test_xxxx..."
+            },
+            {
+              "key": "CLERK_WEBHOOK_SECRET",
+              "name": "Webhook Signing Secret",
+              "description": "Svix secret for verifying Clerk webhooks.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "whsec_xxxx..."
+            },
+            {
+              "key": "NEXT_PUBLIC_CLERK_SIGN_IN_URL",
+              "name": "Sign-In URL",
+              "description": "URL of the sign-in page.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "/sign-in"
+            }
+          ]
+        },
+        {
+          "id": "nextauth",
+          "name": "NextAuth.js / Auth.js",
+          "color": "#191919",
+          "docs_url": "https://authjs.dev",
+          "key_prefixes": [
+            "NEXTAUTH_",
+            "AUTH_"
+          ],
+          "secrets": [
+            {
+              "key": "NEXTAUTH_SECRET",
+              "name": "NextAuth Secret",
+              "description": "Random string to encrypt JWTs. Generate: openssl rand -base64 32",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "NEXTAUTH_URL",
+              "name": "NextAuth URL",
+              "description": "Canonical URL of your site. Required in production.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "https://example.com"
+            },
+            {
+              "key": "AUTH_TRUST_HOST",
+              "name": "Trust Host",
+              "description": "Set to true when deploying behind a reverse proxy.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "true"
+            }
+          ]
+        },
+        {
+          "id": "okta",
+          "name": "Okta",
+          "color": "#007DC1",
+          "docs_url": "https://developer.okta.com",
+          "key_prefixes": [
+            "OKTA_"
+          ],
+          "secrets": [
+            {
+              "key": "OKTA_DOMAIN",
+              "name": "Okta Domain",
+              "description": "Your Okta organization domain.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "myorg.okta.com"
+            },
+            {
+              "key": "OKTA_CLIENT_ID",
+              "name": "Client ID",
+              "description": "Okta application client ID.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "OKTA_CLIENT_SECRET",
+              "name": "Client Secret",
+              "description": "Okta application client secret.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "OKTA_API_TOKEN",
+              "name": "API Token",
+              "description": "Okta API token for management operations.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "00xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "stytch",
+          "name": "Stytch",
+          "color": "#19303D",
+          "docs_url": "https://stytch.com/docs",
+          "key_prefixes": [
+            "STYTCH_"
+          ],
+          "secrets": [
+            {
+              "key": "STYTCH_PROJECT_ID",
+              "name": "Project ID",
+              "description": "Stytch project identifier.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "project-live-xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            },
+            {
+              "key": "STYTCH_SECRET",
+              "name": "Project Secret",
+              "description": "Stytch project secret for server-side API calls.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "secret-live-xxxx..."
+            },
+            {
+              "key": "NEXT_PUBLIC_STYTCH_PUBLIC_TOKEN",
+              "name": "Public Token",
+              "description": "Stytch public token for frontend SDK.",
+              "category": "token",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "public-token-live-xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "kinde",
+          "name": "Kinde",
+          "color": "#EF2853",
+          "docs_url": "https://kinde.com/docs",
+          "key_prefixes": [
+            "KINDE_"
+          ],
+          "secrets": [
+            {
+              "key": "KINDE_DOMAIN",
+              "name": "Domain",
+              "description": "Your Kinde tenant domain.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "https://myapp.kinde.com"
+            },
+            {
+              "key": "KINDE_CLIENT_ID",
+              "name": "Client ID",
+              "description": "Kinde application client ID.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "KINDE_CLIENT_SECRET",
+              "name": "Client Secret",
+              "description": "Kinde application client secret.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "KINDE_ISSUER_URL",
+              "name": "Issuer URL",
+              "description": "Kinde OIDC issuer URL.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://myapp.kinde.com"
+            }
+          ]
+        },
+        {
+          "id": "workos",
+          "name": "WorkOS",
+          "color": "#FF5B00",
+          "docs_url": "https://workos.com/docs",
+          "key_prefixes": [
+            "WORKOS_"
+          ],
+          "secrets": [
+            {
+              "key": "WORKOS_API_KEY",
+              "name": "API Key",
+              "description": "WorkOS API key for SSO and Directory Sync.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "sk_live_xxxx...",
+              "pattern": "^sk_live_"
+            },
+            {
+              "key": "WORKOS_CLIENT_ID",
+              "name": "Client ID",
+              "description": "WorkOS client ID for OAuth flows.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "client_xxxx...",
+              "pattern": "^client_"
+            },
+            {
+              "key": "WORKOS_WEBHOOK_SECRET",
+              "name": "Webhook Secret",
+              "description": "Secret for verifying WorkOS webhook events.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "secret_xxxx..."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "analytics",
+      "name": "Analytics",
+      "color": "#FF6B35",
+      "platforms": [
+        {
+          "id": "mixpanel",
+          "name": "Mixpanel",
+          "color": "#7856FF",
+          "docs_url": "https://developer.mixpanel.com",
+          "key_prefixes": [
+            "MIXPANEL_"
+          ],
+          "secrets": [
+            {
+              "key": "MIXPANEL_TOKEN",
+              "name": "Project Token",
+              "description": "Mixpanel project token (public, client-side).",
+              "category": "token",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "MIXPANEL_SECRET",
+              "name": "Project Secret",
+              "description": "Mixpanel project secret for server-side and export API.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "posthog",
+          "name": "PostHog",
+          "color": "#F54E00",
+          "docs_url": "https://posthog.com/docs",
+          "key_prefixes": [
+            "POSTHOG_",
+            "NEXT_PUBLIC_POSTHOG_"
+          ],
+          "secrets": [
+            {
+              "key": "NEXT_PUBLIC_POSTHOG_KEY",
+              "name": "Project API Key",
+              "description": "PostHog project API key (public, client-side).",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "phc_xxxx...",
+              "pattern": "^phc_"
+            },
+            {
+              "key": "NEXT_PUBLIC_POSTHOG_HOST",
+              "name": "API Host",
+              "description": "PostHog API host.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://us.i.posthog.com"
+            },
+            {
+              "key": "POSTHOG_PERSONAL_API_KEY",
+              "name": "Personal API Key",
+              "description": "PostHog personal API key for server-side management.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "phx_xxxx...",
+              "pattern": "^phx_"
+            }
+          ]
+        },
+        {
+          "id": "amplitude",
+          "name": "Amplitude",
+          "color": "#0066FF",
+          "docs_url": "https://www.docs.developers.amplitude.com",
+          "key_prefixes": [
+            "AMPLITUDE_"
+          ],
+          "secrets": [
+            {
+              "key": "AMPLITUDE_API_KEY",
+              "name": "API Key",
+              "description": "Amplitude project API key for tracking events.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "AMPLITUDE_SECRET_KEY",
+              "name": "Secret Key",
+              "description": "Amplitude secret key for server-side API calls.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "segment",
+          "name": "Segment",
+          "color": "#52BD94",
+          "docs_url": "https://segment.com/docs",
+          "key_prefixes": [
+            "SEGMENT_"
+          ],
+          "secrets": [
+            {
+              "key": "SEGMENT_WRITE_KEY",
+              "name": "Write Key",
+              "description": "Segment source write key for tracking events.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "SEGMENT_API_KEY",
+              "name": "API Key",
+              "description": "Segment workspace API key for management.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "googleanalytics",
+          "name": "Google Analytics",
+          "color": "#E37400",
+          "docs_url": "https://developers.google.com/analytics",
+          "key_prefixes": [
+            "GOOGLE_ANALYTICS_",
+            "GA_",
+            "NEXT_PUBLIC_GA_"
+          ],
+          "secrets": [
+            {
+              "key": "NEXT_PUBLIC_GA_MEASUREMENT_ID",
+              "name": "Measurement ID",
+              "description": "Google Analytics 4 measurement ID.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "G-XXXXXXXXXX",
+              "pattern": "^G-"
+            },
+            {
+              "key": "GOOGLE_ANALYTICS_PROPERTY_ID",
+              "name": "Property ID",
+              "description": "GA4 property ID for Data API calls.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "123456789"
+            }
+          ]
+        },
+        {
+          "id": "hotjar",
+          "name": "Hotjar",
+          "color": "#FF3C00",
+          "docs_url": "https://help.hotjar.com",
+          "key_prefixes": [
+            "HOTJAR_",
+            "NEXT_PUBLIC_HOTJAR_"
+          ],
+          "secrets": [
+            {
+              "key": "NEXT_PUBLIC_HOTJAR_ID",
+              "name": "Site ID",
+              "description": "Hotjar site identifier for heatmaps and recordings.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "1234567"
+            }
+          ]
+        },
+        {
+          "id": "plausible",
+          "name": "Plausible Analytics",
+          "color": "#5850EC",
+          "docs_url": "https://plausible.io/docs",
+          "key_prefixes": [
+            "PLAUSIBLE_",
+            "NEXT_PUBLIC_PLAUSIBLE_"
+          ],
+          "secrets": [
+            {
+              "key": "NEXT_PUBLIC_PLAUSIBLE_DOMAIN",
+              "name": "Site Domain",
+              "description": "Your site domain as configured in Plausible.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "example.com"
+            },
+            {
+              "key": "PLAUSIBLE_API_KEY",
+              "name": "API Key",
+              "description": "Plausible API key for stats queries.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "fathom",
+          "name": "Fathom Analytics",
+          "color": "#9187FF",
+          "docs_url": "https://usefathom.com/docs",
+          "key_prefixes": [
+            "FATHOM_",
+            "NEXT_PUBLIC_FATHOM_"
+          ],
+          "secrets": [
+            {
+              "key": "NEXT_PUBLIC_FATHOM_SITE_ID",
+              "name": "Site ID",
+              "description": "Fathom site identifier (public).",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "XXXXXXXX"
+            },
+            {
+              "key": "FATHOM_API_KEY",
+              "name": "API Key",
+              "description": "Fathom API key for data queries.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "API-xxxx...",
+              "pattern": "^API-"
+            }
+          ]
+        },
+        {
+          "id": "logrocket",
+          "name": "LogRocket",
+          "color": "#7F56D9",
+          "docs_url": "https://docs.logrocket.com",
+          "key_prefixes": [
+            "LOGROCKET_",
+            "NEXT_PUBLIC_LOGROCKET_"
+          ],
+          "secrets": [
+            {
+              "key": "NEXT_PUBLIC_LOGROCKET_APP_ID",
+              "name": "App ID",
+              "description": "LogRocket app ID for session recording.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxxxx/my-app"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "storage",
+      "name": "Storage & CDN",
+      "color": "#FF6F00",
+      "platforms": [
+        {
+          "id": "cloudinary",
+          "name": "Cloudinary",
+          "color": "#3448C5",
+          "docs_url": "https://cloudinary.com/documentation",
+          "key_prefixes": [
+            "CLOUDINARY_",
+            "NEXT_PUBLIC_CLOUDINARY_"
+          ],
+          "secrets": [
+            {
+              "key": "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME",
+              "name": "Cloud Name",
+              "description": "Cloudinary cloud name.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "my-cloud-name"
+            },
+            {
+              "key": "CLOUDINARY_API_KEY",
+              "name": "API Key",
+              "description": "Cloudinary API key (public).",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "000000000000000"
+            },
+            {
+              "key": "CLOUDINARY_API_SECRET",
+              "name": "API Secret",
+              "description": "Cloudinary API secret. Server-side only.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "CLOUDINARY_URL",
+              "name": "Cloudinary URL",
+              "description": "Full credentials URL.",
+              "category": "env_var",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "cloudinary://000000000000000:xxxx...@my-cloud"
+            }
+          ]
+        },
+        {
+          "id": "backblaze",
+          "name": "Backblaze B2",
+          "color": "#D63E00",
+          "docs_url": "https://www.backblaze.com/b2/docs",
+          "key_prefixes": [
+            "B2_",
+            "BACKBLAZE_"
+          ],
+          "secrets": [
+            {
+              "key": "B2_APPLICATION_KEY_ID",
+              "name": "Application Key ID",
+              "description": "Backblaze B2 application key ID.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "B2_APPLICATION_KEY",
+              "name": "Application Key",
+              "description": "Backblaze B2 application key (secret).",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "B2_BUCKET_NAME",
+              "name": "Bucket Name",
+              "description": "Name of your Backblaze B2 bucket.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my-bucket"
+            },
+            {
+              "key": "B2_ENDPOINT",
+              "name": "Endpoint",
+              "description": "Backblaze B2 S3-compatible endpoint URL.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://s3.us-west-004.backblazeb2.com"
+            }
+          ]
+        },
+        {
+          "id": "bunny",
+          "name": "Bunny.net",
+          "color": "#FF6600",
+          "docs_url": "https://docs.bunny.net",
+          "key_prefixes": [
+            "BUNNY_"
+          ],
+          "secrets": [
+            {
+              "key": "BUNNY_API_KEY",
+              "name": "API Key",
+              "description": "Bunny.net API key for CDN and storage management.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
+            },
+            {
+              "key": "BUNNY_STORAGE_ZONE_NAME",
+              "name": "Storage Zone Name",
+              "description": "Name of your Bunny.net storage zone.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my-storage-zone"
+            },
+            {
+              "key": "BUNNY_STORAGE_ACCESS_KEY",
+              "name": "Storage Zone Access Key",
+              "description": "Access key for Bunny.net storage zone.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "imagekit",
+          "name": "ImageKit",
+          "color": "#009DF5",
+          "docs_url": "https://docs.imagekit.io",
+          "key_prefixes": [
+            "IMAGEKIT_"
+          ],
+          "secrets": [
+            {
+              "key": "IMAGEKIT_PUBLIC_KEY",
+              "name": "Public Key",
+              "description": "ImageKit public key for client-side uploads.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "public_xxxx..."
+            },
+            {
+              "key": "IMAGEKIT_PRIVATE_KEY",
+              "name": "Private Key",
+              "description": "ImageKit private key for server-side operations.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "private_xxxx..."
+            },
+            {
+              "key": "IMAGEKIT_URL_ENDPOINT",
+              "name": "URL Endpoint",
+              "description": "ImageKit URL endpoint for image delivery.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "https://ik.imagekit.io/your_imagekit_id"
+            }
+          ]
+        },
+        {
+          "id": "uploadthing",
+          "name": "UploadThing",
+          "color": "#D7462F",
+          "docs_url": "https://docs.uploadthing.com",
+          "key_prefixes": [
+            "UPLOADTHING_"
+          ],
+          "secrets": [
+            {
+              "key": "UPLOADTHING_TOKEN",
+              "name": "Token",
+              "description": "UploadThing token for file uploads.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "eyJhcGlLZXkiOiJza190ZXN0XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx...",
+              "pattern": "^eyJ"
+            }
+          ]
+        },
+        {
+          "id": "s3_compatible",
+          "name": "S3-Compatible Storage",
+          "color": "#569A31",
+          "docs_url": "https://docs.aws.amazon.com/s3",
+          "key_prefixes": [
+            "S3_"
+          ],
+          "secrets": [
+            {
+              "key": "S3_ACCESS_KEY_ID",
+              "name": "Access Key ID",
+              "description": "S3 or S3-compatible access key.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "AKIAIOSFODNN7EXAMPLE"
+            },
+            {
+              "key": "S3_SECRET_ACCESS_KEY",
+              "name": "Secret Access Key",
+              "description": "S3 or S3-compatible secret access key.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+            },
+            {
+              "key": "S3_REGION",
+              "name": "Region",
+              "description": "AWS region or S3-compatible region.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "us-east-1"
+            },
+            {
+              "key": "S3_BUCKET",
+              "name": "Bucket Name",
+              "description": "Name of your S3 bucket.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "my-bucket"
+            },
+            {
+              "key": "S3_ENDPOINT",
+              "name": "Endpoint",
+              "description": "Custom S3-compatible endpoint (MinIO, R2, B2, etc.).",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "https://xxx.r2.cloudflarestorage.com"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search",
+      "name": "Search",
+      "color": "#5468FF",
+      "platforms": [
+        {
+          "id": "algolia",
+          "name": "Algolia",
+          "color": "#5468FF",
+          "docs_url": "https://www.algolia.com/doc",
+          "key_prefixes": [
+            "ALGOLIA_",
+            "NEXT_PUBLIC_ALGOLIA_"
+          ],
+          "secrets": [
+            {
+              "key": "ALGOLIA_APP_ID",
+              "name": "Application ID",
+              "description": "Algolia application identifier.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "XXXXXXXXXX"
+            },
+            {
+              "key": "ALGOLIA_ADMIN_API_KEY",
+              "name": "Admin API Key",
+              "description": "Full-access Algolia key. Server-side only.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "NEXT_PUBLIC_ALGOLIA_SEARCH_API_KEY",
+              "name": "Search API Key",
+              "description": "Read-only key for client-side search.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "ALGOLIA_INDEX_NAME",
+              "name": "Index Name",
+              "description": "Name of the Algolia search index.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "my_index"
+            }
+          ]
+        },
+        {
+          "id": "typesense",
+          "name": "Typesense",
+          "color": "#DE2F59",
+          "docs_url": "https://typesense.org/docs",
+          "key_prefixes": [
+            "TYPESENSE_"
+          ],
+          "secrets": [
+            {
+              "key": "TYPESENSE_API_KEY",
+              "name": "Admin API Key",
+              "description": "Typesense admin API key for all operations.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "TYPESENSE_HOST",
+              "name": "Host",
+              "description": "Typesense server hostname.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxx.a1.typesense.net"
+            },
+            {
+              "key": "TYPESENSE_PORT",
+              "name": "Port",
+              "description": "Typesense server port.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "443"
+            },
+            {
+              "key": "TYPESENSE_SEARCH_ONLY_API_KEY",
+              "name": "Search-Only API Key",
+              "description": "Read-only key for client-side search.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "meilisearch",
+          "name": "Meilisearch",
+          "color": "#FF5CAA",
+          "docs_url": "https://www.meilisearch.com/docs",
+          "key_prefixes": [
+            "MEILISEARCH_",
+            "MEILI_"
+          ],
+          "secrets": [
+            {
+              "key": "MEILISEARCH_HOST",
+              "name": "Host URL",
+              "description": "Meilisearch instance URL.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "https://ms-xxxx...-xxxx.sfo.meilisearch.io"
+            },
+            {
+              "key": "MEILISEARCH_MASTER_KEY",
+              "name": "Master Key",
+              "description": "Meilisearch master key for full admin access.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "MEILISEARCH_SEARCH_KEY",
+              "name": "Search API Key",
+              "description": "Read-only key for client-side search.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "elasticsearch",
+          "name": "Elasticsearch",
+          "color": "#FEC514",
+          "docs_url": "https://www.elastic.co/docs",
+          "key_prefixes": [
+            "ELASTIC_",
+            "ELASTICSEARCH_"
+          ],
+          "secrets": [
+            {
+              "key": "ELASTICSEARCH_URL",
+              "name": "Endpoint URL",
+              "description": "Elasticsearch cluster endpoint URL.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "https://my-deployment.es.us-east-1.aws.elastic-cloud.com"
+            },
+            {
+              "key": "ELASTIC_API_KEY",
+              "name": "API Key",
+              "description": "Elasticsearch API key for authentication.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "ELASTICSEARCH_USERNAME",
+              "name": "Username",
+              "description": "Elasticsearch username for basic auth.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "elastic"
+            },
+            {
+              "key": "ELASTICSEARCH_PASSWORD",
+              "name": "Password",
+              "description": "Elasticsearch password for basic auth.",
+              "category": "password",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cms",
+      "name": "CMS & Commerce",
+      "color": "#F02E65",
+      "platforms": [
+        {
+          "id": "contentful",
+          "name": "Contentful",
+          "color": "#2478CC",
+          "docs_url": "https://www.contentful.com/developers",
+          "key_prefixes": [
+            "CONTENTFUL_"
+          ],
+          "secrets": [
+            {
+              "key": "CONTENTFUL_SPACE_ID",
+              "name": "Space ID",
+              "description": "Your Contentful space identifier.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "CONTENTFUL_ACCESS_TOKEN",
+              "name": "Delivery API Token",
+              "description": "Read-only token for published content.",
+              "category": "token",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "CONTENTFUL_PREVIEW_TOKEN",
+              "name": "Preview API Token",
+              "description": "Token for accessing unpublished draft content.",
+              "category": "token",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "CONTENTFUL_MANAGEMENT_TOKEN",
+              "name": "Management API Token",
+              "description": "Full-access token for creating/updating content.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "CFPAT-xxxx...",
+              "pattern": "^CFPAT-"
+            },
+            {
+              "key": "CONTENTFUL_ENVIRONMENT",
+              "name": "Environment",
+              "description": "Contentful environment ID (e.g. master, staging).",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "master"
+            }
+          ]
+        },
+        {
+          "id": "sanity",
+          "name": "Sanity",
+          "color": "#F03E2F",
+          "docs_url": "https://www.sanity.io/docs",
+          "key_prefixes": [
+            "SANITY_",
+            "NEXT_PUBLIC_SANITY_"
+          ],
+          "secrets": [
+            {
+              "key": "NEXT_PUBLIC_SANITY_PROJECT_ID",
+              "name": "Project ID",
+              "description": "Your Sanity project identifier.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxxxxxxx"
+            },
+            {
+              "key": "NEXT_PUBLIC_SANITY_DATASET",
+              "name": "Dataset",
+              "description": "Sanity dataset name.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "production"
+            },
+            {
+              "key": "SANITY_API_TOKEN",
+              "name": "API Token",
+              "description": "Sanity token for content reads and writes.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "skxxxx...",
+              "pattern": "^sk"
+            },
+            {
+              "key": "SANITY_WEBHOOK_SECRET",
+              "name": "Webhook Secret",
+              "description": "Secret to verify Sanity GROQ-powered webhooks.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "shopify",
+          "name": "Shopify",
+          "color": "#96BF48",
+          "docs_url": "https://shopify.dev/docs",
+          "key_prefixes": [
+            "SHOPIFY_"
+          ],
+          "secrets": [
+            {
+              "key": "SHOPIFY_STORE_DOMAIN",
+              "name": "Store Domain",
+              "description": "Your Shopify store domain.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "my-store.myshopify.com"
+            },
+            {
+              "key": "SHOPIFY_STOREFRONT_ACCESS_TOKEN",
+              "name": "Storefront API Token",
+              "description": "Public token for Storefront API.",
+              "category": "token",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "SHOPIFY_ADMIN_API_ACCESS_TOKEN",
+              "name": "Admin API Access Token",
+              "description": "Private token for Admin API.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "shpat_xxxx...",
+              "pattern": "^shpat_"
+            },
+            {
+              "key": "SHOPIFY_WEBHOOK_SECRET",
+              "name": "Webhook Secret",
+              "description": "HMAC secret for verifying Shopify webhooks.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "SHOPIFY_API_KEY",
+              "name": "API Key",
+              "description": "Shopify Partner API key (for custom apps).",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "SHOPIFY_API_SECRET",
+              "name": "API Secret",
+              "description": "Shopify Partner API secret.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "strapi",
+          "name": "Strapi",
+          "color": "#2F2E8B",
+          "docs_url": "https://docs.strapi.io",
+          "key_prefixes": [
+            "STRAPI_"
+          ],
+          "secrets": [
+            {
+              "key": "STRAPI_URL",
+              "name": "API URL",
+              "description": "Base URL of your Strapi instance.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "https://api.example.com"
+            },
+            {
+              "key": "STRAPI_API_TOKEN",
+              "name": "API Token",
+              "description": "Strapi API token for content access.",
+              "category": "token",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "STRAPI_JWT_SECRET",
+              "name": "JWT Secret",
+              "description": "Secret for signing Strapi JWT tokens.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "prismic",
+          "name": "Prismic",
+          "color": "#5163BA",
+          "docs_url": "https://prismic.io/docs",
+          "key_prefixes": [
+            "PRISMIC_"
+          ],
+          "secrets": [
+            {
+              "key": "PRISMIC_REPOSITORY_NAME",
+              "name": "Repository Name",
+              "description": "Your Prismic repository name.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "my-repo"
+            },
+            {
+              "key": "PRISMIC_ACCESS_TOKEN",
+              "name": "Access Token",
+              "description": "Prismic token for private repositories.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "MC5XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+            },
+            {
+              "key": "PRISMIC_WEBHOOK_SECRET",
+              "name": "Webhook Secret",
+              "description": "Secret for verifying Prismic webhook payloads.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "wordpress",
+          "name": "WordPress",
+          "color": "#21759B",
+          "docs_url": "https://developer.wordpress.org",
+          "key_prefixes": [
+            "WP_",
+            "WORDPRESS_"
+          ],
+          "secrets": [
+            {
+              "key": "WP_API_URL",
+              "name": "REST API URL",
+              "description": "WordPress REST API base URL.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "https://mysite.com/wp-json/wp/v2"
+            },
+            {
+              "key": "WP_AUTH_USER",
+              "name": "Username",
+              "description": "WordPress username for Application Password auth.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "admin"
+            },
+            {
+              "key": "WP_AUTH_PASSWORD",
+              "name": "Application Password",
+              "description": "WordPress application password for REST API.",
+              "category": "password",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx xxxx xxxx xxxx xxxx xxxx"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "social",
+      "name": "Social & OAuth",
+      "color": "#1DA1F2",
+      "platforms": [
+        {
+          "id": "twitter",
+          "name": "X / Twitter",
+          "color": "#000000",
+          "docs_url": "https://developer.twitter.com",
+          "key_prefixes": [
+            "TWITTER_",
+            "X_"
+          ],
+          "secrets": [
+            {
+              "key": "TWITTER_API_KEY",
+              "name": "API Key (Consumer Key)",
+              "description": "Twitter app API key.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "TWITTER_API_SECRET",
+              "name": "API Secret (Consumer Secret)",
+              "description": "Twitter app API secret.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "TWITTER_BEARER_TOKEN",
+              "name": "Bearer Token",
+              "description": "Twitter OAuth 2.0 app-only bearer token for read-only API.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            },
+            {
+              "key": "TWITTER_ACCESS_TOKEN",
+              "name": "Access Token",
+              "description": "User access token for posting on behalf of a user.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx...-xxxx..."
+            },
+            {
+              "key": "TWITTER_ACCESS_SECRET",
+              "name": "Access Token Secret",
+              "description": "User access token secret.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "TWITTER_CLIENT_ID",
+              "name": "OAuth 2.0 Client ID",
+              "description": "Client ID for Twitter OAuth 2.0 PKCE flows.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "TWITTER_CLIENT_SECRET",
+              "name": "OAuth 2.0 Client Secret",
+              "description": "Client secret for Twitter OAuth 2.0.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "facebook",
+          "name": "Meta / Facebook",
+          "color": "#1877F2",
+          "docs_url": "https://developers.facebook.com",
+          "key_prefixes": [
+            "FACEBOOK_",
+            "META_",
+            "FB_"
+          ],
+          "secrets": [
+            {
+              "key": "FACEBOOK_APP_ID",
+              "name": "App ID",
+              "description": "Facebook / Meta app identifier (public).",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "000000000000000"
+            },
+            {
+              "key": "FACEBOOK_APP_SECRET",
+              "name": "App Secret",
+              "description": "Facebook / Meta app secret. Server-side only.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "META_ACCESS_TOKEN",
+              "name": "User Access Token",
+              "description": "Long-lived user access token for Graph API.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "EAAxxxx..."
+            },
+            {
+              "key": "FACEBOOK_PIXEL_ID",
+              "name": "Pixel ID",
+              "description": "Meta Pixel identifier for conversion tracking.",
+              "category": "env_var",
+              "sensitive": false,
+              "required": false,
+              "placeholder": "000000000000000"
+            },
+            {
+              "key": "FACEBOOK_WEBHOOK_VERIFY_TOKEN",
+              "name": "Webhook Verify Token",
+              "description": "Token to verify Meta webhook subscriptions.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "my-custom-verify-token"
+            }
+          ]
+        },
+        {
+          "id": "linkedin",
+          "name": "LinkedIn",
+          "color": "#0A66C2",
+          "docs_url": "https://learn.microsoft.com/linkedin",
+          "key_prefixes": [
+            "LINKEDIN_"
+          ],
+          "secrets": [
+            {
+              "key": "LINKEDIN_CLIENT_ID",
+              "name": "Client ID",
+              "description": "LinkedIn application client ID.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "LINKEDIN_CLIENT_SECRET",
+              "name": "Client Secret",
+              "description": "LinkedIn application client secret.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "LINKEDIN_ACCESS_TOKEN",
+              "name": "Access Token",
+              "description": "OAuth 2.0 access token for LinkedIn API.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "AQXxxxx..."
+            }
+          ]
+        },
+        {
+          "id": "tiktok",
+          "name": "TikTok",
+          "color": "#000000",
+          "docs_url": "https://developers.tiktok.com",
+          "key_prefixes": [
+            "TIKTOK_"
+          ],
+          "secrets": [
+            {
+              "key": "TIKTOK_CLIENT_KEY",
+              "name": "Client Key",
+              "description": "TikTok app client key.",
+              "category": "api_key",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "awxxxx..."
+            },
+            {
+              "key": "TIKTOK_CLIENT_SECRET",
+              "name": "Client Secret",
+              "description": "TikTok app client secret.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            },
+            {
+              "key": "TIKTOK_ACCESS_TOKEN",
+              "name": "Access Token",
+              "description": "TikTok user OAuth access token.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "act.xxxx..."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "maps",
+      "name": "Maps & Location",
+      "color": "#4285F4",
+      "platforms": [
+        {
+          "id": "googlemaps",
+          "name": "Google Maps",
+          "color": "#4285F4",
+          "docs_url": "https://developers.google.com/maps",
+          "key_prefixes": [
+            "GOOGLE_MAPS_",
+            "MAPS_"
+          ],
+          "secrets": [
+            {
+              "key": "GOOGLE_MAPS_API_KEY",
+              "name": "Maps API Key",
+              "description": "Restricted Google Maps Platform API key.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "AIzaxxxx...",
+              "pattern": "^AIza"
+            },
+            {
+              "key": "GOOGLE_MAPS_ANDROID_KEY",
+              "name": "Maps Android API Key",
+              "description": "Maps API key restricted to your Android app.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "AIzaxxxx..."
+            },
+            {
+              "key": "GOOGLE_MAPS_IOS_KEY",
+              "name": "Maps iOS API Key",
+              "description": "Maps API key restricted to your iOS app.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "AIzaxxxx..."
+            }
+          ]
+        },
+        {
+          "id": "mapbox",
+          "name": "Mapbox",
+          "color": "#4264FB",
+          "docs_url": "https://docs.mapbox.com",
+          "key_prefixes": [
+            "MAPBOX_"
+          ],
+          "secrets": [
+            {
+              "key": "MAPBOX_PUBLIC_TOKEN",
+              "name": "Public Access Token",
+              "description": "Mapbox public token for client-side map rendering.",
+              "category": "token",
+              "sensitive": false,
+              "required": true,
+              "placeholder": "pk.eyJ1Ijoixxxxxxx",
+              "pattern": "^pk\\."
+            },
+            {
+              "key": "MAPBOX_SECRET_TOKEN",
+              "name": "Secret Access Token",
+              "description": "Mapbox secret token for server-side and style operations.",
+              "category": "token",
+              "sensitive": true,
+              "required": false,
+              "placeholder": "sk.eyJ1Ijoixxxxxxx",
+              "pattern": "^sk\\."
+            }
+          ]
+        },
+        {
+          "id": "here",
+          "name": "HERE Maps",
+          "color": "#00AFAA",
+          "docs_url": "https://developer.here.com",
+          "key_prefixes": [
+            "HERE_"
+          ],
+          "secrets": [
+            {
+              "key": "HERE_API_KEY",
+              "name": "API Key",
+              "description": "HERE Maps platform API key for maps, routing, and geocoding.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "openweather",
+          "name": "OpenWeatherMap",
+          "color": "#EB6E4B",
+          "docs_url": "https://openweathermap.org/api",
+          "key_prefixes": [
+            "OPENWEATHER_",
+            "OWM_"
+          ],
+          "secrets": [
+            {
+              "key": "OPENWEATHER_API_KEY",
+              "name": "API Key",
+              "description": "OpenWeatherMap API key for weather data.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            }
+          ]
+        },
+        {
+          "id": "tomtom",
+          "name": "TomTom",
+          "color": "#DF1B12",
+          "docs_url": "https://developer.tomtom.com",
+          "key_prefixes": [
+            "TOMTOM_"
+          ],
+          "secrets": [
+            {
+              "key": "TOMTOM_API_KEY",
+              "name": "API Key",
+              "description": "TomTom Developer API key for maps and routing.",
+              "category": "api_key",
+              "sensitive": true,
+              "required": true,
+              "placeholder": "xxxx..."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

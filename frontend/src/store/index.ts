@@ -11,6 +11,7 @@ export interface Toast {
 }
 
 type Theme = "light" | "dark" | "system";
+export type AuditLevel = "important" | "standard" | "verbose";
 
 interface AppStore {
   // Server
@@ -44,6 +45,8 @@ interface AppStore {
   toggleSidebar: () => void;
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  auditLevel: AuditLevel;
+  setAuditLevel: (level: AuditLevel) => void;
 
   // Toasts
   toasts: Toast[];
@@ -85,7 +88,7 @@ export const useStore = create<AppStore>((set) => ({
   // Secrets
   secrets: [],
   setSecrets: (secrets) => set({ secrets }),
-  selectedCategory: "secret" as SecretCategory,
+  selectedCategory: "api_key" as SecretCategory,
   selectCategory: (cat) => set({ selectedCategory: cat }),
 
   // API Keys
@@ -100,6 +103,11 @@ export const useStore = create<AppStore>((set) => ({
   setTheme: (theme) => {
     localStorage.setItem("achilles-theme", theme);
     set({ theme });
+  },
+  auditLevel: (localStorage.getItem("achilles-audit-level") as AuditLevel) || "standard",
+  setAuditLevel: (auditLevel) => {
+    localStorage.setItem("achilles-audit-level", auditLevel);
+    set({ auditLevel });
   },
 
   // Toasts

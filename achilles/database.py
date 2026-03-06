@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS secrets (
     version INTEGER NOT NULL DEFAULT 1,
     tags TEXT DEFAULT '[]',
     description TEXT DEFAULT '',
-    category TEXT NOT NULL DEFAULT 'secret',
+    category TEXT NOT NULL DEFAULT 'api_key',
     created_at REAL NOT NULL,
     updated_at REAL NOT NULL,
     created_by TEXT DEFAULT 'system',
@@ -118,7 +118,7 @@ class Database:
         columns = [row[1] for row in await cursor.fetchall()]
         if "category" not in columns:
             await self._db.execute(
-                "ALTER TABLE secrets ADD COLUMN category TEXT NOT NULL DEFAULT 'secret'"
+                "ALTER TABLE secrets ADD COLUMN category TEXT NOT NULL DEFAULT 'api_key'"
             )
         if "deleted_at" not in columns:
             await self._db.execute(
@@ -214,7 +214,7 @@ class Database:
         description: str = "",
         tags: list[str] | None = None,
         created_by: str = "system",
-        category: str = "secret",
+        category: str = "api_key",
     ) -> dict:
         now = time.time()
         secret_id = str(uuid.uuid4())

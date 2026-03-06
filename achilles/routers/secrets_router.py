@@ -58,12 +58,6 @@ async def list_secrets(
 
     rows = await db.list_secrets(project_id, env["id"], tag=tag, category=category)
 
-    await db.log_audit(
-        "secret.list", "secret", user["username"],
-        details={"project_id": project_id, "environment": env_name, "category": category},
-        ip_address=request.client.host if request.client else None,
-    )
-
     return [
         SecretMetadata(
             id=r["id"],
@@ -71,7 +65,7 @@ async def list_secrets(
             version=r["version"],
             description=r["description"],
             tags=json.loads(r["tags"]) if isinstance(r["tags"], str) else r["tags"],
-            category=r.get("category", "secret"),
+            category=r.get("category", "api_key"),
             created_at=r["created_at"],
             updated_at=r["updated_at"],
         )
@@ -121,7 +115,7 @@ async def get_secret(
         version=secret["version"],
         description=secret["description"],
         tags=json.loads(secret["tags"]) if isinstance(secret["tags"], str) else secret["tags"],
-        category=secret.get("category", "secret"),
+        category=secret.get("category", "api_key"),
         created_at=secret["created_at"],
         updated_at=secret["updated_at"],
     )

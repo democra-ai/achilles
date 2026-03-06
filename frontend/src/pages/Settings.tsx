@@ -16,8 +16,10 @@ import {
   Sun,
   Moon,
   Monitor,
+  Activity,
 } from "lucide-react";
 import { useStore } from "@/store";
+import type { AuditLevel } from "@/store";
 import { useServerManager } from "@/hooks/useTauri";
 import {
   Card,
@@ -54,6 +56,8 @@ export default function Settings() {
     checkMcpHealth,
     theme,
     setTheme,
+    auditLevel,
+    setAuditLevel,
   } = useStore();
   const {
     isTauri,
@@ -608,6 +612,56 @@ export default function Settings() {
                   >
                     <opt.icon className="size-5" />
                     {opt.label}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Activity Log */}
+        <motion.div variants={fadeUp}>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                  <Activity className="size-5 text-blue-400" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm">Activity Log</CardTitle>
+                  <CardDescription>Control which events appear in Recent Activity</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-3">
+                {(
+                  [
+                    {
+                      key: "important" as AuditLevel,
+                      label: "Important",
+                      desc: "Deletes & revokes only",
+                    },
+                    {
+                      key: "standard" as AuditLevel,
+                      label: "Standard",
+                      desc: "All writes & changes",
+                    },
+                    {
+                      key: "verbose" as AuditLevel,
+                      label: "Verbose",
+                      desc: "All events incl. reads",
+                    },
+                  ]
+                ).map((opt) => (
+                  <Button
+                    key={opt.key}
+                    variant={auditLevel === opt.key ? "default" : "outline"}
+                    onClick={() => setAuditLevel(opt.key)}
+                    className="flex flex-col items-start gap-1 h-auto py-3 px-4"
+                  >
+                    <span className="font-medium text-sm">{opt.label}</span>
+                    <span className={`text-[11px] font-normal ${auditLevel === opt.key ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{opt.desc}</span>
                   </Button>
                 ))}
               </div>

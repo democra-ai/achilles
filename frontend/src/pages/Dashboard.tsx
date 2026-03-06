@@ -11,6 +11,21 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useStore } from "@/store";
+import type { AuditLevel } from "@/store";
+
+// Event severity: important = delete/revoke only; standard = all mutations; verbose = everything
+function getEventSeverity(action: string): "critical" | "standard" | "verbose" {
+  if (/delete|revoke/.test(action)) return "critical";
+  if (/list|get|read|health|check/.test(action)) return "verbose";
+  return "standard";
+}
+
+function filterByAuditLevel(action: string, level: AuditLevel): boolean {
+  const sev = getEventSeverity(action);
+  if (level === "important") return sev === "critical";
+  if (level === "standard") return sev !== "verbose";
+  return true; // verbose: show all
+}
 import { projectsApi, auditApi, apiKeysApi, secretsApi } from "@/api/client";
 import { useNavigate } from "react-router-dom";
 import type { AuditEntry } from "@/types";
@@ -42,6 +57,7 @@ export default function Dashboard() {
     setApiKeys,
     serverStatus,
     mcpStatus,
+    auditLevel,
   } = useStore();
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
   const [secretCount, setSecretCount] = useState<number | null>(null);
@@ -53,14 +69,17 @@ export default function Dashboard() {
       .then((r) => setProjects(r.data))
       .catch(() => {});
     auditApi
-      .list({ limit: 8 })
-      .then((r) => setAuditLog(r.data.entries))
+      .list({ limit: 50 })
+      .then((r) => {
+        const filtered = r.data.entries.filter((e) => filterByAuditLevel(e.action, auditLevel));
+        setAuditLog(filtered.slice(0, 8));
+      })
       .catch(() => {});
     apiKeysApi
       .list()
       .then((r) => setApiKeys(r.data))
       .catch(() => {});
-  }, [setProjects, setApiKeys]);
+  }, [setProjects, setApiKeys, auditLevel]);
 
   useEffect(() => {
     if (projects.length === 0) {
@@ -96,7 +115,7 @@ export default function Dashboard() {
       icon: KeyRound,
       color: "text-blue-400",
       bgColor: "bg-blue-500/10",
-      onClick: () => navigate("/secrets"),
+      onClick: () => navigate("/vault"),
     },
     {
       label: "Access Keys",
@@ -129,11 +148,40 @@ export default function Dashboard() {
   };
 
   const actionVariant = (action: string) => {
-    if (action.includes("create") || action.includes("set"))
-      return "default" as const;
-    if (action.includes("delete") || action.includes("revoke"))
-      return "destructive" as const;
+    if (/delete|revoke|purge|empty/.test(action)) return "destructive" as const;
+    if (/create|set|write|update|save|restore/.test(action)) return "default" as const;
     return "secondary" as const;
+  };
+
+  const ACTION_LABELS: Record<string, string> = {
+    "secret.read": "read",
+    "secret.write": "saved",
+    "secret.delete": "deleted",
+    "secret.bulk_write": "bulk save",
+    "project.create": "created",
+    "project.delete": "deleted",
+    "project.update": "updated",
+    "api_key.create": "created",
+    "api_key.delete": "revoked",
+    "user.register": "registered",
+    "user.login": "logged in",
+    "mcp.get_secret": "MCP read",
+    "mcp.set_secret": "MCP save",
+    "mcp.delete_secret": "MCP delete",
+    "trash.restore": "restored",
+    "trash.purge": "purged",
+    "trash.empty": "emptied trash",
+  };
+
+  const formatAction = (action: string) => {
+    return ACTION_LABELS[action] || action.replace(/[._]/g, " ");
+  };
+
+  const RESOURCE_TYPE_LABELS: Record<string, string> = {
+    secret: "vault item",
+    project: "project",
+    api_key: "access key",
+    user: "user",
   };
 
   return (
@@ -203,10 +251,10 @@ export default function Dashboard() {
                   bg: "bg-emerald-500/10",
                 },
                 {
-                  to: "/secrets",
+                  to: "/vault",
                   icon: KeyRound,
                   title: "Manage Vault",
-                  desc: "Secrets, API keys, env vars, and tokens",
+                  desc: "API keys, tokens, passwords, certificates & env vars",
                   color: "text-blue-400",
                   bg: "bg-blue-500/10",
                 },
@@ -268,11 +316,11 @@ export default function Dashboard() {
                     >
                       <div className="flex-1 min-w-0">
                         <p className="text-sm flex items-center gap-2">
-                          <Badge variant={actionVariant(entry.action)}>
-                            {entry.action}
+                          <Badge variant={actionVariant(entry.action)} className="capitalize">
+                            {formatAction(entry.action)}
                           </Badge>
                           <span className="text-muted-foreground truncate text-xs">
-                            {entry.resource_type}
+                            {RESOURCE_TYPE_LABELS[entry.resource_type] || entry.resource_type?.replace(/_/g, " ")}
                           </span>
                         </p>
                       </div>

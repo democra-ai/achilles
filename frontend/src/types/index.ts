@@ -27,7 +27,7 @@ export interface Environment {
   created_at: number;
 }
 
-export type SecretCategory = "secret" | "api_key" | "env_var" | "token";
+export type SecretCategory = "api_key" | "token" | "password" | "certificate" | "env_var";
 
 export interface Secret {
   id: string;

@@ -184,6 +184,46 @@ export const healthApi = {
   },
 };
 
+// Platforms catalog
+export interface PlatformSecret {
+  key: string;
+  name: string;
+  description: string;
+  category: string;
+  sensitive: boolean;
+  required: boolean;
+  placeholder?: string;
+  pattern?: string;
+  docs_url?: string;
+}
+
+export interface PlatformSummary {
+  id: string;
+  name: string;
+  category: string;
+  color: string;
+  docs_url: string;
+  key_prefixes: string[];
+  secret_count: number;
+}
+
+export interface Platform extends PlatformSummary {
+  secrets: PlatformSecret[];
+}
+
+export interface PlatformCategory {
+  id: string;
+  name: string;
+  color: string;
+  platforms: PlatformSummary[];
+}
+
+export const platformsApi = {
+  list: () => api.get<{ version: string; platforms: PlatformSummary[] }>("/platforms"),
+  get: (id: string) => api.get<Platform>(`/platforms/${id}`),
+  categories: () => api.get<{ version: string; categories: PlatformCategory[] }>("/platforms/categories"),
+};
+
 // MCP Health (check if MCP server port is responding)
 const MCP_BASE = "http://127.0.0.1:8901";
 

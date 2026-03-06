@@ -5,6 +5,27 @@ use tauri_plugin_autostart::MacosLauncher;
 
 mod server;
 
+/// Move window to the currently active macOS Space before showing it.
+#[cfg(target_os = "macos")]
+fn move_window_to_active_space(window: &tauri::WebviewWindow) {
+    use objc2_app_kit::NSWindowCollectionBehavior;
+
+    if let Ok(ns_win) = window.ns_window() {
+        unsafe {
+            let ns_window: &objc2_app_kit::NSWindow =
+                &*(ns_win as *const objc2_app_kit::NSWindow);
+            ns_window.setCollectionBehavior(
+                NSWindowCollectionBehavior::MoveToActiveSpace
+                    | NSWindowCollectionBehavior::Managed
+                    | NSWindowCollectionBehavior::Transient,
+            );
+        }
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn move_window_to_active_space(_window: &tauri::WebviewWindow) {}
+
 pub struct AppState {
     pub server_running: bool,
     pub server_port: u16,
@@ -104,6 +125,7 @@ pub fn run() {
                     {
                         let app = tray.app_handle();
                         if let Some(window) = app.get_webview_window("main") {
+                            move_window_to_active_space(&window);
                             window.show().unwrap_or_default();
                             window.set_focus().unwrap_or_default();
                         }
@@ -136,8 +158,9 @@ pub fn run() {
         .run(|app_handle, event| {
             match event {
                 RunEvent::Reopen { .. } => {
-                    // macOS: clicking dock icon should show the window
+                    // macOS: clicking dock icon should show the window on current Space
                     if let Some(window) = app_handle.get_webview_window("main") {
+                        move_window_to_active_space(&window);
                         window.show().unwrap_or_default();
                         window.set_focus().unwrap_or_default();
                     }

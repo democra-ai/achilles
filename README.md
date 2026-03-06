@@ -5,8 +5,8 @@
 <h1 align="center">Achilles Vault</h1>
 
 <p align="center">
-  <strong>Open-source, local-first secret management for the AI era.</strong><br/>
-  Your personal Akeyless / Infisical that runs locally and speaks MCP.
+  <strong>The secret manager your AI agent can actually use.</strong><br/>
+  Local-first. MCP-native. Zero cloud dependency.
 </p>
 
 <p align="center">
@@ -28,21 +28,39 @@
 
 ---
 
-## Why Achilles?
+## The Problem
 
-In the age of AI, automation is everywhere. We use **GitHub Actions**, **Hugging Face Spaces**, **Vercel**, **AWS**, and countless CI/CD platforms daily — and every single one requires **tokens, API keys, and secrets** to grant permissions and authorize access.
+You're building with AI. Your stack looks something like this:
 
-As AI agents become our co-pilots — writing code, deploying services, running pipelines — they need **secure, structured access** to our credentials. But today, most developers still manage secrets by:
+```
+Claude Code → deploys to Vercel → trains on HuggingFace → calls OpenAI → pushes to GitHub
+```
 
-- Pasting tokens into `.env` files scattered across projects
-- Storing API keys in plaintext notes or browser bookmarks
-- Losing track of which token has which permissions on which platform
+Each platform needs a token. You have 20+ API keys scattered across `.env` files, sticky notes, and browser bookmarks. Every time your AI agent needs one, **you stop what you're doing and paste it manually**.
 
-**Achilles Vault** solves this. It's an **open-source, local-first secret manager** purpose-built for AI-era workflows:
+Worse: some developers paste keys directly into prompts. That's a security incident waiting to happen.
 
-> **Store once. Organize by project. Let AI agents fetch what they need — securely, locally, with a full audit trail.**
+---
 
-No cloud dependency. No vendor lock-in. Your secrets never leave your machine.
+## The Solution
+
+**Achilles Vault** is an open-source, local-first secret manager built for the AI era.
+
+Store your secrets once. Your AI agents fetch them securely via **MCP (Model Context Protocol)** — no manual copy-paste, no plaintext in prompts, no cloud dependency.
+
+```
+# Before Achilles
+You:    "Deploy my app to Vercel"
+Claude: "I need your VERCEL_TOKEN"
+You:    *opens browser, navigates to dashboard, copies token, pastes into chat*
+
+# After Achilles
+You:    "Deploy my app to Vercel"
+Claude: *calls achilles.get_secret("VERCEL_TOKEN") via MCP*
+Done.
+```
+
+> **Your secrets never leave your machine. Not to Achilles servers. Not to anyone.**
 
 ---
 
@@ -91,203 +109,46 @@ No cloud dependency. No vendor lock-in. Your secrets never leave your machine.
 </tr>
 </table>
 
-> **Note:** If screenshots are not yet available, build and run the app to see the UI in action.
-
----
-
-## Features
-
-### Core Vault
-
-| Feature | Description |
-|---------|-------------|
-| **AES-256-GCM Encryption** | All secrets encrypted at rest with authenticated encryption, per-secret random salt and nonce |
-| **Project / Environment Hierarchy** | Organize secrets by project with `development`, `staging`, and `production` environments |
-| **Secret Versioning** | Full version history with one-click rollback |
-| **Audit Logging** | Immutable record of every vault operation (who, what, when) |
-| **JWT + API Key Auth** | Dual authentication — JWT for interactive sessions, API keys for machines and agents |
-| **Zero Dependencies** | SQLite-based. No PostgreSQL, no Redis, no external services. Just run it. |
-
-### AI-Native Integration
-
-| Feature | Description |
-|---------|-------------|
-| **MCP Protocol** | Model Context Protocol server on port 8901 — AI agents can discover and fetch secrets natively |
-| **OpenAI Function Calling** | Auto-generated function schemas at `/api/v1/ai/openai/functions` |
-| **Simple AI Endpoint** | `POST /api/v1/ai/secrets` — one call to fetch multiple secrets by key name |
-| **`achilles run`** | Inject secrets as environment variables into any command (like `doppler run`) |
-
-### Chrome Extension
-
-| Feature | Description |
-|---------|-------------|
-| **Auto-Detection** | Scans web pages for 30+ secret patterns (GitHub PAT, HuggingFace tokens, AWS keys, etc.) |
-| **Rule-Based Engine** | Externalized [`rules.json`](chrome-extension/rules/rules.json) with rule ID, platform, severity, and documentation links |
-| **One-Click Import** | Detected token → click "vault" badge → stored encrypted with metadata |
-| **Auto-Fill** | Fill secrets into token fields on GitHub, HuggingFace, Vercel, OpenAI, and 12+ platforms |
-| **Rule Hit Log** | Popup shows which rule matched each detection, with severity and platform info |
-
-### Desktop App (Tauri v2)
-
-| Feature | Description |
-|---------|-------------|
-| **Native macOS App** | Tauri v2 desktop app with overlay titlebar and native performance |
-| **Dashboard** | Overview of projects, secret counts, recent audit activity, server status |
-| **Dark Theme** | Designed for developers — full dark UI with JetBrains Mono |
-| **Deep Link** | `achillesvault://open` — launch from Chrome extension or terminal |
-
 ---
 
 ## Quick Start
 
 ### Prerequisites
 
-- **Python 3.11+** — for the backend server
-- **Node.js 18+** — for the frontend (optional, for desktop app)
-- **Rust** — for Tauri desktop build (optional)
+- **Python 3.11+**
+- Node.js 18+ *(optional, for desktop app)*
+- Rust *(optional, for desktop build)*
 
-### 1. Install the Backend
+### 1. Install & Start
 
 ```bash
-# Clone the repository
 git clone https://github.com/tao-shen/achilles.git
 cd achilles
 
-# Install Python package
 pip install -e .
-
-# Start the server (port 8900)
-achilles serve
+achilles serve          # starts on port 8900, MCP on port 8901
 ```
 
-### 2. First-Time Setup
+### 2. Register & Store Secrets
 
 ```bash
-# Register the first user (becomes admin)
-achilles register -U admin -P your-secure-password
+achilles register -U admin -P your-password
+achilles login -U admin -P your-password
 
-# Login
-achilles login -U admin -P your-secure-password
-
-# Create your first project
 achilles create-project my-ai-project
-```
 
-### 3. Store & Retrieve Secrets
-
-```bash
-# Store secrets
-achilles set <project-id> OPENAI_API_KEY sk-xxx --env development
-achilles set <project-id> HF_TOKEN hf_xxx --env development
+achilles set <project-id> OPENAI_API_KEY sk-xxx --env production
+achilles set <project-id> HF_TOKEN hf_xxx --env production
 achilles set <project-id> GITHUB_TOKEN ghp_xxx --env production
-
-# Retrieve
-achilles get <project-id> OPENAI_API_KEY --env development
-
-# Run a command with secrets injected as env vars
-achilles run <project-id> --env production -- python train.py
-
-# Export as .env file
-achilles export <project-id> --env production > .env
 ```
 
-### 4. Install Chrome Extension
-
-```bash
-# 1. Open chrome://extensions
-# 2. Enable "Developer mode"
-# 3. Click "Load unpacked"
-# 4. Select the chrome-extension/ directory
-```
-
-### 5. Launch Desktop App (Optional)
-
-```bash
-cd frontend
-npm install
-npx tauri dev
-```
-
----
-
-## Architecture
-
-```
-achilles/
-├── achilles/                    # Python backend
-│   ├── main.py                  # FastAPI server (port 8900)
-│   ├── crypto.py                # AES-256-GCM encryption layer
-│   ├── database.py              # SQLite with async support
-│   ├── auth.py                  # JWT + API key authentication
-│   ├── mcp_server.py            # MCP protocol server (port 8901)
-│   ├── routers/
-│   │   ├── secrets_router.py    # Secret CRUD operations
-│   │   ├── projects_router.py   # Project & environment management
-│   │   ├── ai_router.py         # MCP + OpenAI function calling
-│   │   ├── auth_router.py       # Registration & login
-│   │   ├── audit_router.py      # Audit log
-│   │   └── trash_router.py      # Soft delete & recovery
-│   └── cli/
-│       └── main.py              # Typer CLI tool
-│
-├── frontend/                    # React + Tauri v2
-│   ├── src/
-│   │   ├── pages/               # Dashboard, Vault, Secrets, Settings, ...
-│   │   ├── components/          # Layout, UI components (shadcn/ui)
-│   │   ├── store/               # Zustand state management
-│   │   └── api/                 # API client
-│   └── src-tauri/               # Tauri Rust backend & config
-│
-├── chrome-extension/            # Chrome Extension (Manifest V3)
-│   ├── manifest.json
-│   ├── rules/
-│   │   └── rules.json           # 30+ detection rules with metadata
-│   ├── content/
-│   │   └── detector.js          # Pattern matching & page scanning
-│   ├── background/
-│   │   └── service-worker.js    # Message routing & API bridge
-│   └── popup/
-│       ├── popup.html/js/css    # Extension popup UI
-│
-└── pyproject.toml               # Python project configuration
-```
-
----
-
-## API Reference
-
-### REST API (v1)
-
-**Base URL:** `http://localhost:8900`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/auth/register` | Register new user |
-| `POST` | `/api/v1/auth/login` | Get JWT token |
-| `POST` | `/api/v1/auth/api-keys` | Create API key |
-| `GET` | `/api/v1/projects` | List projects |
-| `POST` | `/api/v1/projects` | Create project |
-| `GET` | `/api/v1/projects/{id}/environments/{env}/secrets` | List secrets (metadata only) |
-| `PUT` | `/api/v1/projects/{id}/environments/{env}/secrets/{key}` | Create or update a secret |
-| `GET` | `/api/v1/projects/{id}/environments/{env}/secrets/{key}` | Get decrypted secret value |
-| `DELETE` | `/api/v1/projects/{id}/environments/{env}/secrets/{key}` | Delete secret (soft delete) |
-
-### AI Integration Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/ai/secrets` | Fetch multiple secrets in one call |
-| `GET` | `/api/v1/ai/mcp/tools` | List available MCP tools |
-| `POST` | `/api/v1/ai/mcp/call` | Execute an MCP tool call |
-| `GET` | `/api/v1/ai/openai/functions` | Get OpenAI function calling schemas |
-
-### Usage with AI Agents
+### 3. Use with Your AI Agent
 
 ```python
+# Fetch secrets in any AI pipeline
 import httpx
 
-# Fetch secrets for your AI pipeline
-resp = httpx.post(
+secrets = httpx.post(
     "http://localhost:8900/api/v1/ai/secrets",
     headers={"X-API-Key": "av_your_api_key"},
     json={
@@ -295,74 +156,97 @@ resp = httpx.post(
         "environment": "production",
         "keys": ["OPENAI_API_KEY", "HF_TOKEN", "GITHUB_TOKEN"]
     }
-)
-secrets = resp.json()["secrets"]
+).json()["secrets"]
 # {"OPENAI_API_KEY": "sk-...", "HF_TOKEN": "hf_...", "GITHUB_TOKEN": "ghp_..."}
 ```
 
-```python
-# MCP tool call (for MCP-compatible agents)
-resp = httpx.post(
-    "http://localhost:8900/api/v1/ai/mcp/call",
-    headers={"X-API-Key": "av_your_api_key"},
-    json={
-        "name": "get_secret",
-        "arguments": {"project": "my-ai-project", "key": "OPENAI_API_KEY"}
-    }
-)
+```bash
+# Or inject as environment variables into any command
+achilles run <project-id> --env production -- python train.py
+```
+
+### 4. Install Chrome Extension *(optional)*
+
+1. Open `chrome://extensions` and enable **Developer mode**
+2. Click **Load unpacked** and select the `chrome-extension/` directory
+3. Browse to GitHub, HuggingFace, or Vercel — Achilles auto-detects any token on the page and offers to vault it
+
+### 5. Launch Desktop App *(optional)*
+
+```bash
+cd frontend && npm install && npx tauri dev
 ```
 
 ---
 
-## Chrome Extension — Detection Rules
+## AI-Native Integration
 
-Achilles includes a rule-based secret detection engine. All rules are defined in [`chrome-extension/rules/rules.json`](chrome-extension/rules/rules.json) — human-readable, editable, and extensible.
+This is what sets Achilles apart from every other secret manager.
 
-### Supported Platforms
+### MCP Protocol — for Claude Code, Claude Desktop, and MCP-compatible agents
 
-| Platform | Rules | Token Types |
-|----------|-------|-------------|
-| **GitHub** | 4 | PAT (classic), OAuth, App, Fine-grained PAT |
-| **HuggingFace** | 1 | User Access Token |
-| **OpenAI** | 2 | API Key, Project-scoped Key |
-| **Anthropic** | 1 | API Key |
-| **AWS** | 2 | Access Key ID, Secret Access Key |
-| **GitLab** | 1 | Personal Access Token |
-| **Stripe** | 3 | Live Secret, Test Secret, Publishable Key |
-| **Slack** | 2 | Bot Token, User Token |
-| **Google** | 1 | API Key |
-| **Vercel** | 1 | API Token |
-| **Supabase** | 1 | Service Key |
-| **Groq** | 1 | API Key |
-| **Replicate** | 1 | API Token |
-| **NPM** | 1 | Access Token |
-| **PyPI** | 1 | API Token |
-| **Firebase** | 1 | Server Key |
-| **Discord** | 1 | Bot Token |
-| **Generic** | 1 | JWT (context-aware) |
-| | **30 total** | |
-
-### Rule Schema
-
-Each rule in `rules.json` follows this structure:
+Achilles runs a **Model Context Protocol server on port 8901**. Configure your MCP client once and your AI agent can discover and retrieve secrets natively — no custom code required.
 
 ```json
+// Claude Desktop / Claude Code — mcp config
 {
-  "id": "github-pat",
-  "name": "GitHub Personal Access Token",
-  "platform": "GitHub",
-  "pattern": "\\bghp_[A-Za-z0-9]{36,}\\b",
-  "flags": "g",
-  "severity": "critical",
-  "description": "GitHub classic personal access token (ghp_...).",
-  "contextRequired": false,
-  "reference": "https://docs.github.com/en/authentication/..."
+  "mcpServers": {
+    "achilles": {
+      "url": "http://localhost:8901"
+    }
+  }
 }
 ```
 
-### Adding Custom Rules
+Your agent can now call `achilles.get_secret`, `achilles.list_projects`, and more — directly within the conversation.
 
-Simply edit `rules.json` to add your own patterns:
+### OpenAI Function Calling
+
+Auto-generated schemas available at `/api/v1/ai/openai/functions` — drop them into any OpenAI-compatible agent with zero configuration.
+
+### `achilles run` — Inject Secrets Without Touching Your Code
+
+```bash
+# Run any script with secrets injected as environment variables
+achilles run my-project --env production -- python train.py
+achilles run my-project --env staging -- docker-compose up
+achilles run my-project --env production -- node server.js
+
+# Or export to a .env file
+achilles export my-project --env production > .env
+```
+
+No code changes. No secrets in source control. Works with any existing tool or script.
+
+---
+
+## Chrome Extension — Detect Before You Paste
+
+The Chrome extension scans pages for 30+ secret patterns in real time. When it finds one:
+
+1. A badge appears on the Achilles icon
+2. Click **Vault** — the token is stored encrypted with full metadata
+3. Auto-fill it back into any supported platform's token field later
+
+**Supported platforms:**
+
+| Platform | Token Types Detected |
+|----------|---------------------|
+| GitHub | PAT (classic, fine-grained), OAuth, App |
+| HuggingFace | User Access Token |
+| OpenAI | API Key, Project-scoped Key |
+| Anthropic | API Key |
+| AWS | Access Key ID + Secret Access Key |
+| Stripe | Live, Test, Publishable |
+| Vercel | API Token |
+| Supabase | Service Key |
+| Slack | Bot Token, User Token |
+| Google | API Key |
+| GitLab | Personal Access Token |
+| Discord, Groq, Replicate, NPM, PyPI, Firebase | Various |
+| | **30 rules total** |
+
+All rules live in [`chrome-extension/rules/rules.json`](chrome-extension/rules/rules.json) — human-readable, editable, extensible. Add your own:
 
 ```json
 {
@@ -381,29 +265,118 @@ Reload the extension — the new rule is active immediately.
 
 ---
 
+## Core Vault Features
+
+| Feature | Description |
+|---------|-------------|
+| **AES-256-GCM Encryption** | All secrets encrypted at rest. Per-secret random salt and nonce — no ciphertext reuse |
+| **Project / Environment Hierarchy** | Organize by project with `development`, `staging`, `production` environments |
+| **Secret Versioning** | Full version history with one-click rollback |
+| **Audit Logging** | Immutable record of every vault operation — who, what, when |
+| **JWT + API Key Auth** | JWT for interactive sessions, API keys for agents and CI/CD |
+| **Zero External Dependencies** | SQLite only. No PostgreSQL, no Redis, no external services |
+| **Soft Delete & Recovery** | Deleted secrets go to trash — recoverable until permanently purged |
+
+---
+
+## Desktop App
+
+Native macOS app (Tauri v2) with full dark theme, overlay titlebar, and JetBrains Mono.
+
+```bash
+cd frontend && npm install && npx tauri dev
+
+# Or launch via deep link
+open achillesvault://open
+```
+
+---
+
 ## Security
 
 | Layer | Implementation |
 |-------|---------------|
 | **Encryption** | AES-256-GCM with authenticated encryption |
 | **Key Derivation** | scrypt (memory-hard KDF) |
-| **Salt & Nonce** | Per-secret random values — no ciphertext reuse |
-| **Master Key** | Never stored on disk, derived at runtime |
-| **Authentication** | JWT (configurable expiry) + API keys (scoped) |
-| **Rate Limiting** | Auth endpoints rate-limited (5 reg/min, 10 login/min) |
+| **Salt & Nonce** | Per-secret random values — no reuse |
+| **Master Key** | Never stored on disk — derived at runtime |
+| **Authentication** | JWT (configurable expiry) + scoped API keys |
+| **Rate Limiting** | 5 registrations/min, 10 logins/min on auth endpoints |
 | **Audit Trail** | Immutable log of every vault operation |
-| **Local-Only** | All data stays on your machine. Zero cloud calls. |
+| **Local-Only** | All data stays on your machine. Zero cloud calls |
 
 ---
 
-## Configuration
+## vs. Alternatives
 
-| Environment Variable | Default | Description |
-|---------------------|---------|-------------|
-| `ACHILLES_MASTER_KEY` | random | Master encryption key |
-| `ACHILLES_JWT_SECRET` | random | JWT signing secret |
-| `ACHILLES_HOST` | `127.0.0.1` | Server bind address |
-| `ACHILLES_PORT` | `8900` | Server port |
+| Feature | **Achilles Vault** | Doppler | Infisical | 1Password |
+|---------|:-----------------:|:-------:|:---------:|:---------:|
+| Open Source | **MIT** | No | MIT | No |
+| Local-First | **Yes** | SaaS | Self-host | SaaS |
+| AI / MCP Native | **Yes** | No | Partial | No |
+| Chrome Extension + Secret Detection | **Yes** | No | No | No |
+| `run` command (env injection) | **Yes** | Yes | Yes | No |
+| Zero Config | **SQLite** | SaaS | Postgres + Redis | SaaS |
+| Cost | **Free** | Paid | Free tier | Paid |
+
+---
+
+## API Reference
+
+**Base URL:** `http://localhost:8900`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/auth/register` | Register new user |
+| `POST` | `/api/v1/auth/login` | Get JWT token |
+| `POST` | `/api/v1/auth/api-keys` | Create API key |
+| `GET` | `/api/v1/projects` | List projects |
+| `POST` | `/api/v1/projects` | Create project |
+| `GET` | `/api/v1/projects/{id}/environments/{env}/secrets` | List secrets (metadata only) |
+| `PUT` | `/api/v1/projects/{id}/environments/{env}/secrets/{key}` | Create or update secret |
+| `GET` | `/api/v1/projects/{id}/environments/{env}/secrets/{key}` | Get decrypted value |
+| `DELETE` | `/api/v1/projects/{id}/environments/{env}/secrets/{key}` | Soft delete secret |
+| `POST` | `/api/v1/ai/secrets` | Fetch multiple secrets (for AI agents) |
+| `GET` | `/api/v1/ai/mcp/tools` | List available MCP tools |
+| `POST` | `/api/v1/ai/mcp/call` | Execute an MCP tool call |
+| `GET` | `/api/v1/ai/openai/functions` | OpenAI function calling schemas |
+
+---
+
+## Architecture
+
+```
+achilles/
+├── achilles/                    # Python backend (FastAPI)
+│   ├── main.py                  # Server entry point (port 8900)
+│   ├── crypto.py                # AES-256-GCM encryption
+│   ├── database.py              # Async SQLite
+│   ├── auth.py                  # JWT + API key auth
+│   ├── mcp_server.py            # MCP protocol server (port 8901)
+│   ├── routers/
+│   │   ├── secrets_router.py    # Secret CRUD
+│   │   ├── projects_router.py   # Project & environment management
+│   │   ├── ai_router.py         # MCP + OpenAI function calling
+│   │   ├── auth_router.py       # Registration & login
+│   │   ├── audit_router.py      # Audit log
+│   │   └── trash_router.py      # Soft delete & recovery
+│   └── cli/
+│       └── main.py              # Typer CLI
+│
+├── frontend/                    # React 19 + Tauri v2
+│   ├── src/
+│   │   ├── pages/               # Dashboard, Vault, Secrets, Settings
+│   │   ├── components/          # Layout, UI components (shadcn/ui)
+│   │   ├── store/               # Zustand state management
+│   │   └── api/                 # API client
+│   └── src-tauri/               # Tauri Rust backend & config
+│
+└── chrome-extension/            # Manifest V3
+    ├── rules/rules.json         # 30+ detection rules
+    ├── content/detector.js      # Pattern matching & page scanning
+    ├── background/service-worker.js
+    └── popup/
+```
 
 ---
 
@@ -419,43 +392,32 @@ docker run -p 8900:8900 \
 
 ---
 
-## Comparison
+## Configuration
 
-| Feature | Achilles Vault | Akeyless | Infisical | Doppler |
-|---------|:-------------:|:--------:|:---------:|:-------:|
-| Open Source | **MIT** | No | MIT | No |
-| Local-First | **Yes** | No (SaaS) | Self-host | No (SaaS) |
-| AI / MCP Native | **Yes** | SecretlessAI | MCP Server | No |
-| Chrome Extension | **Yes** | No | No | No |
-| Zero Config | **SQLite** | SaaS + Gateway | PostgreSQL + Redis | SaaS |
-| Encryption | AES-256-GCM | DFC (patented) | AES-256-GCM | Managed |
-| Secret Detection | **30+ rules** | No | No | No |
-| Cost | **Free** | Paid | Free tier | Paid |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ACHILLES_MASTER_KEY` | random | Master encryption key |
+| `ACHILLES_JWT_SECRET` | random | JWT signing secret |
+| `ACHILLES_HOST` | `127.0.0.1` | Server bind address |
+| `ACHILLES_PORT` | `8900` | Server port |
 
 ---
 
-## Tech Stack
+## Roadmap
 
-<p>
-  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
-  <img src="https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Tauri_v2-FFC131?style=for-the-badge&logo=tauri&logoColor=black" alt="Tauri" />
-  <img src="https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white" alt="Rust" />
-  <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite" />
-  <img src="https://img.shields.io/badge/TailwindCSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="TailwindCSS" />
-  <img src="https://img.shields.io/badge/Chrome_Extension-MV3-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome MV3" />
-</p>
+- [ ] VS Code extension
+- [ ] Firefox & Edge support
+- [ ] Team sharing with encrypted key exchange
+- [ ] Secret rotation policies & expiry alerts
+- [ ] `achilles inject` for Dockerfile / docker-compose
+- [ ] RBAC with fine-grained permissions
+- [ ] Biometric unlock (Touch ID / Windows Hello)
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ```bash
-# Development setup
 git clone https://github.com/tao-shen/achilles.git
 cd achilles
 
@@ -464,25 +426,13 @@ pip install -e ".[dev]"
 pytest
 
 # Frontend
-cd frontend
-npm install
-npm run dev
+cd frontend && npm install && npm run dev
 
 # Lint
 ruff check achilles/
 ```
 
----
-
-## Roadmap
-
-- [ ] Team sharing with encrypted key exchange
-- [ ] Secret rotation policies & expiry alerts
-- [ ] VS Code extension
-- [ ] `achilles inject` for Dockerfile / docker-compose
-- [ ] RBAC with fine-grained permissions
-- [ ] Biometric unlock (Touch ID / Windows Hello)
-- [ ] Browser extension for Firefox & Edge
+PRs are welcome. Please open an issue first for large changes.
 
 ---
 

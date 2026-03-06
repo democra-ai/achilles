@@ -1,10 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  KeyRound,
   Key,
-  Terminal,
-  Shield,
   Plus,
   Trash2,
   Eye,
@@ -23,6 +20,7 @@ import {
 } from "lucide-react";
 import { useStore } from "@/store";
 import { secretsApi, projectsApi } from "@/api/client";
+import { CATEGORY_META, CATEGORY_LIST, SOURCE_LABELS, SOURCE_KEY_HINTS } from "@/lib/categories";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,58 +60,6 @@ import type { Secret, SecretCategory } from "@/types";
 
 type FilterCategory = SecretCategory | "all";
 
-const CATEGORIES: {
-  value: SecretCategory;
-  label: string;
-  singular: string;
-  icon: typeof KeyRound;
-  placeholder: string;
-}[] = [
-  { value: "secret", label: "Secrets", singular: "Secret", icon: KeyRound, placeholder: "DATABASE_PASSWORD" },
-  { value: "api_key", label: "API Keys", singular: "API Key", icon: Key, placeholder: "OPENAI_API_KEY" },
-  { value: "env_var", label: "Env Vars", singular: "Env Variable", icon: Terminal, placeholder: "DATABASE_URL" },
-  { value: "token", label: "Tokens", singular: "Token", icon: Shield, placeholder: "OAUTH_REFRESH_TOKEN" },
-];
-
-const CATEGORY_BADGE: Record<SecretCategory, { label: string; icon: typeof KeyRound }> = {
-  secret: { label: "Secret", icon: KeyRound },
-  api_key: { label: "API Key", icon: Key },
-  env_var: { label: "Env Var", icon: Terminal },
-  token: { label: "Token", icon: Shield },
-};
-
-const SOURCE_LABELS: Record<string, string> = {
-  github: "GitHub",
-  gitlab: "GitLab",
-  huggingface: "Hugging Face",
-  openai: "OpenAI",
-  anthropic: "Anthropic",
-  stripe: "Stripe",
-  aws: "AWS",
-  npm: "npm",
-  pypi: "PyPI",
-  vercel: "Vercel",
-  supabase: "Supabase",
-  cloudflare: "Cloudflare",
-  digitalocean: "DigitalOcean",
-};
-
-const SOURCE_KEY_HINTS: Array<{ pattern: RegExp; source: keyof typeof SOURCE_LABELS }> = [
-  { pattern: /^GITHUB(?:_|$)/i, source: "github" },
-  { pattern: /^GITLAB(?:_|$)/i, source: "gitlab" },
-  { pattern: /^(HUGGINGFACE|HUGGING_FACE|HF)(?:_|$)/i, source: "huggingface" },
-  { pattern: /^OPENAI(?:_|$)/i, source: "openai" },
-  { pattern: /^ANTHROPIC(?:_|$)/i, source: "anthropic" },
-  { pattern: /^STRIPE(?:_|$)/i, source: "stripe" },
-  { pattern: /^AWS(?:_|$)/i, source: "aws" },
-  { pattern: /^NPM(?:_|$)/i, source: "npm" },
-  { pattern: /^PYPI(?:_|$)/i, source: "pypi" },
-  { pattern: /^VERCEL(?:_|$)/i, source: "vercel" },
-  { pattern: /^SUPABASE(?:_|$)/i, source: "supabase" },
-  { pattern: /^CLOUDFLARE(?:_|$)/i, source: "cloudflare" },
-  { pattern: /^DIGITALOCEAN(?:_|$)/i, source: "digitalocean" },
-];
-
 const stagger = {
   hidden: { opacity: 0 },
   visible: {
@@ -147,7 +93,7 @@ export default function Vault() {
   const composingRef = useRef(false);
   const [filterCategory, setFilterCategory] = useState<FilterCategory>("all");
   const [showCreate, setShowCreate] = useState(false);
-  const [createCategory, setCreateCategory] = useState<SecretCategory>("secret");
+  const [createCategory, setCreateCategory] = useState<SecretCategory>("api_key");
   const [newKey, setNewKey] = useState("");
   const [newValue, setNewValue] = useState("");
   const [newDesc, setNewDesc] = useState("");
@@ -166,7 +112,7 @@ export default function Vault() {
   const [editValue, setEditValue] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editTags, setEditTags] = useState("");
-  const [editCategory, setEditCategory] = useState<SecretCategory>("secret");
+  const [editCategory, setEditCategory] = useState<SecretCategory>("api_key");
   const [editLoading, setEditLoading] = useState(false);
 
   useEffect(() => {
@@ -218,7 +164,7 @@ export default function Vault() {
     if (!selectedProject) return;
     const env = selectedEnv === "all" ? "development" : selectedEnv;
     setLoading(true);
-    const cat = CATEGORIES.find((c) => c.value === createCategory)!;
+    const cat = CATEGORY_META[createCategory];
     try {
       await secretsApi.set(selectedProject.id, env, newKey, {
         key: newKey,
@@ -370,7 +316,7 @@ export default function Vault() {
       setEditValue(data.value || "");
       setEditDesc(secret.description || "");
       setEditTags((secret.tags || []).join(", "));
-      setEditCategory((secret.category as SecretCategory) || "secret");
+      setEditCategory((secret.category as SecretCategory) || "api_key");
       setShowEdit(true);
     } catch {
       // handled by interceptor
@@ -425,7 +371,7 @@ export default function Vault() {
   const currentLabel =
     filterCategory === "all"
       ? "items"
-      : CATEGORIES.find((c) => c.value === filterCategory)!.label.toLowerCase();
+      : CATEGORY_META[filterCategory as SecretCategory].label.toLowerCase();
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible">
@@ -522,7 +468,7 @@ export default function Vault() {
                 <Layers className="size-3.5" />
                 All
               </TabsTrigger>
-              {CATEGORIES.map(({ value, label, icon: Icon }) => (
+              {CATEGORY_LIST.map(({ value, label, icon: Icon }) => (
                 <TabsTrigger key={value} value={value}>
                   <Icon className="size-3.5" />
                   {label}
@@ -566,7 +512,7 @@ export default function Vault() {
           className="flex flex-col items-center justify-center py-28"
         >
           <div className="size-20 rounded-2xl bg-muted flex items-center justify-center mb-5">
-            <KeyRound className="size-8 text-muted-foreground" />
+            <Key className="size-8 text-muted-foreground" />
           </div>
           <p className="text-base font-medium">No {currentLabel} found</p>
           <p className="text-sm text-muted-foreground mt-1">
@@ -584,8 +530,8 @@ export default function Vault() {
       ) : (
         <div className="space-y-3">
           {filtered.map((secret, i) => {
-            const catBadge = CATEGORY_BADGE[secret.category as SecretCategory];
-            const CatBadgeIcon = catBadge?.icon;
+            const catMeta = CATEGORY_META[secret.category as SecretCategory];
+            const CatBadgeIcon = catMeta?.icon;
             const source = getSourceFromSecret(secret);
             const visibleTags = (secret.tags || []).filter((tag) => {
               const text = String(tag).trim();
@@ -619,10 +565,10 @@ export default function Vault() {
                             {secret.key}
                           </code>
                           <Badge variant="secondary">v{secret.version}</Badge>
-                          {catBadge && (
+                          {catMeta && (
                             <Badge variant="outline" className="gap-1">
                               {CatBadgeIcon && <CatBadgeIcon className="size-3" />}
-                              {catBadge.label}
+                              {catMeta.label}
                             </Badge>
                           )}
                           {source && (
@@ -774,7 +720,7 @@ export default function Vault() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map(({ value, label, icon: Icon }) => (
+                  {CATEGORY_LIST.map(({ value, label, icon: Icon }) => (
                     <SelectItem key={value} value={value}>
                       <div className="flex items-center gap-2">
                         <Icon className="size-3.5" />
@@ -807,7 +753,7 @@ export default function Vault() {
                   );
                 }}
                 className="font-mono"
-                placeholder={CATEGORIES.find((c) => c.value === createCategory)?.placeholder}
+                placeholder={CATEGORY_META[createCategory].placeholder}
                 required
                 autoFocus
               />
@@ -847,7 +793,7 @@ export default function Vault() {
               ) : (
                 <Plus className="size-4" />
               )}
-              Add {CATEGORIES.find((c) => c.value === createCategory)?.singular}
+              Add {CATEGORY_META[createCategory].singular}
             </Button>
           </form>
         </DialogContent>
@@ -876,7 +822,7 @@ export default function Vault() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map(({ value, label, icon: Icon }) => (
+                  {CATEGORY_LIST.map(({ value, label, icon: Icon }) => (
                     <SelectItem key={value} value={value}>
                       <div className="flex items-center gap-2">
                         <Icon className="size-3.5" />

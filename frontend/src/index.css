@@ -116,6 +116,25 @@
   --sidebar-ring: oklch(0.56 0.15 162.48);
 }
 
+/*
+ * Icons with dark/black paths are invisible on dark backgrounds.
+ * Apply invert by default (dark is the default theme) and remove in light mode.
+ */
+.icon-invert-on-dark {
+  filter: invert(1) brightness(0.85);
+}
+.light .icon-invert-on-dark {
+  filter: none;
+}
+
+/* simple-icons with near-black brand colors: light in dark mode, dark in light mode */
+.si-dark-icon {
+  color: #e0e0e0;
+}
+.light .si-dark-icon {
+  color: #000000;
+}
+
 /* macOS overlay titlebar: space for traffic-light buttons */
 :root {
   --titlebar-inset: 0px;

@@ -4,15 +4,12 @@ import {
   Trash2,
   RotateCcw,
   X,
-  KeyRound,
-  Key,
-  Terminal,
-  Shield,
   AlertCircle,
   Loader2,
 } from "lucide-react";
 import { useStore } from "@/store";
 import { trashApi, type TrashItem } from "@/api/client";
+import { CATEGORY_META } from "@/lib/categories";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,20 +18,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-const categoryIcons: Record<string, typeof KeyRound> = {
-  secret: KeyRound,
-  api_key: Key,
-  env_var: Terminal,
-  token: Shield,
-};
-
-const categoryLabels: Record<string, string> = {
-  secret: "Secret",
-  api_key: "API Key",
-  env_var: "Env Var",
-  token: "Token",
-};
 
 const stagger = {
   hidden: { opacity: 0 },
@@ -171,7 +154,8 @@ export default function Trash() {
       ) : (
         <div className="space-y-3">
           {items.map((item, i) => {
-            const CatIcon = categoryIcons[item.category] || AlertCircle;
+            const catMeta = CATEGORY_META[item.category as keyof typeof CATEGORY_META];
+            const CatIcon = catMeta?.icon || AlertCircle;
             const days = daysUntilPurge(item.deleted_at);
             return (
               <motion.div
@@ -194,7 +178,7 @@ export default function Trash() {
                             {item.key}
                           </code>
                           <Badge variant="secondary">
-                            {categoryLabels[item.category] || item.category}
+                            {catMeta?.singular || item.category}
                           </Badge>
                           <Badge variant="outline">v{item.version}</Badge>
                         </div>

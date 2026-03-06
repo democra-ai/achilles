@@ -4,7 +4,6 @@ import {
   Shield,
   LayoutDashboard,
   FolderKey,
-  KeyRound,
   Key,
   Settings,
   Play,
@@ -15,6 +14,10 @@ import {
   WifiOff,
   Fingerprint,
   Lock,
+  FileKey2,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
 import { useStore } from "@/store";
 import { useEffect, useState } from "react";
@@ -55,10 +58,11 @@ const topNav = [
 ];
 
 const vaultItems = [
-  { to: "/secrets", icon: KeyRound, label: "Secrets" },
-  { to: "/vault-api-keys", icon: Key, label: "API Keys" },
-  { to: "/env-vars", icon: Terminal, label: "Env Vars" },
+  { to: "/api-keys-vault", icon: Key, label: "API Keys" },
   { to: "/tokens", icon: Shield, label: "Tokens" },
+  { to: "/passwords", icon: Lock, label: "Passwords" },
+  { to: "/certificates", icon: FileKey2, label: "Certificates" },
+  { to: "/env-vars", icon: Terminal, label: "Env Vars" },
 ];
 
 const bottomNav = [
@@ -244,6 +248,7 @@ export default function Layout() {
     checkServerHealth,
     checkMcpHealth,
     theme,
+    setTheme,
   } = useStore();
   const { isTauri, startServer } = useServerManager();
   const [sidebarStarting, setSidebarStarting] = useState(false);
@@ -294,7 +299,7 @@ export default function Layout() {
         {/* ── VS Code-style unified title bar ── */}
         <header
           data-tauri-drag-region
-          className="fixed top-0 inset-x-0 z-50 flex items-center h-[var(--titlebar-inset,0px)] border-b border-border/40 bg-background/60 backdrop-blur-md select-none"
+          className="fixed top-0 inset-x-0 z-50 flex items-center justify-between h-[var(--titlebar-inset,0px)] border-b border-border/40 bg-background/60 backdrop-blur-md select-none"
         >
           {/* Left: after traffic lights (~76px), sidebar toggle + brand */}
           <div className="flex items-center gap-2.5 pl-[76px]">
@@ -305,6 +310,19 @@ export default function Layout() {
             <span className="text-xs font-medium text-muted-foreground/70">
               Achilles Vault
             </span>
+          </div>
+          {/* Right: theme toggle */}
+          <div className="flex items-center pr-4" data-tauri-drag-region="false">
+            <button
+              onClick={() => {
+                const next: Record<string, typeof theme> = { system: "dark", dark: "light", light: "system" };
+                setTheme(next[theme] ?? "system");
+              }}
+              className="size-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              title={theme === "dark" ? "Dark" : theme === "light" ? "Light" : "System"}
+            >
+              {theme === "dark" ? <Moon className="size-3.5" /> : theme === "light" ? <Sun className="size-3.5" /> : <Monitor className="size-3.5" />}
+            </button>
           </div>
         </header>
 

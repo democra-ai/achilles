@@ -21,7 +21,7 @@ from slowapi.util import get_remote_address
 
 from achilles.config import get_settings
 from achilles.database import Database
-from achilles.routers import ai_router, audit_router, auth_router, projects_router, secrets_router, trash_router
+from achilles.routers import ai_router, audit_router, auth_router, platforms_router, projects_router, secrets_router, trash_router
 
 logger = logging.getLogger("achilles")
 
@@ -110,6 +110,7 @@ def create_app() -> FastAPI:
     app.include_router(ai_router.router)
     app.include_router(audit_router.router)
     app.include_router(trash_router.router)
+    app.include_router(platforms_router.router)
 
     # Health check — verifies database connectivity
     @app.get("/health", tags=["system"])
