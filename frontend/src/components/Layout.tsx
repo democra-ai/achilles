@@ -15,6 +15,7 @@ import {
   Fingerprint,
   Lock,
   FileKey2,
+  Hash,
   Sun,
   Moon,
   Monitor,
@@ -63,6 +64,7 @@ const vaultItems = [
   { to: "/passwords", icon: Lock, label: "Passwords" },
   { to: "/certificates", icon: FileKey2, label: "Certificates" },
   { to: "/env-vars", icon: Terminal, label: "Env Vars" },
+  { to: "/identifiers", icon: Hash, label: "Identifiers" },
 ];
 
 const bottomNav = [

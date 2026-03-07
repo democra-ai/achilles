@@ -4,6 +4,7 @@ import {
   Lock,
   FileKey2,
   Terminal,
+  Hash,
 } from "lucide-react";
 import type { SecretCategory } from "@/types";
 
@@ -50,6 +51,13 @@ export const CATEGORY_META: Record<SecretCategory, CategoryMeta> = {
     icon: Terminal,
     placeholder: "DATABASE_URL",
     description: "Manage environment variables",
+  },
+  identifier: {
+    label: "Identifiers",
+    singular: "Identifier",
+    icon: Hash,
+    placeholder: "PROJECT_ID",
+    description: "Manage IDs, URLs, and resource identifiers",
   },
 };
 

@@ -8,6 +8,7 @@ import Tokens from "./pages/Tokens";
 import Passwords from "./pages/Passwords";
 import Certificates from "./pages/Certificates";
 import EnvVars from "./pages/EnvVars";
+import Identifiers from "./pages/Identifiers";
 import Trash from "./pages/Trash";
 import ApiKeys from "./pages/ApiKeys";
 import Settings from "./pages/Settings";
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="passwords" element={<Passwords />} />
           <Route path="certificates" element={<Certificates />} />
           <Route path="env-vars" element={<EnvVars />} />
+          <Route path="identifiers" element={<Identifiers />} />
           <Route path="trash" element={<Trash />} />
           <Route path="api-keys" element={<ApiKeys />} />
           <Route path="settings" element={<Settings />} />

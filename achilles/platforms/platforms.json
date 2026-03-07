@@ -31,7 +31,7 @@
               "key": "OPENAI_ORG_ID",
               "name": "Organization ID",
               "description": "Organization identifier for billing.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "org-xxxx..."
@@ -40,7 +40,7 @@
               "key": "OPENAI_PROJECT_ID",
               "name": "Project ID",
               "description": "Project scoping for API key usage.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "proj_xxxx..."
@@ -49,7 +49,7 @@
               "key": "OPENAI_BASE_URL",
               "name": "Base URL",
               "description": "Custom base URL for OpenAI-compatible proxy.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://api.openai.com/v1"
@@ -79,7 +79,7 @@
               "key": "ANTHROPIC_BASE_URL",
               "name": "Base URL",
               "description": "Custom base URL for Anthropic-compatible proxy.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://api.anthropic.com"
@@ -162,7 +162,7 @@
               "key": "HF_INFERENCE_ENDPOINT",
               "name": "Inference Endpoint URL",
               "description": "Dedicated inference endpoint URL.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://xxx.us-east-1.aws.endpoints.huggingface.cloud"
@@ -295,7 +295,7 @@
               "key": "OPENROUTER_SITE_URL",
               "name": "Site URL",
               "description": "Your site URL for OpenRouter rankings.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://myapp.com"
@@ -367,7 +367,7 @@
               "key": "ELEVENLABS_VOICE_ID",
               "name": "Voice ID",
               "description": "ID of the ElevenLabs voice to use.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "21m00Tcm4TlvDq8ikWAM"
@@ -515,7 +515,7 @@
               "key": "AWS_DEFAULT_REGION",
               "name": "Default Region",
               "description": "Default AWS region for SDK and CLI.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "us-east-1"
@@ -533,7 +533,7 @@
               "key": "AWS_S3_BUCKET",
               "name": "S3 Bucket Name",
               "description": "Name of your AWS S3 bucket.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "my-app-bucket"
@@ -542,7 +542,7 @@
               "key": "AWS_CLOUDFRONT_DISTRIBUTION_ID",
               "name": "CloudFront Distribution ID",
               "description": "Distribution ID for cache invalidation.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "EXXXXXXXXXX"
@@ -560,7 +560,7 @@
               "key": "AWS_SQS_QUEUE_URL",
               "name": "SQS Queue URL",
               "description": "URL of the SQS message queue.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://sqs.us-east-1.amazonaws.com/123456789/my-queue"
@@ -581,7 +581,7 @@
               "key": "GCP_PROJECT_ID",
               "name": "Project ID",
               "description": "Your Google Cloud project identifier.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "my-project-123456"
@@ -599,7 +599,7 @@
               "key": "GOOGLE_CLIENT_ID",
               "name": "OAuth 2.0 Client ID",
               "description": "Client ID for Google OAuth 2.0.",
-              "category": "api_key",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "xxxx....apps.googleusercontent.com"
@@ -617,7 +617,7 @@
               "key": "GCP_STORAGE_BUCKET",
               "name": "GCS Bucket Name",
               "description": "Google Cloud Storage bucket name.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "my-bucket"
@@ -637,7 +637,7 @@
               "key": "AZURE_SUBSCRIPTION_ID",
               "name": "Subscription ID",
               "description": "Azure subscription UUID.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
@@ -646,7 +646,7 @@
               "key": "AZURE_TENANT_ID",
               "name": "Tenant ID",
               "description": "Azure Active Directory tenant UUID.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
@@ -655,7 +655,7 @@
               "key": "AZURE_CLIENT_ID",
               "name": "Client / App ID",
               "description": "Service principal application client ID.",
-              "category": "api_key",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
@@ -682,7 +682,7 @@
               "key": "AZURE_OPENAI_ENDPOINT",
               "name": "Azure OpenAI Endpoint",
               "description": "Endpoint URL for Azure OpenAI resource.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://my-resource.openai.azure.com/"
@@ -691,7 +691,7 @@
               "key": "AZURE_OPENAI_DEPLOYMENT_NAME",
               "name": "Deployment Name",
               "description": "Name of the deployed model.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "gpt-4o"
@@ -758,7 +758,7 @@
               "key": "SPACES_ENDPOINT",
               "name": "Spaces Endpoint",
               "description": "Spaces region endpoint URL.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://nyc3.digitaloceanspaces.com"
@@ -866,7 +866,7 @@
               "key": "IBM_CLOUD_REGION",
               "name": "Region",
               "description": "IBM Cloud region (e.g. us-south).",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "us-south"
@@ -893,7 +893,7 @@
               "key": "SUPABASE_URL",
               "name": "Project URL",
               "description": "Supabase project's unique API URL.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "https://xxxx....supabase.co"
@@ -950,7 +950,7 @@
               "key": "MONGODB_URI",
               "name": "Connection String",
               "description": "Full MongoDB Atlas connection string.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": true,
               "required": true,
               "placeholder": "mongodb+srv://user:password@cluster0.xxxxx.mongodb.net/dbname",
@@ -960,7 +960,7 @@
               "key": "MONGODB_DB_NAME",
               "name": "Database Name",
               "description": "Name of the MongoDB database.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "my_database"
@@ -981,7 +981,7 @@
               "key": "DATABASE_URL",
               "name": "Database URL",
               "description": "PlanetScale MySQL-compatible connection string.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": true,
               "required": true,
               "placeholder": "mysql://user:password@host/dbname?sslaccept=strict"
@@ -1011,7 +1011,7 @@
               "key": "DATABASE_URL",
               "name": "Database URL",
               "description": "Neon serverless PostgreSQL connection string.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": true,
               "required": true,
               "placeholder": "postgresql://user:password@ep-xxx.us-east-2.aws.neon.tech/dbname"
@@ -1040,7 +1040,7 @@
               "key": "UPSTASH_REDIS_REST_URL",
               "name": "Redis REST URL",
               "description": "Upstash Redis REST API endpoint.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "https://xxxx....upstash.io"
@@ -1058,7 +1058,7 @@
               "key": "UPSTASH_VECTOR_REST_URL",
               "name": "Vector REST URL",
               "description": "Upstash Vector database REST endpoint.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://xxxx....upstash.io"
@@ -1114,7 +1114,7 @@
               "key": "TURSO_DATABASE_URL",
               "name": "Database URL",
               "description": "Turso LibSQL database URL.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "libsql://db-name-org.turso.io"
@@ -1170,7 +1170,7 @@
               "key": "PINECONE_REGION",
               "name": "Region",
               "description": "Region where the Pinecone index is deployed.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "us-east-1"
@@ -1190,7 +1190,7 @@
               "key": "WEAVIATE_URL",
               "name": "Cluster URL",
               "description": "Weaviate cluster endpoint URL.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "https://my-cluster.weaviate.network"
@@ -1219,7 +1219,7 @@
               "key": "QDRANT_URL",
               "name": "Cluster URL",
               "description": "Qdrant cluster URL (cloud or self-hosted).",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "https://xxxxxxxx-xxxx-xxxx-xxxx-xxxx....us-east4-0.gcp.cloud.qdrant.io"
@@ -1267,7 +1267,7 @@
               "key": "AIRTABLE_BASE_ID",
               "name": "Base ID",
               "description": "ID of the Airtable base.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "appXXXXXXXXXXXXXX",
@@ -1277,7 +1277,7 @@
               "key": "AIRTABLE_TABLE_NAME",
               "name": "Table Name",
               "description": "Name of the specific Airtable table.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "My Table"
@@ -1306,7 +1306,7 @@
               "key": "NEXT_PUBLIC_CONVEX_URL",
               "name": "Convex URL",
               "description": "Public Convex deployment URL for client SDK.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "https://happy-fox-123.convex.cloud"
@@ -1336,7 +1336,7 @@
               "key": "DATABASE_URL",
               "name": "Database URL",
               "description": "CockroachDB PostgreSQL-compatible connection string.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": true,
               "required": true,
               "placeholder": "postgresql://user:password@cluster.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full"
@@ -1396,7 +1396,7 @@
               "key": "XATA_WORKSPACE",
               "name": "Workspace ID",
               "description": "Your Xata workspace identifier.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "my-workspace-xxxxxx"
@@ -1425,7 +1425,7 @@
               "key": "REDIS_URL",
               "name": "Connection URL",
               "description": "Redis connection URL (redis:// or rediss://).",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": true,
               "required": true,
               "placeholder": "redis://default:password@host:6379",
@@ -1435,7 +1435,7 @@
               "key": "REDIS_HOST",
               "name": "Host",
               "description": "Redis server hostname.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "localhost"
@@ -1490,7 +1490,7 @@
               "key": "GITHUB_OAUTH_CLIENT_ID",
               "name": "OAuth App Client ID",
               "description": "Client ID for a GitHub OAuth App.",
-              "category": "api_key",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "Iv1.xxxx..."
@@ -1508,7 +1508,7 @@
               "key": "GITHUB_APP_ID",
               "name": "GitHub App ID",
               "description": "Numeric ID of your GitHub App.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "123456"
@@ -1638,7 +1638,7 @@
               "key": "SENTRY_ORG",
               "name": "Organization Slug",
               "description": "Sentry organization slug for CLI.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "my-org"
@@ -1647,7 +1647,7 @@
               "key": "SENTRY_PROJECT",
               "name": "Project Slug",
               "description": "Sentry project slug.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "my-project"
@@ -1686,7 +1686,7 @@
               "key": "DD_SITE",
               "name": "Site",
               "description": "Datadog site (datadoghq.com, datadoghq.eu, etc.).",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "datadoghq.com"
@@ -1725,7 +1725,7 @@
               "key": "LINEAR_TEAM_ID",
               "name": "Team ID",
               "description": "Linear team UUID for filtering issues.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
@@ -1755,7 +1755,7 @@
               "key": "NOTION_DATABASE_ID",
               "name": "Database ID",
               "description": "ID of the Notion database to read/write.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
@@ -1764,7 +1764,7 @@
               "key": "NOTION_PAGE_ID",
               "name": "Page ID",
               "description": "ID of a specific Notion page.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
@@ -1843,7 +1843,7 @@
               "key": "JIRA_HOST",
               "name": "Jira Host URL",
               "description": "Base URL of your Jira instance.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "https://mycompany.atlassian.net"
@@ -1882,7 +1882,7 @@
               "key": "NEW_RELIC_APP_NAME",
               "name": "Application Name",
               "description": "Name to identify your app in New Relic.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "My App"
@@ -1891,7 +1891,7 @@
               "key": "NEW_RELIC_ACCOUNT_ID",
               "name": "Account ID",
               "description": "New Relic account identifier.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "1234567"
@@ -1921,7 +1921,7 @@
               "key": "GRAFANA_URL",
               "name": "Grafana URL",
               "description": "Your Grafana Cloud instance URL.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://myorg.grafana.net"
@@ -1930,7 +1930,7 @@
               "key": "GRAFANA_PROMETHEUS_URL",
               "name": "Prometheus Remote Write URL",
               "description": "URL for Prometheus remote write endpoint.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://prometheus-prod-xx.grafana.net/api/prom/push"
@@ -2024,7 +2024,7 @@
               "key": "VERCEL_PROJECT_ID",
               "name": "Project ID",
               "description": "Vercel project identifier.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "prj_xxxx..."
@@ -2033,7 +2033,7 @@
               "key": "VERCEL_TEAM_ID",
               "name": "Team ID",
               "description": "Vercel team identifier for team-scoped API calls.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "team_xxxx..."
@@ -2063,7 +2063,7 @@
               "key": "CLOUDFLARE_ZONE_ID",
               "name": "Zone ID",
               "description": "Identifier for a Cloudflare zone (domain).",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "xxxx..."
@@ -2072,7 +2072,7 @@
               "key": "CLOUDFLARE_ACCOUNT_ID",
               "name": "Account ID",
               "description": "Your Cloudflare account identifier.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "xxxx..."
@@ -2099,7 +2099,7 @@
               "key": "CLOUDFLARE_R2_BUCKET",
               "name": "R2 Bucket Name",
               "description": "Name of your Cloudflare R2 bucket.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "my-bucket"
@@ -2148,7 +2148,7 @@
               "key": "NETLIFY_SITE_ID",
               "name": "Site ID",
               "description": "Your Netlify site's unique identifier.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
@@ -2177,7 +2177,7 @@
               "key": "FLY_APP_NAME",
               "name": "App Name",
               "description": "Name of your Fly.io application.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "my-app"
@@ -2186,7 +2186,7 @@
               "key": "FLY_REGION",
               "name": "Primary Region",
               "description": "Primary region for Fly.io deployment.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "lax"
@@ -2216,7 +2216,7 @@
               "key": "RENDER_SERVICE_ID",
               "name": "Service ID",
               "description": "Render service identifier.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "srv-xxxx..."
@@ -2245,7 +2245,7 @@
               "key": "HEROKU_APP_NAME",
               "name": "App Name",
               "description": "Name of your Heroku application.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "my-app"
@@ -2338,7 +2338,7 @@
               "key": "STRIPE_PRICE_ID",
               "name": "Price ID",
               "description": "Stripe price ID for a subscription or product.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "price_xxxx..."
@@ -2358,7 +2358,7 @@
               "key": "PAYPAL_CLIENT_ID",
               "name": "Client ID",
               "description": "PayPal REST API client ID.",
-              "category": "api_key",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "AXxxxx..."
@@ -2376,7 +2376,7 @@
               "key": "PAYPAL_WEBHOOK_ID",
               "name": "Webhook ID",
               "description": "PayPal webhook ID for signature verification.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "XXXXXXXXXXXXXX"
@@ -2424,7 +2424,7 @@
               "key": "LEMONSQUEEZY_STORE_ID",
               "name": "Store ID",
               "description": "Your Lemon Squeezy store ID.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "12345"
@@ -2493,7 +2493,7 @@
               "key": "PADDLE_VENDOR_ID",
               "name": "Vendor ID",
               "description": "Paddle vendor ID.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "12345"
@@ -2522,7 +2522,7 @@
               "key": "SQUARE_APPLICATION_ID",
               "name": "Application ID",
               "description": "Square application (client) ID.",
-              "category": "api_key",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "sq0idp-xxxx..."
@@ -2531,7 +2531,7 @@
               "key": "SQUARE_LOCATION_ID",
               "name": "Location ID",
               "description": "Square location ID for processing payments.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "XXXXXXXXXXXXXXXX"
@@ -2569,7 +2569,7 @@
               "key": "ADYEN_MERCHANT_ACCOUNT",
               "name": "Merchant Account",
               "description": "Your Adyen merchant account name.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "MyCompanyECOM"
@@ -2598,7 +2598,7 @@
               "key": "PLAID_CLIENT_ID",
               "name": "Client ID",
               "description": "Plaid client ID for your application.",
-              "category": "api_key",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "xxxx..."
@@ -2662,7 +2662,7 @@
               "key": "SLACK_WEBHOOK_URL",
               "name": "Incoming Webhook URL",
               "description": "URL for sending messages to a Slack channel.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": true,
               "required": false,
               "placeholder": "https://hooks.slack.com/services/T.../B.../..."
@@ -2701,7 +2701,7 @@
               "key": "DISCORD_CLIENT_ID",
               "name": "Application Client ID",
               "description": "Public client ID of your Discord application.",
-              "category": "api_key",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "123456789012345678"
@@ -2719,7 +2719,7 @@
               "key": "DISCORD_WEBHOOK_URL",
               "name": "Webhook URL",
               "description": "Discord channel webhook URL.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": true,
               "required": false,
               "placeholder": "https://discord.com/api/webhooks/xxx/xxx"
@@ -2728,7 +2728,7 @@
               "key": "DISCORD_GUILD_ID",
               "name": "Server (Guild) ID",
               "description": "ID of your Discord server.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "123456789012345678"
@@ -2864,7 +2864,7 @@
               "key": "RESEND_AUDIENCE_ID",
               "name": "Audience ID",
               "description": "Resend audience ID for email list management.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
@@ -2923,7 +2923,7 @@
               "key": "MAILGUN_DOMAIN",
               "name": "Sending Domain",
               "description": "Your Mailgun sending domain.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "mg.yourdomain.com"
@@ -2971,7 +2971,7 @@
               "key": "VONAGE_APPLICATION_ID",
               "name": "Application ID",
               "description": "Vonage application ID for advanced features.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
@@ -3000,7 +3000,7 @@
               "key": "PUSHER_APP_ID",
               "name": "App ID",
               "description": "Pusher application ID.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "xxxxxxx"
@@ -3143,7 +3143,7 @@
               "key": "APPLE_TEAM_ID",
               "name": "Team ID",
               "description": "10-character alphanumeric Apple Developer team ID.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "ABC1234DEF",
@@ -3153,7 +3153,7 @@
               "key": "APPLE_BUNDLE_ID",
               "name": "Bundle ID",
               "description": "Unique iOS/macOS app identifier (reverse-domain).",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "com.company.appname"
@@ -3162,7 +3162,7 @@
               "key": "APNS_KEY_ID",
               "name": "APNs Key ID",
               "description": "10-character key ID for Apple Push Notifications.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "ABCD123456"
@@ -3180,7 +3180,7 @@
               "key": "APP_STORE_CONNECT_KEY_ID",
               "name": "App Store Connect API Key ID",
               "description": "Key ID for App Store Connect API.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "ABCD123456"
@@ -3189,7 +3189,7 @@
               "key": "APP_STORE_CONNECT_ISSUER_ID",
               "name": "Issuer ID",
               "description": "UUID issuer ID from App Store Connect.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
@@ -3216,7 +3216,7 @@
               "key": "SIGN_IN_WITH_APPLE_KEY_ID",
               "name": "Sign in with Apple Key ID",
               "description": "Key ID for Sign in with Apple.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "ABCD123456"
@@ -3247,7 +3247,7 @@
               "key": "FIREBASE_PROJECT_ID",
               "name": "Firebase Project ID",
               "description": "Unique identifier for your Firebase project.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "my-project-12345"
@@ -3274,7 +3274,7 @@
               "key": "FIREBASE_AUTH_DOMAIN",
               "name": "Firebase Auth Domain",
               "description": "Firebase auth domain.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "my-project.firebaseapp.com"
@@ -3283,7 +3283,7 @@
               "key": "FIREBASE_STORAGE_BUCKET",
               "name": "Firebase Storage Bucket",
               "description": "Firebase Cloud Storage bucket.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "my-project.appspot.com"
@@ -3292,7 +3292,7 @@
               "key": "FIREBASE_MESSAGING_SENDER_ID",
               "name": "Messaging Sender ID",
               "description": "Firebase Cloud Messaging sender ID.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "123456789012"
@@ -3301,7 +3301,7 @@
               "key": "FIREBASE_APP_ID",
               "name": "Firebase App ID",
               "description": "Firebase app ID for web/mobile SDK.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "1:123456789012:web:xxxx..."
@@ -3349,7 +3349,7 @@
               "key": "EXPO_PUBLIC_API_URL",
               "name": "API Base URL (Public)",
               "description": "Public API base URL for the Expo app at build time.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://api.example.com"
@@ -3358,7 +3358,7 @@
               "key": "EAS_PROJECT_ID",
               "name": "EAS Project ID",
               "description": "UUID of your project in Expo Application Services.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
@@ -3378,7 +3378,7 @@
               "key": "ONESIGNAL_APP_ID",
               "name": "App ID",
               "description": "OneSignal Application ID (public, used by SDK).",
-              "category": "api_key",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
@@ -3417,7 +3417,7 @@
               "key": "APPSFLYER_APP_ID",
               "name": "App ID",
               "description": "App ID (iOS bundle ID or Android package name).",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "com.example.app"
@@ -3473,7 +3473,7 @@
               "key": "AUTH0_DOMAIN",
               "name": "Domain",
               "description": "Your Auth0 tenant domain.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "my-app.us.auth0.com"
@@ -3482,7 +3482,7 @@
               "key": "AUTH0_CLIENT_ID",
               "name": "Client ID",
               "description": "Auth0 application client ID.",
-              "category": "api_key",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "xxxx..."
@@ -3557,7 +3557,7 @@
               "key": "NEXT_PUBLIC_CLERK_SIGN_IN_URL",
               "name": "Sign-In URL",
               "description": "URL of the sign-in page.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "/sign-in"
@@ -3587,7 +3587,7 @@
               "key": "NEXTAUTH_URL",
               "name": "NextAuth URL",
               "description": "Canonical URL of your site. Required in production.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "https://example.com"
@@ -3596,7 +3596,7 @@
               "key": "AUTH_TRUST_HOST",
               "name": "Trust Host",
               "description": "Set to true when deploying behind a reverse proxy.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "true"
@@ -3616,7 +3616,7 @@
               "key": "OKTA_DOMAIN",
               "name": "Okta Domain",
               "description": "Your Okta organization domain.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "myorg.okta.com"
@@ -3625,7 +3625,7 @@
               "key": "OKTA_CLIENT_ID",
               "name": "Client ID",
               "description": "Okta application client ID.",
-              "category": "api_key",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "xxxx..."
@@ -3663,7 +3663,7 @@
               "key": "STYTCH_PROJECT_ID",
               "name": "Project ID",
               "description": "Stytch project identifier.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "project-live-xxxxxxxx-xxxx-xxxx-xxxx-xxxx..."
@@ -3701,7 +3701,7 @@
               "key": "KINDE_DOMAIN",
               "name": "Domain",
               "description": "Your Kinde tenant domain.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "https://myapp.kinde.com"
@@ -3710,7 +3710,7 @@
               "key": "KINDE_CLIENT_ID",
               "name": "Client ID",
               "description": "Kinde application client ID.",
-              "category": "api_key",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "xxxx..."
@@ -3728,7 +3728,7 @@
               "key": "KINDE_ISSUER_URL",
               "name": "Issuer URL",
               "description": "Kinde OIDC issuer URL.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://myapp.kinde.com"
@@ -3758,7 +3758,7 @@
               "key": "WORKOS_CLIENT_ID",
               "name": "Client ID",
               "description": "WorkOS client ID for OAuth flows.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "client_xxxx...",
@@ -3835,7 +3835,7 @@
               "key": "NEXT_PUBLIC_POSTHOG_HOST",
               "name": "API Host",
               "description": "PostHog API host.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://us.i.posthog.com"
@@ -3925,7 +3925,7 @@
               "key": "NEXT_PUBLIC_GA_MEASUREMENT_ID",
               "name": "Measurement ID",
               "description": "Google Analytics 4 measurement ID.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "G-XXXXXXXXXX",
@@ -3935,7 +3935,7 @@
               "key": "GOOGLE_ANALYTICS_PROPERTY_ID",
               "name": "Property ID",
               "description": "GA4 property ID for Data API calls.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "123456789"
@@ -3956,7 +3956,7 @@
               "key": "NEXT_PUBLIC_HOTJAR_ID",
               "name": "Site ID",
               "description": "Hotjar site identifier for heatmaps and recordings.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "1234567"
@@ -3977,7 +3977,7 @@
               "key": "NEXT_PUBLIC_PLAUSIBLE_DOMAIN",
               "name": "Site Domain",
               "description": "Your site domain as configured in Plausible.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "example.com"
@@ -4007,7 +4007,7 @@
               "key": "NEXT_PUBLIC_FATHOM_SITE_ID",
               "name": "Site ID",
               "description": "Fathom site identifier (public).",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "XXXXXXXX"
@@ -4038,7 +4038,7 @@
               "key": "NEXT_PUBLIC_LOGROCKET_APP_ID",
               "name": "App ID",
               "description": "LogRocket app ID for session recording.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "xxxxxx/my-app"
@@ -4066,7 +4066,7 @@
               "key": "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME",
               "name": "Cloud Name",
               "description": "Cloudinary cloud name.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "my-cloud-name"
@@ -4093,7 +4093,7 @@
               "key": "CLOUDINARY_URL",
               "name": "Cloudinary URL",
               "description": "Full credentials URL.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": true,
               "required": false,
               "placeholder": "cloudinary://000000000000000:xxxx...@my-cloud"
@@ -4132,7 +4132,7 @@
               "key": "B2_BUCKET_NAME",
               "name": "Bucket Name",
               "description": "Name of your Backblaze B2 bucket.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "my-bucket"
@@ -4141,7 +4141,7 @@
               "key": "B2_ENDPOINT",
               "name": "Endpoint",
               "description": "Backblaze B2 S3-compatible endpoint URL.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://s3.us-west-004.backblazeb2.com"
@@ -4170,7 +4170,7 @@
               "key": "BUNNY_STORAGE_ZONE_NAME",
               "name": "Storage Zone Name",
               "description": "Name of your Bunny.net storage zone.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "my-storage-zone"
@@ -4217,7 +4217,7 @@
               "key": "IMAGEKIT_URL_ENDPOINT",
               "name": "URL Endpoint",
               "description": "ImageKit URL endpoint for image delivery.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "https://ik.imagekit.io/your_imagekit_id"
@@ -4276,7 +4276,7 @@
               "key": "S3_REGION",
               "name": "Region",
               "description": "AWS region or S3-compatible region.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "us-east-1"
@@ -4285,7 +4285,7 @@
               "key": "S3_BUCKET",
               "name": "Bucket Name",
               "description": "Name of your S3 bucket.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "my-bucket"
@@ -4294,7 +4294,7 @@
               "key": "S3_ENDPOINT",
               "name": "Endpoint",
               "description": "Custom S3-compatible endpoint (MinIO, R2, B2, etc.).",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "https://xxx.r2.cloudflarestorage.com"
@@ -4322,7 +4322,7 @@
               "key": "ALGOLIA_APP_ID",
               "name": "Application ID",
               "description": "Algolia application identifier.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "XXXXXXXXXX"
@@ -4349,7 +4349,7 @@
               "key": "ALGOLIA_INDEX_NAME",
               "name": "Index Name",
               "description": "Name of the Algolia search index.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "my_index"
@@ -4378,7 +4378,7 @@
               "key": "TYPESENSE_HOST",
               "name": "Host",
               "description": "Typesense server hostname.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "xxx.a1.typesense.net"
@@ -4417,7 +4417,7 @@
               "key": "MEILISEARCH_HOST",
               "name": "Host URL",
               "description": "Meilisearch instance URL.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "https://ms-xxxx...-xxxx.sfo.meilisearch.io"
@@ -4456,7 +4456,7 @@
               "key": "ELASTICSEARCH_URL",
               "name": "Endpoint URL",
               "description": "Elasticsearch cluster endpoint URL.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "https://my-deployment.es.us-east-1.aws.elastic-cloud.com"
@@ -4510,7 +4510,7 @@
               "key": "CONTENTFUL_SPACE_ID",
               "name": "Space ID",
               "description": "Your Contentful space identifier.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "xxxx..."
@@ -4568,7 +4568,7 @@
               "key": "NEXT_PUBLIC_SANITY_PROJECT_ID",
               "name": "Project ID",
               "description": "Your Sanity project identifier.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "xxxxxxxxx"
@@ -4616,7 +4616,7 @@
               "key": "SHOPIFY_STORE_DOMAIN",
               "name": "Store Domain",
               "description": "Your Shopify store domain.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "my-store.myshopify.com"
@@ -4682,7 +4682,7 @@
               "key": "STRAPI_URL",
               "name": "API URL",
               "description": "Base URL of your Strapi instance.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "https://api.example.com"
@@ -4720,7 +4720,7 @@
               "key": "PRISMIC_REPOSITORY_NAME",
               "name": "Repository Name",
               "description": "Your Prismic repository name.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "my-repo"
@@ -4759,7 +4759,7 @@
               "key": "WP_API_URL",
               "name": "REST API URL",
               "description": "WordPress REST API base URL.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "https://mysite.com/wp-json/wp/v2"
@@ -4850,7 +4850,7 @@
               "key": "TWITTER_CLIENT_ID",
               "name": "OAuth 2.0 Client ID",
               "description": "Client ID for Twitter OAuth 2.0 PKCE flows.",
-              "category": "api_key",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "xxxx..."
@@ -4881,7 +4881,7 @@
               "key": "FACEBOOK_APP_ID",
               "name": "App ID",
               "description": "Facebook / Meta app identifier (public).",
-              "category": "api_key",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "000000000000000"
@@ -4908,7 +4908,7 @@
               "key": "FACEBOOK_PIXEL_ID",
               "name": "Pixel ID",
               "description": "Meta Pixel identifier for conversion tracking.",
-              "category": "env_var",
+              "category": "identifier",
               "sensitive": false,
               "required": false,
               "placeholder": "000000000000000"
@@ -4937,7 +4937,7 @@
               "key": "LINKEDIN_CLIENT_ID",
               "name": "Client ID",
               "description": "LinkedIn application client ID.",
-              "category": "api_key",
+              "category": "identifier",
               "sensitive": false,
               "required": true,
               "placeholder": "xxxx..."

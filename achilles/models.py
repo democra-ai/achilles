@@ -16,6 +16,7 @@ class SecretCategory(str, Enum):
     PASSWORD = "password"
     CERTIFICATE = "certificate"
     ENV_VAR = "env_var"
+    IDENTIFIER = "identifier"
 
 
 # --- Auth ---

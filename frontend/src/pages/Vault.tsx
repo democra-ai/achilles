@@ -865,6 +865,7 @@ export default function Vault() {
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
                 className="font-mono resize-none h-24"
+                placeholder="Enter secret value..."
                 required
               />
             </div>
