@@ -10,13 +10,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/tao-shen/Achilles/releases/latest"><img src="https://img.shields.io/github/v/release/tao-shen/Achilles?style=for-the-badge&color=10b981&label=Download" alt="Latest Release" /></a>&nbsp;
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/tao-shen/Achilles?style=for-the-badge&color=blue" alt="License" /></a>&nbsp;
-  <a href="https://github.com/tao-shen/Achilles/stargazers"><img src="https://img.shields.io/github/stars/tao-shen/Achilles?style=for-the-badge&color=yellow" alt="Stars" /></a>&nbsp;
-  <a href="https://github.com/tao-shen/Achilles/releases"><img src="https://img.shields.io/github/downloads/tao-shen/Achilles/total?style=for-the-badge&color=purple&label=Downloads" alt="Downloads" /></a>
-</p>
-
-<p align="center">
   <img src="https://img.shields.io/badge/python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/react-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React" />
   <img src="https://img.shields.io/badge/tauri-v2-FFC131?style=flat-square&logo=tauri&logoColor=black" alt="Tauri" />
