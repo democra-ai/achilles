@@ -260,6 +260,38 @@ body {
   border-color: rgba(16, 185, 129, 0.4);
 }
 
+.project-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.project-row .select {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: #141414;
+  border: 1px solid rgba(34, 34, 34, 0.8);
+  border-radius: 8px;
+  color: #888;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.btn-icon:hover {
+  background: #1a1a1a;
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #10b981;
+}
+
 /* Environment Tabs */
 .env-tabs {
   display: flex;

@@ -94,6 +94,36 @@ function setupEventListeners() {
     chrome.tabs.create({ url: "achillesvault://open" });
   });
 
+  // New Project
+  document.getElementById("new-project-btn").addEventListener("click", async () => {
+    const name = window.prompt("Project name:");
+    if (!name || !name.trim()) return;
+    const desc = window.prompt("Description (optional):", "");
+    if (desc === null) return;
+    try {
+      const resp = await chrome.runtime.sendMessage({
+        type: "CREATE_PROJECT",
+        name: name.trim(),
+        description: desc.trim(),
+      });
+      if (resp?.error) {
+        alert("Failed: " + resp.error);
+        return;
+      }
+      await loadProjects();
+      // Select the newly created project
+      if (resp?.id) {
+        const select = document.getElementById("project-select");
+        select.value = String(resp.id);
+        currentProject = String(resp.id);
+        setUserPrefs({ lastProjectId: currentProject });
+        loadSecrets();
+      }
+    } catch (err) {
+      alert("Failed: " + err.message);
+    }
+  });
+
   // Project select
   document.getElementById("project-select").addEventListener("change", (e) => {
     currentProject = e.target.value || null;

@@ -179,6 +179,18 @@ async function handleMessage(message, sender) {
       });
       return { ok: true };
 
+    case "CREATE_PROJECT": {
+      if (!message.name) throw new Error("Project name is required");
+      const result = await apiRequest("/projects", {
+        method: "POST",
+        body: JSON.stringify({
+          name: message.name,
+          description: message.description || "",
+        }),
+      });
+      return result;
+    }
+
     case "GET_SECRETS":
       return await apiRequest(
         `/projects/${message.projectId}/environments/${message.env}/secrets`
