@@ -189,16 +189,12 @@ async function handleMessage(message, sender) {
       const all = [...existing, ...newItems];
       detectedByTab.set(tabId, all);
 
-      // Update badge (tab may have been closed)
-      try {
-        chrome.action.setBadgeBackgroundColor({ color: "#10b981" });
-        chrome.action.setBadgeText({
-          text: all.length > 0 ? String(all.length) : "",
-          tabId,
-        });
-      } catch {
-        detectedByTab.delete(tabId);
-      }
+      // Update badge (tab may have been closed — these return Promises in MV3)
+      chrome.action.setBadgeBackgroundColor({ color: "#10b981" }).catch(() => {});
+      chrome.action.setBadgeText({
+        text: all.length > 0 ? String(all.length) : "",
+        tabId,
+      }).catch(() => { detectedByTab.delete(tabId); });
       return { ok: true, count: all.length };
     }
 
@@ -361,10 +357,6 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.status === "loading") {
     detectedByTab.delete(tabId);
-    try {
-      chrome.action.setBadgeText({ text: "", tabId });
-    } catch {
-      // Tab may no longer exist
-    }
+    chrome.action.setBadgeText({ text: "", tabId }).catch(() => {});
   }
 });
