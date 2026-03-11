@@ -578,13 +578,19 @@ export default function Projects() {
                           )}
                         </div>
                       </div>
-                      <Button
-                        variant="ghost" size="icon"
-                        onClick={(e) => handleDelete(project.id, project.name, e)}
-                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive shrink-0"
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
+                      {project.is_global ? (
+                        <span className="text-[10px] text-muted-foreground border border-border rounded-full px-2 py-0.5 shrink-0 select-none">
+                          System
+                        </span>
+                      ) : (
+                        <Button
+                          variant="ghost" size="icon"
+                          onClick={(e) => handleDelete(project.id, project.name, e)}
+                          className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive shrink-0"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      )}
                     </div>
 
                     {/* Environment Buttons */}

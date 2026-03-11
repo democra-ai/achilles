@@ -15,6 +15,7 @@ export interface Project {
   id: string;
   name: string;
   description: string;
+  is_global?: boolean;
   created_at: number;
   updated_at: number;
   environments?: Environment[];
