@@ -139,8 +139,12 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleMessage(message, sender)
-    .then(sendResponse)
-    .catch((err) => sendResponse({ error: err.message }));
+    .then((result) => {
+      try { sendResponse(result); } catch { /* port closed */ }
+    })
+    .catch((err) => {
+      try { sendResponse({ error: err.message }); } catch { /* port closed */ }
+    });
   return true; // async response
 });
 
@@ -344,7 +348,7 @@ async function handleMessage(message, sender) {
       return { summary: await getRuleSummary() };
 
     default:
-      throw new Error(`Unknown message type: ${message.type}`);
+      return { error: `Unknown message type: ${message.type}` };
   }
 }
 
