@@ -42,12 +42,16 @@ function cleanKey(value) {
 }
 
 function inferCategory(explicitCategory, typeName = "") {
-  if (explicitCategory && ["secret", "api_key", "env_var", "token"].includes(explicitCategory)) {
+  const validCategories = ["secret", "api_key", "env_var", "token", "identifier", "config", "credential"];
+  if (explicitCategory && validCategories.includes(explicitCategory)) {
     return explicitCategory;
   }
   const t = String(typeName || "").toLowerCase();
   if (t.includes("token") || t.includes("pat") || t.includes("jwt")) return "token";
   if (t.includes("api") || t.includes("access")) return "api_key";
+  if (t.includes("app id") || t.includes("project") || t.includes("client id") || t.includes("measurement")) return "identifier";
+  if (t.includes("url") || t.includes("domain") || t.includes("bucket")) return "config";
+  if (t.includes("service account")) return "credential";
   return "secret";
 }
 
@@ -118,7 +122,7 @@ chrome.runtime.onStartup.addListener(() => {
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "achilles-fill" && tab?.id) {
-    chrome.tabs.sendMessage(tab.id, { type: "FILL_FROM_VAULT" });
+    chrome.tabs.sendMessage(tab.id, { type: "FILL_FROM_VAULT" }).catch(() => {});
     return;
   }
   if (info.menuItemId === "achilles-import-selection" && tab?.id) {
@@ -127,7 +131,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.tabs.sendMessage(tab.id, {
       type: "IMPORT_SELECTED_TEXT",
       text,
-    });
+    }).catch(() => {});
   }
 });
 
@@ -185,12 +189,16 @@ async function handleMessage(message, sender) {
       const all = [...existing, ...newItems];
       detectedByTab.set(tabId, all);
 
-      // Update badge
-      chrome.action.setBadgeBackgroundColor({ color: "#10b981" });
-      chrome.action.setBadgeText({
-        text: all.length > 0 ? String(all.length) : "",
-        tabId,
-      });
+      // Update badge (tab may have been closed)
+      try {
+        chrome.action.setBadgeBackgroundColor({ color: "#10b981" });
+        chrome.action.setBadgeText({
+          text: all.length > 0 ? String(all.length) : "",
+          tabId,
+        });
+      } catch {
+        detectedByTab.delete(tabId);
+      }
       return { ok: true, count: all.length };
     }
 
@@ -353,6 +361,10 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.status === "loading") {
     detectedByTab.delete(tabId);
-    chrome.action.setBadgeText({ text: "", tabId });
+    try {
+      chrome.action.setBadgeText({ text: "", tabId });
+    } catch {
+      // Tab may no longer exist
+    }
   }
 });

@@ -310,6 +310,105 @@
       "reference": "https://firebase.google.com/docs/cloud-messaging/auth-server"
     },
     {
+      "id": "firebase-app-id",
+      "name": "Firebase App ID",
+      "platform": "Firebase",
+      "pattern": "\\b\\d{1}:\\d{10,13}:(web|ios|android):[a-f0-9]{10,40}\\b",
+      "flags": "g",
+      "severity": "medium",
+      "description": "Firebase App ID (e.g. 1:1234567890:web:abc123). Identifies a specific app within a Firebase project.",
+      "contextRequired": false,
+      "reference": "https://firebase.google.com/docs/projects/learn-more#config-files-objects"
+    },
+    {
+      "id": "firebase-measurement-id",
+      "name": "Firebase Measurement ID",
+      "platform": "Firebase",
+      "pattern": "\\bG-[A-Z0-9]{8,12}\\b",
+      "flags": "g",
+      "severity": "low",
+      "description": "Google Analytics Measurement ID (G-XXXXXXXXXX). Used for Firebase Analytics/Google Analytics 4.",
+      "contextRequired": true,
+      "reference": "https://support.google.com/analytics/answer/9539598"
+    },
+    {
+      "id": "gcp-service-account-email",
+      "name": "GCP Service Account",
+      "platform": "Google",
+      "pattern": "\\b[a-z][a-z0-9-]*@[a-z0-9-]+\\.iam\\.gserviceaccount\\.com\\b",
+      "flags": "g",
+      "severity": "medium",
+      "description": "Google Cloud service account email. Identifies a service account that may have IAM permissions.",
+      "contextRequired": false,
+      "reference": "https://cloud.google.com/iam/docs/service-account-overview"
+    },
+    {
+      "id": "gcp-oauth-client-id",
+      "name": "GCP OAuth Client ID",
+      "platform": "Google",
+      "pattern": "\\b\\d{12}-[a-z0-9]{32}\\.apps\\.googleusercontent\\.com\\b",
+      "flags": "g",
+      "severity": "medium",
+      "description": "Google OAuth 2.0 Client ID. Used for authentication with Google APIs.",
+      "contextRequired": false,
+      "reference": "https://cloud.google.com/docs/authentication"
+    },
+    {
+      "id": "firebase-database-url",
+      "name": "Firebase Database URL",
+      "platform": "Firebase",
+      "pattern": "\\bhttps://[a-z0-9][a-z0-9-]*\\.firebaseio\\.com\\b",
+      "flags": "g",
+      "severity": "medium",
+      "description": "Firebase Realtime Database URL. Endpoint for reading/writing database data.",
+      "contextRequired": false,
+      "reference": "https://firebase.google.com/docs/database/web/start"
+    },
+    {
+      "id": "firebase-storage-bucket",
+      "name": "Firebase Storage Bucket",
+      "platform": "Firebase",
+      "pattern": "\\b[a-z0-9][a-z0-9-]*\\.(appspot\\.com|firebasestorage\\.app)\\b",
+      "flags": "g",
+      "severity": "low",
+      "description": "Firebase Storage bucket URL. Used for file storage access.",
+      "contextRequired": true,
+      "reference": "https://firebase.google.com/docs/storage"
+    },
+    {
+      "id": "firebase-auth-domain",
+      "name": "Firebase Auth Domain",
+      "platform": "Firebase",
+      "pattern": "\\b[a-z0-9][a-z0-9-]*\\.firebaseapp\\.com\\b",
+      "flags": "g",
+      "severity": "low",
+      "description": "Firebase Auth domain. Used for Firebase Authentication redirect flows.",
+      "contextRequired": true,
+      "reference": "https://firebase.google.com/docs/auth"
+    },
+    {
+      "id": "gcp-project-number",
+      "name": "GCP Project Number",
+      "platform": "Google",
+      "pattern": "\\b\\d{10,13}\\b",
+      "flags": "g",
+      "severity": "low",
+      "description": "Google Cloud project number. Numeric identifier for a GCP/Firebase project.",
+      "contextRequired": true,
+      "reference": "https://cloud.google.com/resource-manager/docs/creating-managing-projects"
+    },
+    {
+      "id": "gcp-private-key-id",
+      "name": "GCP Private Key ID",
+      "platform": "Google",
+      "pattern": "\\b[0-9a-f]{40}\\b",
+      "flags": "g",
+      "severity": "high",
+      "description": "GCP service account private key ID (40-char hex). Found in service account JSON key files.",
+      "contextRequired": true,
+      "reference": "https://cloud.google.com/iam/docs/keys-create-delete"
+    },
+    {
       "id": "discord-bot-token",
       "name": "Discord Bot Token",
       "platform": "Discord",

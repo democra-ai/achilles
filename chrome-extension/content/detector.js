@@ -40,7 +40,7 @@
     }
   }
 
-  const DETECTION_KEYWORDS = /api[ _-]?key|access[ _-]?key|token|secret|password|credential|auth|env(?:ironment)?(?:[_\s-]?(?:var|variable|vars))?|环境变量|密钥|令牌/i;
+  const DETECTION_KEYWORDS = /api[ _-]?key|access[ _-]?key|token|secret|password|credential|auth|env(?:ironment)?(?:[_\s-]?(?:var|variable|vars))?|project[ _-]?(?:id|number)|app[ _-]?id|sender[ _-]?id|measurement[ _-]?id|client[ _-]?id|private[ _-]?key|storage[ _-]?bucket|database[ _-]?url|auth[ _-]?domain|web[ _-]?push|server[ _-]?key|service[ _-]?account|firebase|sdk|config(?:uration)?|环境变量|密钥|令牌/i;
   const FILL_CONTEXT_KEYWORDS = /api[ _-]?key|access[ _-]?key|token|secret|credential|env(?:ironment)?(?:[_\s-]?(?:var|variable|vars))?|环境变量|密钥|令牌/i;
   const FILL_ALLOWED_PAGES = [
     { host: "github.com", path: /\/settings\/(personal-access-tokens|tokens|secrets|variables)|\/[^/]+\/[^/]+\/settings\/(secrets|variables)\/actions/i },
@@ -55,6 +55,8 @@
     { host: "pypi.org", path: /\/manage\/account\/token/i },
     { host: "www.npmjs.com", path: /\/settings\/.*\/tokens|\/settings\/tokens/i },
     { host: "digitalocean.com", path: /\/settings\/api\/tokens|\/account\/api\/tokens/i },
+    { host: "console.firebase.google.com", path: /\/project\/.*\/settings|\/project\/.*\/overview/i },
+    { host: "console.cloud.google.com", path: /\/apis\/credentials|\/iam-admin\/serviceaccounts/i },
   ];
   const COMMON_TOKEN_SCOPES = [
     "repo", "read:user", "user:email", "workflow", "admin:org", "gist", "read:org",
@@ -85,9 +87,10 @@
 
   function extractFromText(text, hasContext, sourceEl = null, sourceText = "") {
     const source = String(text || "");
-    if (!hasContext) return [];
+    if (!source || source.length < 8) return [];
     const hits = [];
 
+    // Specific patterns (contextRequired: false) are always detected
     for (const pat of getSpecificPatterns()) {
       for (const m of source.matchAll(pat.re)) {
         const token = m[0];
@@ -109,24 +112,27 @@
       }
     }
 
-    for (const pat of getContextualPatterns()) {
-      for (const m of source.matchAll(pat.re)) {
-        const token = m[0];
-        if (!isValidContextualMatch(pat, token)) continue;
-        if (!seen.has(token)) {
-          seen.add(token);
-          hits.push(enrichHit({
-            value: token,
-            type: pat.name,
-            matchedRule: {
-              id: pat.ruleId,
-              name: pat.name,
-              platform: pat.platform,
-              severity: pat.severity,
-              description: pat.description,
-              reference: pat.reference,
-            },
-          }, sourceEl, sourceText || source));
+    // Contextual patterns only match when context keywords are present
+    if (hasContext) {
+      for (const pat of getContextualPatterns()) {
+        for (const m of source.matchAll(pat.re)) {
+          const token = m[0];
+          if (!isValidContextualMatch(pat, token)) continue;
+          if (!seen.has(token)) {
+            seen.add(token);
+            hits.push(enrichHit({
+              value: token,
+              type: pat.name,
+              matchedRule: {
+                id: pat.ruleId,
+                name: pat.name,
+                platform: pat.platform,
+                severity: pat.severity,
+                description: pat.description,
+                reference: pat.reference,
+              },
+            }, sourceEl, sourceText || source));
+          }
         }
       }
     }
@@ -264,6 +270,8 @@
     if (t.includes("pypi")) return "pypi";
     if (t.includes("vercel")) return "vercel";
     if (t.includes("supabase")) return "supabase";
+    if (t.includes("firebase")) return "firebase";
+    if (t.includes("gcp") || t.includes("google")) return "google";
     return normalizeHost(location.hostname);
   }
 
@@ -271,6 +279,9 @@
     const t = String(typeName || "").toLowerCase();
     if (t.includes("token") || t.includes("pat") || t === "jwt") return "token";
     if (t.includes("api") || t.includes("access")) return "api_key";
+    if (t.includes("app id") || t.includes("project") || t.includes("client id") || t.includes("measurement") || t.includes("sender")) return "identifier";
+    if (t.includes("url") || t.includes("domain") || t.includes("bucket")) return "config";
+    if (t.includes("service account")) return "credential";
     return "secret";
   }
 
@@ -695,6 +706,9 @@
               <option value="api_key">api_key</option>
               <option value="env_var">env_var</option>
               <option value="secret">secret</option>
+              <option value="identifier">identifier</option>
+              <option value="config">config</option>
+              <option value="credential">credential</option>
             </select>
           </div>
           <div class="achilles-import-col">

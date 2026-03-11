@@ -9,6 +9,9 @@ const CATEGORY_LABEL = {
   api_key: "API Key",
   env_var: "Env Var",
   token: "Token",
+  identifier: "Identifier",
+  config: "Config",
+  credential: "Credential",
 };
 
 // Init — local mode, no login required
@@ -442,12 +445,12 @@ async function editSecret(oldKey) {
   if (!newKey) return;
 
   const categoryInput = window.prompt(
-    "Category: secret / api_key / token / env_var",
+    "Category: secret / api_key / token / env_var / identifier / config / credential",
     meta.category || "secret"
   );
   if (categoryInput === null) return;
   const category = categoryInput.trim().toLowerCase();
-  if (!["secret", "api_key", "token", "env_var"].includes(category)) {
+  if (!["secret", "api_key", "token", "env_var", "identifier", "config", "credential"].includes(category)) {
     alert("Invalid category");
     return;
   }
