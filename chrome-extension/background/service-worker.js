@@ -1,5 +1,13 @@
 import { getSerializableRules, getRuleSummary } from "../rules/loader.js";
 
+// Suppress Chrome-internal "No tab with id" errors from closed message ports
+self.addEventListener("unhandledrejection", (event) => {
+  const msg = event.reason?.message || "";
+  if (msg.includes("No tab with id") || msg.includes("message port closed")) {
+    event.preventDefault();
+  }
+});
+
 const API_BASE = "http://127.0.0.1:8900/api/v1";
 
 // ── Detected secrets storage (per-tab) ──────────────────────────────
