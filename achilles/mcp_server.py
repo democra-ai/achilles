@@ -80,8 +80,10 @@ def register_tools(mcp: FastMCP) -> None:
     ) -> str:
         """Retrieve a decrypted secret value from the vault.
 
+        Searches with inheritance: project's own secrets > linked secrets > Global secrets.
+
         Args:
-            project: Project name (e.g. "my-app")
+            project: Project name (e.g. "my-app") or "Global" for global secrets
             key: Secret key name (e.g. "OPENAI_API_KEY")
             environment: Environment name — development, staging, or production (default: development)
 
@@ -91,11 +93,10 @@ def register_tools(mcp: FastMCP) -> None:
         assert _db and _settings, "Server not initialized"
 
         proj = await _resolve_project(project)
-        env = await _resolve_env(proj["id"], environment)
 
-        secret = await _db.get_secret(proj["id"], env["id"], key)
+        secret = await _db.get_secret_merged(proj["id"], environment, key)
         if not secret:
-            secrets = await _db.list_secrets(proj["id"], env["id"])
+            secrets = await _db.list_secrets_merged(proj["id"], environment)
             available = [s["key"] for s in secrets]
             raise ValueError(
                 f"Secret '{key}' not found in {project}/{environment}. "
@@ -109,33 +110,33 @@ def register_tools(mcp: FastMCP) -> None:
             "secret",
             "mcp-client",
             secret["id"],
-            details={"key": key, "project": project, "environment": environment},
+            details={"key": key, "project": project, "environment": environment, "source": secret.get("_source", "own")},
         )
         return value
 
     @mcp.tool()
     async def list_secrets(project: str, environment: str = "development") -> str:
-        """List all secret keys in a project environment.
+        """List all secret keys in a project environment (includes inherited Global secrets).
 
         Args:
-            project: Project name
+            project: Project name or "Global"
             environment: Environment name — development, staging, or production (default: development)
 
         Returns:
-            JSON array of secret key names with metadata.
+            JSON array of secret key names with metadata and source.
         """
         assert _db, "Server not initialized"
 
         proj = await _resolve_project(project)
-        env = await _resolve_env(proj["id"], environment)
 
-        secrets = await _db.list_secrets(proj["id"], env["id"])
+        secrets = await _db.list_secrets_merged(proj["id"], environment)
         return json.dumps(
             [
                 {
                     "key": s["key"],
                     "version": s["version"],
                     "description": s.get("description", ""),
+                    "source": s.get("_source", "own"),
                 }
                 for s in secrets
             ],

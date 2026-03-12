@@ -4,6 +4,7 @@ Follows rest-api-design-patterns skill:
 - Collection and Item Resources
 - Nested Resources
 - Doppler-inspired project -> environment hierarchy
+- Global project with inheritance
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -23,6 +24,9 @@ async def create_project(
     """Create a new project with default environments (dev, staging, prod)."""
     db = request.app.state.db
 
+    if body.name == "Global":
+        raise HTTPException(status_code=400, detail="'Global' is a reserved project name")
+
     try:
         project = await db.create_project(body.name, body.description)
     except Exception:
@@ -34,6 +38,7 @@ async def create_project(
         id=project["id"],
         name=project["name"],
         description=project["description"],
+        is_global=False,
         created_at=project["created_at"],
         updated_at=project["created_at"],
     )
@@ -44,9 +49,11 @@ async def list_projects(
     request: Request,
     user: dict = Depends(get_current_user),
 ):
-    """List all projects."""
+    """List all projects. The Global project is always first."""
     db = request.app.state.db
-    return await db.list_projects()
+    projects = await db.list_projects()
+    projects.sort(key=lambda p: (not p.get("is_global", False), -p.get("created_at", 0)))
+    return projects
 
 
 @router.get("/{project_id}")
@@ -72,10 +79,14 @@ async def delete_project(
     project_id: str,
     user: dict = Depends(get_current_user),
 ):
-    """Delete a project and all its secrets."""
+    """Delete a project and all its secrets. Cannot delete the Global project."""
     db = request.app.state.db
 
-    success = await db.delete_project(project_id)
+    try:
+        success = await db.delete_project(project_id)
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
     if not success:
         raise HTTPException(status_code=404, detail="Project not found")
 

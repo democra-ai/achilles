@@ -57,13 +57,13 @@ async def ai_get_secrets(
 
     if body.keys:
         for key in body.keys:
-            secret = await db.get_secret(project["id"], env["id"], key)
+            secret = await db.get_secret_merged(project["id"], body.environment, key)
             if secret:
                 result_secrets[key] = decrypt(secret["encrypted_value"], settings.master_key)
     else:
-        all_secrets = await db.list_secrets(project["id"], env["id"])
+        all_secrets = await db.list_secrets_merged(project["id"], body.environment)
         for s in all_secrets:
-            full = await db.get_secret(project["id"], env["id"], s["key"])
+            full = await db.get_secret_merged(project["id"], body.environment, s["key"])
             if full:
                 result_secrets[s["key"]] = decrypt(full["encrypted_value"], settings.master_key)
 
@@ -166,11 +166,7 @@ async def mcp_call_tool(
             if not project:
                 return MCPToolResult(content=[{"type": "text", "text": f"Project '{project_name}' not found"}], is_error=True)
 
-            env = await db.get_environment(project["id"], env_name)
-            if not env:
-                return MCPToolResult(content=[{"type": "text", "text": f"Environment '{env_name}' not found"}], is_error=True)
-
-            secret = await db.get_secret(project["id"], env["id"], key)
+            secret = await db.get_secret_merged(project["id"], env_name, key)
             if not secret:
                 return MCPToolResult(content=[{"type": "text", "text": f"Secret '{key}' not found"}], is_error=True)
 
@@ -188,12 +184,8 @@ async def mcp_call_tool(
             if not project:
                 return MCPToolResult(content=[{"type": "text", "text": f"Project '{project_name}' not found"}], is_error=True)
 
-            env = await db.get_environment(project["id"], env_name)
-            if not env:
-                return MCPToolResult(content=[{"type": "text", "text": f"Environment '{env_name}' not found"}], is_error=True)
-
-            secrets = await db.list_secrets(project["id"], env["id"])
-            keys = [s["key"] for s in secrets]
+            secrets = await db.list_secrets_merged(project["id"], env_name)
+            keys = [{"key": s["key"], "source": s.get("_source", "own")} for s in secrets]
             return MCPToolResult(content=[{"type": "text", "text": json.dumps(keys)}])
 
         elif body.name == "set_secret":
@@ -498,9 +490,8 @@ async def ai_websocket(
                         await send_error("'project' is required")
                         continue
                     proj = await resolve_project(project_name)
-                    env = await resolve_env(proj["id"], env_name)
-                    secrets = await db.list_secrets(proj["id"], env["id"])
-                    await send_ok([{"key": s["key"], "version": s["version"]} for s in secrets])
+                    secrets = await db.list_secrets_merged(proj["id"], env_name)
+                    await send_ok([{"key": s["key"], "version": s["version"], "source": s.get("_source", "own")} for s in secrets])
 
                 elif action == "get_secret":
                     project_name = raw.get("project")
@@ -510,8 +501,7 @@ async def ai_websocket(
                         await send_error("'project' and 'key' are required")
                         continue
                     proj = await resolve_project(project_name)
-                    env = await resolve_env(proj["id"], env_name)
-                    secret = await db.get_secret(proj["id"], env["id"], key)
+                    secret = await db.get_secret_merged(proj["id"], env_name, key)
                     if not secret:
                         await send_error(f"Secret '{key}' not found")
                         continue

@@ -21,11 +21,13 @@ from achilles.crypto import decrypt, encrypt
 from achilles.models import (
     SecretBulkCreate,
     SecretCreate,
+    SecretLinkRequest,
     SecretMetadata,
     SecretResponse,
 )
 
 router = APIRouter(prefix="/api/v1/projects/{project_id}/environments/{env_name}/secrets", tags=["secrets"])
+link_router = APIRouter(prefix="/api/v1/secrets", tags=["secrets"])
 
 
 async def _resolve_env(request: Request, project_id: str, env_name: str) -> tuple:
@@ -52,11 +54,14 @@ async def list_secrets(
     category: str | None = None,
     user: dict = Depends(require_scope("read")),
 ):
-    """List all secrets in a project/environment (metadata only, no values)."""
+    """List all secrets in a project/environment with inheritance (own + linked + Global)."""
     db = request.app.state.db
-    _, env = await _resolve_env(request, project_id, env_name)
 
-    rows = await db.list_secrets(project_id, env["id"], tag=tag, category=category)
+    project = await db.get_project(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    rows = await db.list_secrets_merged(project_id, env_name, tag=tag, category=category)
 
     return [
         SecretMetadata(
@@ -66,6 +71,8 @@ async def list_secrets(
             description=r["description"],
             tags=json.loads(r["tags"]) if isinstance(r["tags"], str) else r["tags"],
             category=r.get("category", "api_key"),
+            source=r.get("_source", "own"),
+            owner_project_id=r.get("project_id"),
             created_at=r["created_at"],
             updated_at=r["updated_at"],
         )
@@ -81,12 +88,15 @@ async def get_secret(
     key: str,
     user: dict = Depends(require_scope("read")),
 ):
-    """Get a secret value (decrypted)."""
+    """Get a secret value (decrypted) with inheritance lookup (own > linked > Global)."""
     db = request.app.state.db
     settings = request.app.state.settings
-    _, env = await _resolve_env(request, project_id, env_name)
 
-    secret = await db.get_secret(project_id, env["id"], key)
+    project = await db.get_project(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    secret = await db.get_secret_merged(project_id, env_name, key)
     if not secret:
         raise HTTPException(status_code=404, detail=f"Secret '{key}' not found")
 
@@ -242,3 +252,64 @@ async def get_secret_versions(
             for v in versions
         ],
     }
+
+
+# --- Secret Linking (many-to-many) ---
+
+@link_router.post("/{secret_id}/link", status_code=status.HTTP_200_OK)
+async def link_secret(
+    request: Request,
+    secret_id: str,
+    body: SecretLinkRequest,
+    user: dict = Depends(require_scope("write")),
+):
+    """Link a secret to one or more additional projects."""
+    db = request.app.state.db
+    linked = []
+    for pid in body.project_ids:
+        project = await db.get_project(pid)
+        if not project:
+            raise HTTPException(status_code=404, detail=f"Project '{pid}' not found")
+        success = await db.link_secret_to_project(secret_id, pid)
+        if success:
+            linked.append(pid)
+
+    await db.log_audit(
+        "secret.link", "secret", user["username"], secret_id,
+        details={"linked_projects": linked},
+        ip_address=request.client.host if request.client else None,
+    )
+    return {"linked": linked}
+
+
+@link_router.delete("/{secret_id}/link/{project_id}", status_code=status.HTTP_200_OK)
+async def unlink_secret(
+    request: Request,
+    secret_id: str,
+    project_id: str,
+    user: dict = Depends(require_scope("write")),
+):
+    """Remove a secret's link to a project (does not delete the secret)."""
+    db = request.app.state.db
+    success = await db.unlink_secret_from_project(secret_id, project_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Link not found")
+
+    await db.log_audit(
+        "secret.unlink", "secret", user["username"], secret_id,
+        details={"unlinked_project": project_id},
+        ip_address=request.client.host if request.client else None,
+    )
+    return {"unlinked": True}
+
+
+@link_router.get("/{secret_id}/projects")
+async def get_secret_projects(
+    request: Request,
+    secret_id: str,
+    user: dict = Depends(require_scope("read")),
+):
+    """Get all projects a secret is linked to."""
+    db = request.app.state.db
+    projects = await db.get_secret_projects(secret_id)
+    return {"projects": projects}

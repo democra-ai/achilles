@@ -194,7 +194,8 @@ export default function Vault() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     const { key, secret } = deleteTarget;
-    const pid = secret._project_id || selectedProject?.id;
+    // Use owner_project_id for inherited secrets (global/linked)
+    const pid = secret.owner_project_id || secret._project_id || selectedProject?.id;
     const env = secret._env_name || selectedEnv;
     if (!pid || env === "all") return;
     setDeleteTarget(null);
@@ -220,7 +221,7 @@ export default function Vault() {
       });
       return;
     }
-    const pid = secret._project_id || selectedProject?.id;
+    const pid = secret.owner_project_id || secret._project_id || selectedProject?.id;
     const env = secret._env_name || selectedEnv;
     if (!pid || env === "all") return;
     try {
@@ -233,7 +234,7 @@ export default function Vault() {
   };
 
   const copyValue = async (key: string, secret: typeof secrets[0]) => {
-    const pid = secret._project_id || selectedProject?.id;
+    const pid = secret.owner_project_id || secret._project_id || selectedProject?.id;
     const env = secret._env_name || selectedEnv;
     if (!pid || env === "all") return;
     try {
@@ -306,7 +307,7 @@ export default function Vault() {
   };
 
   const openEdit = async (secret: Secret) => {
-    const pid = secret._project_id || selectedProject?.id;
+    const pid = secret.owner_project_id || secret._project_id || selectedProject?.id;
     const env = secret._env_name || selectedEnv;
     if (!pid || env === "all") return;
     try {
@@ -326,7 +327,7 @@ export default function Vault() {
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editTarget) return;
-    const pid = editTarget._project_id || selectedProject?.id;
+    const pid = editTarget.owner_project_id || editTarget._project_id || selectedProject?.id;
     const env = editTarget._env_name || selectedEnv;
     if (!pid || env === "all") return;
     setEditLoading(true);

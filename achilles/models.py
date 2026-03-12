@@ -48,6 +48,7 @@ class ProjectResponse(BaseModel):
     id: str
     name: str
     description: str
+    is_global: bool = False
     created_at: float
     updated_at: float
 
@@ -91,8 +92,15 @@ class SecretMetadata(BaseModel):
     description: str
     tags: list[str]
     category: str = "api_key"
+    source: str = "own"  # "own" | "linked" | "global"
+    owner_project_id: str | None = None  # actual owning project (for inherited secrets)
     created_at: float
     updated_at: float
+
+
+class SecretLinkRequest(BaseModel):
+    """Request to link a secret to additional projects."""
+    project_ids: list[str] = Field(min_length=1)
 
 
 # --- API Keys ---

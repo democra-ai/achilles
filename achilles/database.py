@@ -17,11 +17,14 @@ from typing import Any
 from achilles.config import Settings
 
 
+GLOBAL_PROJECT_NAME = "Global"
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS projects (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     description TEXT DEFAULT '',
+    is_global INTEGER NOT NULL DEFAULT 0,
     created_at REAL NOT NULL,
     updated_at REAL NOT NULL
 );
@@ -50,6 +53,13 @@ CREATE TABLE IF NOT EXISTS secrets (
     created_by TEXT DEFAULT 'system',
     deleted_at REAL,
     UNIQUE(project_id, environment_id, key)
+);
+
+CREATE TABLE IF NOT EXISTS project_secrets (
+    project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    secret_id TEXT NOT NULL REFERENCES secrets(id) ON DELETE CASCADE,
+    added_at REAL NOT NULL,
+    PRIMARY KEY (project_id, secret_id)
 );
 
 CREATE TABLE IF NOT EXISTS secret_versions (
@@ -96,6 +106,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX IF NOT EXISTS idx_secrets_project ON secrets(project_id);
 CREATE INDEX IF NOT EXISTS idx_secrets_env ON secrets(environment_id);
 CREATE INDEX IF NOT EXISTS idx_secrets_key ON secrets(key);
+CREATE INDEX IF NOT EXISTS idx_project_secrets_project ON project_secrets(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_secrets_secret ON project_secrets(secret_id);
 CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_log(timestamp);
 CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_log(action);
 """
@@ -125,11 +137,22 @@ class Database:
                 "ALTER TABLE secrets ADD COLUMN deleted_at REAL"
             )
 
+        # Migration: add is_global column to projects
+        cursor = await self._db.execute("PRAGMA table_info(projects)")
+        proj_columns = [row[1] for row in await cursor.fetchall()]
+        if "is_global" not in proj_columns:
+            await self._db.execute(
+                "ALTER TABLE projects ADD COLUMN is_global INTEGER NOT NULL DEFAULT 0"
+            )
+
         # Create indexes that depend on migrated columns
         await self._db.execute("CREATE INDEX IF NOT EXISTS idx_secrets_category ON secrets(category)")
         await self._db.execute("CREATE INDEX IF NOT EXISTS idx_secrets_deleted ON secrets(deleted_at)")
 
         await self._db.commit()
+
+        # Ensure the Global project exists
+        await self._ensure_global_project()
 
     async def close(self) -> None:
         if self._db:
@@ -140,6 +163,35 @@ class Database:
         if not self._db:
             raise RuntimeError("Database not connected")
         return self._db
+
+    async def _ensure_global_project(self) -> None:
+        """Create the Global project if it doesn't exist."""
+        cursor = await self.db.execute(
+            "SELECT id FROM projects WHERE is_global = 1"
+        )
+        row = await cursor.fetchone()
+        if not row:
+            now = time.time()
+            project_id = str(uuid.uuid4())
+            await self.db.execute(
+                "INSERT INTO projects (id, name, description, is_global, created_at, updated_at) VALUES (?, ?, ?, 1, ?, ?)",
+                (project_id, GLOBAL_PROJECT_NAME, "Global secrets inherited by all projects", now, now),
+            )
+            for env_name in ("development", "staging", "production"):
+                env_id = str(uuid.uuid4())
+                await self.db.execute(
+                    "INSERT INTO environments (id, project_id, name, created_at) VALUES (?, ?, ?, ?)",
+                    (env_id, project_id, env_name, now),
+                )
+            await self.db.commit()
+
+    async def get_global_project(self) -> dict | None:
+        """Get the Global project."""
+        cursor = await self.db.execute(
+            "SELECT * FROM projects WHERE is_global = 1"
+        )
+        row = await cursor.fetchone()
+        return dict(row) if row else None
 
     # --- Projects ---
 
@@ -171,6 +223,14 @@ class Database:
         return dict(row) if row else None
 
     async def delete_project(self, project_id: str) -> bool:
+        # Prevent deleting the Global project
+        cursor = await self.db.execute(
+            "SELECT is_global FROM projects WHERE id = ?", (project_id,)
+        )
+        row = await cursor.fetchone()
+        if row and row["is_global"]:
+            raise ValueError("Cannot delete the Global project")
+
         cursor = await self.db.execute("DELETE FROM projects WHERE id = ?", (project_id,))
         await self.db.commit()
         return cursor.rowcount > 0
@@ -272,7 +332,7 @@ class Database:
         tag: str | None = None,
         category: str | None = None,
     ) -> list[dict]:
-        query = "SELECT id, key, version, tags, description, category, created_at, updated_at, created_by FROM secrets WHERE project_id = ? AND environment_id = ? AND deleted_at IS NULL"
+        query = "SELECT id, project_id, key, version, tags, description, category, created_at, updated_at, created_by FROM secrets WHERE project_id = ? AND environment_id = ? AND deleted_at IS NULL"
         params: list[Any] = [project_id, environment_id]
 
         if category:
@@ -297,6 +357,182 @@ class Database:
         )
         await self.db.commit()
         return cursor.rowcount > 0
+
+    # --- Secret Linking (many-to-many) ---
+
+    async def link_secret_to_project(self, secret_id: str, project_id: str) -> bool:
+        """Link an existing secret to an additional project."""
+        now = time.time()
+        try:
+            await self.db.execute(
+                "INSERT INTO project_secrets (project_id, secret_id, added_at) VALUES (?, ?, ?)",
+                (project_id, secret_id, now),
+            )
+            await self.db.commit()
+            return True
+        except Exception:
+            return False  # Already linked or FK violation
+
+    async def unlink_secret_from_project(self, secret_id: str, project_id: str) -> bool:
+        """Remove a secret's link to a project (does not delete the secret)."""
+        cursor = await self.db.execute(
+            "DELETE FROM project_secrets WHERE project_id = ? AND secret_id = ?",
+            (project_id, secret_id),
+        )
+        await self.db.commit()
+        return cursor.rowcount > 0
+
+    async def get_secret_projects(self, secret_id: str) -> list[dict]:
+        """Get all projects a secret is linked to (excluding its owner project)."""
+        cursor = await self.db.execute(
+            "SELECT p.id, p.name, p.is_global FROM project_secrets ps JOIN projects p ON p.id = ps.project_id WHERE ps.secret_id = ?",
+            (secret_id,),
+        )
+        rows = await cursor.fetchall()
+        return [dict(row) for row in rows]
+
+    async def list_secrets_merged(
+        self,
+        project_id: str,
+        environment_name: str,
+        tag: str | None = None,
+        category: str | None = None,
+    ) -> list[dict]:
+        """List secrets for a project with inheritance: own + linked + Global.
+
+        Priority (for duplicate keys): own > linked > Global.
+        Returns metadata only (no decrypted values).
+        """
+        # 1. Own secrets (directly owned by this project)
+        env = await self.get_environment(project_id, environment_name)
+        own_secrets = []
+        if env:
+            own_secrets = await self.list_secrets(project_id, env["id"], tag=tag, category=category)
+            for s in own_secrets:
+                s["_source"] = "own"
+
+        # 2. Linked secrets (via project_secrets junction)
+        linked_secrets = []
+        filter_clause = ""
+        filter_params: list[Any] = [project_id]
+        if category:
+            filter_clause += " AND s.category = ?"
+            filter_params.append(category)
+        if tag:
+            filter_clause += " AND s.tags LIKE ?"
+            filter_params.append(f'%"{tag}"%')
+
+        cursor = await self.db.execute(
+            f"""SELECT s.id, s.key, s.version, s.tags, s.description, s.category,
+                       s.created_at, s.updated_at, s.created_by, s.project_id,
+                       e.name as env_name, p.name as source_project
+                FROM project_secrets ps
+                JOIN secrets s ON s.id = ps.secret_id
+                JOIN environments e ON e.id = s.environment_id
+                JOIN projects p ON p.id = s.project_id
+                WHERE ps.project_id = ? AND e.name = ? AND s.deleted_at IS NULL{filter_clause}
+                ORDER BY s.key""",
+            [*filter_params[:1], environment_name, *filter_params[1:]],
+        )
+        rows = await cursor.fetchall()
+        for row in rows:
+            d = dict(row)
+            d["_source"] = "linked"
+            linked_secrets.append(d)
+
+        # 3. Global secrets (inherited by all non-global projects)
+        global_secrets = []
+        cursor = await self.db.execute(
+            "SELECT is_global FROM projects WHERE id = ?", (project_id,)
+        )
+        proj_row = await cursor.fetchone()
+        is_self_global = proj_row and proj_row["is_global"]
+
+        if not is_self_global:
+            global_proj = await self.get_global_project()
+            if global_proj:
+                global_env = await self.get_environment(global_proj["id"], environment_name)
+                if global_env:
+                    global_rows = await self.list_secrets(
+                        global_proj["id"], global_env["id"], tag=tag, category=category
+                    )
+                    for s in global_rows:
+                        s["_source"] = "global"
+                    global_secrets = global_rows
+
+        # Merge with priority: own > linked > global
+        seen_keys: set[str] = set()
+        merged: list[dict] = []
+
+        for s in own_secrets:
+            seen_keys.add(s["key"])
+            merged.append(s)
+
+        for s in linked_secrets:
+            if s["key"] not in seen_keys:
+                seen_keys.add(s["key"])
+                merged.append(s)
+
+        for s in global_secrets:
+            if s["key"] not in seen_keys:
+                seen_keys.add(s["key"])
+                merged.append(s)
+
+        merged.sort(key=lambda s: s["key"])
+        return merged
+
+    async def get_secret_merged(
+        self,
+        project_id: str,
+        environment_name: str,
+        key: str,
+    ) -> dict | None:
+        """Get a single secret with inheritance lookup.
+
+        Priority: own > linked > Global.
+        Returns raw secret row (with encrypted_value).
+        """
+        # 1. Own secret
+        env = await self.get_environment(project_id, environment_name)
+        if env:
+            secret = await self.get_secret(project_id, env["id"], key)
+            if secret:
+                secret["_source"] = "own"
+                return secret
+
+        # 2. Linked secret
+        cursor = await self.db.execute(
+            """SELECT s.* FROM project_secrets ps
+               JOIN secrets s ON s.id = ps.secret_id
+               JOIN environments e ON e.id = s.environment_id
+               WHERE ps.project_id = ? AND e.name = ? AND s.key = ? AND s.deleted_at IS NULL
+               LIMIT 1""",
+            (project_id, environment_name, key),
+        )
+        row = await cursor.fetchone()
+        if row:
+            result = dict(row)
+            result["_source"] = "linked"
+            return result
+
+        # 3. Global secret
+        cursor = await self.db.execute(
+            "SELECT is_global FROM projects WHERE id = ?", (project_id,)
+        )
+        proj_row = await cursor.fetchone()
+        is_self_global = proj_row and proj_row["is_global"]
+
+        if not is_self_global:
+            global_proj = await self.get_global_project()
+            if global_proj:
+                global_env = await self.get_environment(global_proj["id"], environment_name)
+                if global_env:
+                    secret = await self.get_secret(global_proj["id"], global_env["id"], key)
+                    if secret:
+                        secret["_source"] = "global"
+                        return secret
+
+        return None
 
     # --- Trash ---
 

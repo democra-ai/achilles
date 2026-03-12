@@ -107,6 +107,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router.router)
     app.include_router(projects_router.router)
     app.include_router(secrets_router.router)
+    app.include_router(secrets_router.link_router)
     app.include_router(ai_router.router)
     app.include_router(audit_router.router)
     app.include_router(trash_router.router)

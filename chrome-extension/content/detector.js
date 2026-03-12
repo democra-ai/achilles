@@ -567,19 +567,22 @@
 
       const span = document.createElement("span");
       span.className = "achilles-detected";
-      span.title = `Achilles Vault: ${matchedDetect.type} key detected`;
+      span.title = `Achilles Vault: ${matchedDetect.type} — click to import`;
+      span.style.cursor = "pointer";
       span.textContent = match;
+      span.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        openDetectedImportOverlay(matchedDetect);
+      });
 
       const badge = document.createElement("span");
       badge.className = "achilles-badge";
-      badge.textContent = "vault";
+      badge.textContent = "＋ Import";
       badge.addEventListener("click", (e) => {
         e.stopPropagation();
         e.preventDefault();
-        chrome.runtime.sendMessage({
-          type: "IMPORT_SECRET",
-          secret: matchedDetect,
-        });
+        openDetectedImportOverlay(matchedDetect);
       });
       span.appendChild(badge);
 
@@ -833,6 +836,192 @@
       setTimeout(() => {
         removeImportOverlay();
       }, 700);
+    });
+  }
+
+  async function openDetectedImportOverlay(secretHit) {
+    removeFillOverlay();
+    removeImportOverlay();
+
+    importOverlay = document.createElement("div");
+    importOverlay.className = "achilles-import-overlay";
+    importOverlay.innerHTML = `
+      <div class="achilles-import-header">
+        <span>Achilles Vault — Import to Vault</span>
+        <button class="achilles-import-close">&times;</button>
+      </div>
+      <div class="achilles-import-body">
+        <label class="achilles-import-label">Detected value</label>
+        <textarea class="achilles-import-value" spellcheck="false"></textarea>
+
+        <div class="achilles-import-grid">
+          <div class="achilles-import-col">
+            <label class="achilles-import-label">Type</label>
+            <input class="achilles-import-type" type="text" readonly />
+          </div>
+          <div class="achilles-import-col">
+            <label class="achilles-import-label">Severity</label>
+            <input class="achilles-import-severity" type="text" readonly />
+          </div>
+        </div>
+
+        <div class="achilles-import-grid">
+          <div class="achilles-import-col">
+            <label class="achilles-import-label">Project</label>
+            <select class="achilles-import-project"></select>
+          </div>
+          <div class="achilles-import-col">
+            <label class="achilles-import-label">Environment</label>
+            <select class="achilles-import-env">
+              <option value="development">development</option>
+              <option value="staging">staging</option>
+              <option value="production">production</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="achilles-import-grid">
+          <div class="achilles-import-col">
+            <label class="achilles-import-label">Category</label>
+            <select class="achilles-import-category">
+              <option value="token">token</option>
+              <option value="api_key">api_key</option>
+              <option value="env_var">env_var</option>
+              <option value="secret">secret</option>
+              <option value="identifier">identifier</option>
+              <option value="config">config</option>
+              <option value="credential">credential</option>
+            </select>
+          </div>
+          <div class="achilles-import-col">
+            <label class="achilles-import-label">Tags (comma separated)</label>
+            <input class="achilles-import-tags" type="text" placeholder="source:github, scope:repo" />
+          </div>
+        </div>
+
+        <label class="achilles-import-label">Key name</label>
+        <input class="achilles-import-key" type="text" placeholder="AUTO_GENERATED_KEY" />
+
+        <label class="achilles-import-label">Description (optional)</label>
+        <input class="achilles-import-desc" type="text" placeholder="" />
+
+        <div class="achilles-import-status"></div>
+      </div>
+      <div class="achilles-import-actions">
+        <button class="achilles-import-btn secondary">Cancel</button>
+        <button class="achilles-import-btn primary">Import to Vault</button>
+      </div>
+    `;
+
+    document.body.appendChild(importOverlay);
+    const closeBtn = importOverlay.querySelector(".achilles-import-close");
+    const cancelBtn = importOverlay.querySelector(".achilles-import-btn.secondary");
+    const importBtn = importOverlay.querySelector(".achilles-import-btn.primary");
+    const valueEl = importOverlay.querySelector(".achilles-import-value");
+    const typeEl = importOverlay.querySelector(".achilles-import-type");
+    const severityEl = importOverlay.querySelector(".achilles-import-severity");
+    const keyEl = importOverlay.querySelector(".achilles-import-key");
+    const descEl = importOverlay.querySelector(".achilles-import-desc");
+    const projectEl = importOverlay.querySelector(".achilles-import-project");
+    const envEl = importOverlay.querySelector(".achilles-import-env");
+    const categoryEl = importOverlay.querySelector(".achilles-import-category");
+    const tagsEl = importOverlay.querySelector(".achilles-import-tags");
+    const statusEl = importOverlay.querySelector(".achilles-import-status");
+
+    // Pre-fill from detected secret
+    valueEl.value = secretHit.value || "";
+    typeEl.value = secretHit.type || secretHit.matchedRule?.name || "Unknown";
+    severityEl.value = secretHit.matchedRule?.severity || "unknown";
+    categoryEl.value = secretHit.category || inferCategoryFromPattern(secretHit.type);
+    tagsEl.value = (secretHit.tags || []).join(", ");
+    keyEl.value = secretHit.suggestedKey || "";
+    if (secretHit.matchedRule?.description) {
+      descEl.value = secretHit.matchedRule.description;
+    }
+
+    const remove = () => removeImportOverlay();
+    closeBtn.addEventListener("click", remove);
+    cancelBtn.addEventListener("click", remove);
+
+    // Load projects
+    statusEl.textContent = "Loading projects...";
+    const [projectsResp, prefsResp] = await Promise.all([
+      sendMessageAsync({ type: "GET_PROJECTS" }),
+      sendMessageAsync({ type: "GET_USER_PREFS" }),
+    ]);
+    if (!importOverlay) return;
+
+    const projects = Array.isArray(projectsResp) ? projectsResp : [];
+    if (projects.length === 0) {
+      statusEl.textContent = "No projects available. Create one in the Vault app first.";
+      importBtn.disabled = true;
+      return;
+    }
+
+    projectEl.innerHTML = projects
+      .map((p) => `<option value="${escapeHtml(String(p.id))}">${escapeHtml(p.name)}</option>`)
+      .join("");
+    const preferredProjectId = prefsResp?.lastProjectId ? String(prefsResp.lastProjectId) : null;
+    const matchedProject = preferredProjectId
+      ? projects.find((p) => String(p.id) === preferredProjectId)
+      : null;
+    projectEl.value = matchedProject ? String(matchedProject.id) : String(projects[0].id);
+    const preferredEnv = prefsResp?.lastEnv || "development";
+    envEl.value = ["development", "staging", "production"].includes(preferredEnv)
+      ? preferredEnv
+      : "development";
+    statusEl.textContent = "";
+
+    importBtn.addEventListener("click", async () => {
+      const value = normalizeSelectedSecret(valueEl.value);
+      if (!value) {
+        statusEl.textContent = "Value is empty.";
+        return;
+      }
+
+      const projectId = projectEl.value;
+      const env = envEl.value;
+      const category = categoryEl.value;
+      const key = keyEl.value.trim();
+      const description = descEl.value.trim();
+      const tags = tagsEl.value
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+
+      importBtn.disabled = true;
+      importBtn.textContent = "Importing...";
+      statusEl.textContent = "";
+
+      await sendMessageAsync({
+        type: "SET_USER_PREFS",
+        lastProjectId: projectId,
+        lastEnv: env,
+      });
+
+      const resp = await sendMessageAsync({
+        type: "IMPORT_SECRET",
+        secret: { ...secretHit, value },
+        projectId,
+        env,
+        key: key || undefined,
+        category,
+        tags,
+        description,
+      });
+
+      if (resp?.error) {
+        statusEl.textContent = `Import failed: ${resp.error}`;
+        importBtn.disabled = false;
+        importBtn.textContent = "Import to Vault";
+        return;
+      }
+
+      statusEl.textContent = `Imported as ${resp.key}`;
+      statusEl.style.color = "#10b981";
+      setTimeout(() => {
+        removeImportOverlay();
+      }, 800);
     });
   }
 

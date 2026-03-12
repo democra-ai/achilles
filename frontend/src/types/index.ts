@@ -40,6 +40,8 @@ export interface Secret {
   created_at: number;
   updated_at: number;
   value?: string;
+  source?: string;  // "own" | "linked" | "global"
+  owner_project_id?: string;  // actual owning project (for inherited secrets)
   // Populated client-side when aggregating across projects/envs
   _project_id?: string;
   _env_name?: string;

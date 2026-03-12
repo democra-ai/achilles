@@ -7,7 +7,12 @@
   border-bottom: 2px solid rgba(16, 185, 129, 0.4);
   border-radius: 2px;
   padding: 1px 2px;
-  cursor: default;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.achilles-detected:hover {
+  background: rgba(16, 185, 129, 0.16);
 }
 
 .achilles-badge {
@@ -112,8 +117,12 @@
 .achilles-import-value,
 .achilles-import-key,
 .achilles-import-tags,
+.achilles-import-desc,
+.achilles-import-type,
+.achilles-import-severity,
 .achilles-import-project,
-.achilles-import-env {
+.achilles-import-env,
+.achilles-import-category {
   width: 100%;
   background: #121212;
   border: 1px solid #2b2b2b;
@@ -122,6 +131,13 @@
   font-size: 12px;
   padding: 8px 10px;
   box-sizing: border-box;
+}
+
+.achilles-import-type[readonly],
+.achilles-import-severity[readonly] {
+  background: #0a0a0a;
+  color: #8b8b8b;
+  cursor: default;
 }
 
 .achilles-import-value {
