@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- App Store sandbox required -->
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+    <!-- Allow outbound network (localhost backend/MCP communication) -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <!-- Allow listening on network ports (backend serves on 8900/8901) -->
+    <key>com.apple.security.network.server</key>
+    <true/>
+    <!-- Inherit sandbox from parent app -->
+    <key>com.apple.security.inherit</key>
+    <true/>
+</dict>
+</plist>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- App Store sandbox required -->
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+    <!-- Allow outbound network connections (localhost backend communication) -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <!-- Allow listening on network ports (sidecar serves on 8900/8901) -->
+    <key>com.apple.security.network.server</key>
+    <true/>
+    <!-- Read/write access to user's ~/.achilles/ vault data -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+    <!-- Access to app group container for shared data -->
+    <key>com.apple.security.application-groups</key>
+    <array>
+        <string>HNU7NA3S7L.com.achilles.vault</string>
+    </array>
+</dict>
+</plist>
