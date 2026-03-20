@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- v1-bold: Bold & Strong -->
+  <defs>
+    <radialGradient id="bg" cx="0.5" cy="0.42" r="0.65">
+      <stop offset="0%" stop-color="#065f46"/>
+      <stop offset="50%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </radialGradient>
+    <radialGradient id="vignette" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="70%" stop-color="#000000" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.4"/>
+    </radialGradient>
+    <radialGradient id="ambient" cx="0.5" cy="0.4" r="0.38">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.25"/>
+      <stop offset="60%" stop-color="#10b981" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="keyholeDepth" cx="0.5" cy="0.32" r="0.7">
+      <stop offset="0%" stop-color="#0a3327"/>
+      <stop offset="100%" stop-color="#011a13"/>
+    </radialGradient>
+    <filter id="shieldShadow" x="-15%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="24" flood-color="#011a13" flood-opacity="0.55"/>
+    </filter>
+    <filter id="keyholeShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/>
+      <feOffset dx="0" dy="3" result="offset"/>
+      <feFlood flood-color="#000000" flood-opacity="0.35" result="color"/>
+      <feComposite in="color" in2="offset" operator="in" result="shadow"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="squircle"><path d="M 512.0,100.0 L 648.2,100.3 L 691.5,101.3 L 722.9,102.9 L 748.1,105.2 L 769.6,108.2 L 788.2,111.8 L 804.8,116.2 L 819.6,121.2 L 833.0,127.0 L 845.1,133.5 L 856.1,140.8 L 866.0,148.9 L 875.1,158.0 L 883.2,167.9 L 890.5,178.9 L 897.0,191.0 L 902.8,204.4 L 907.8,219.2 L 912.2,235.8 L 915.8,254.4 L 918.8,275.9 L 921.1,301.1 L 922.7,332.5 L 923.7,375.8 L 924.0,512.0 L 923.7,648.2 L 922.7,691.5 L 921.1,722.9 L 918.8,748.1 L 915.8,769.6 L 912.2,788.2 L 907.8,804.8 L 902.8,819.6 L 897.0,833.0 L 890.5,845.1 L 883.2,856.1 L 875.1,866.0 L 866.0,875.1 L 856.1,883.2 L 845.1,890.5 L 833.0,897.0 L 819.6,902.8 L 804.8,907.8 L 788.2,912.2 L 769.6,915.8 L 748.1,918.8 L 722.9,921.1 L 691.5,922.7 L 648.2,923.7 L 512.0,924.0 L 375.8,923.7 L 332.5,922.7 L 301.1,921.1 L 275.9,918.8 L 254.4,915.8 L 235.8,912.2 L 219.2,907.8 L 204.4,902.8 L 191.0,897.0 L 178.9,890.5 L 167.9,883.2 L 158.0,875.1 L 148.9,866.0 L 140.8,856.1 L 133.5,845.1 L 127.0,833.0 L 121.2,819.6 L 116.2,804.8 L 111.8,788.2 L 108.2,769.6 L 105.2,748.1 L 102.9,722.9 L 101.3,691.5 L 100.3,648.2 L 100.0,512.0 L 100.3,375.8 L 101.3,332.5 L 102.9,301.1 L 105.2,275.9 L 108.2,254.4 L 111.8,235.8 L 116.2,219.2 L 121.2,204.4 L 127.0,191.0 L 133.5,178.9 L 140.8,167.9 L 148.9,158.0 L 158.0,148.9 L 167.9,140.8 L 178.9,133.5 L 191.0,127.0 L 204.4,121.2 L 219.2,116.2 L 235.8,111.8 L 254.4,108.2 L 275.9,105.2 L 301.1,102.9 L 332.5,101.3 L 375.8,100.3 Z"/></clipPath>
+    <filter id="iconShadow" x="-5%" y="-3%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="10" stdDeviation="20" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+    <linearGradient id="shieldBody" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0%" stop-color="#5eead4"/><stop offset="8%" stop-color="#34d399"/>
+      <stop offset="25%" stop-color="#2bc48e"/><stop offset="50%" stop-color="#10b981"/>
+      <stop offset="80%" stop-color="#047857"/><stop offset="100%" stop-color="#065f46"/>
+    </linearGradient>
+    <linearGradient id="spec" x1="0.15" y1="0" x2="0.6" y2="0.5">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3"/>
+      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="1" y2="0.5">
+      <stop offset="0%" stop-color="#000" stop-opacity="0"/><stop offset="60%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#022c22" stop-opacity="0.4"/>
+    </linearGradient>
+    <linearGradient id="bot" x1="0.5" y1="0.5" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#000" stop-opacity="0"/><stop offset="60%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0.25"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0.5" y1="0" x2="0.5" y2="0.25">
+      <stop offset="0%" stop-color="#a7f3d0" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#a7f3d0" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <g filter="url(#iconShadow)">
+    <g clip-path="url(#squircle)">
+      <rect width="1024" height="1024" fill="url(#bg)"/>
+      <rect width="1024" height="1024" fill="url(#vignette)"/>
+      <circle cx="512" cy="430" r="360" fill="url(#ambient)"/>
+
+      <g transform="translate(512 520) scale(0.87) translate(-512 -520)">
+        <g filter="url(#shieldShadow)">
+          <path d="M 402 104 L 622 104 L 852 364 Q 852 750, 512 952 Q 172 750, 172 364 Z" fill="url(#shieldBody)"/>
+          <path d="M 402 104 L 622 104 L 852 364 Q 852 750, 512 952 Q 172 750, 172 364 Z" fill="url(#spec)"/>
+          <path d="M 402 104 L 622 104 L 852 364 Q 852 750, 512 952 Q 172 750, 172 364 Z" fill="url(#side)"/>
+          <path d="M 402 104 L 622 104 L 852 364 Q 852 750, 512 952 Q 172 750, 172 364 Z" fill="url(#bot)"/>
+          <path d="M 402 104 L 622 104 L 852 364 Q 852 750, 512 952 Q 172 750, 172 364 Z" fill="url(#rim)"/>
+        </g>
+        <path d="M 408 132 L 616 132 L 828 376 Q 828 738, 512 924 Q 196 738, 196 376 Z" fill="none" stroke="#a7f3d0" stroke-width="1.5" opacity="0.2"/>
+        <g filter="url(#keyholeShadow)">
+          <circle cx="512" cy="440" r="112" fill="url(#keyholeDepth)"/>
+          <path d="M 476 520 L 476 680 Q 476 704, 500 704 L 524 704 Q 548 704, 548 680 L 548 520 Z" fill="url(#keyholeDepth)"/>
+        </g>
+        <circle cx="512" cy="440" r="60" fill="none" stroke="#10b981" stroke-width="2.5" opacity="0.25"/>
+        <circle cx="494" cy="420" r="14" fill="#34d399" opacity="0.25"/>
+        <circle cx="500" cy="426" r="5" fill="#6ee7b7" opacity="0.35"/>
+      </g>
+    </g>
+  </g>
+</svg>

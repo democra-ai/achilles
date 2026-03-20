@@ -1,30 +1,92 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="shieldGrad" x1="0" y1="0" x2="0" y2="1">
+    <!-- Premium gradient with more color stops (from Concept 2) -->
+    <linearGradient id="shieldBody" x1="0.2" y1="0" x2="0.8" y2="1">
       <stop offset="0%" stop-color="#34d399"/>
-      <stop offset="100%" stop-color="#059669"/>
+      <stop offset="20%" stop-color="#2bc48e"/>
+      <stop offset="50%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#047857"/>
     </linearGradient>
+    <!-- Glass-like specular highlight (from Concept 2) -->
+    <linearGradient id="specular" x1="0.3" y1="0" x2="0.7" y2="0.6">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Right side shadow for dimension (from Concept 2) -->
+    <linearGradient id="sideShadow" x1="0" y1="0" x2="1" y2="0.5">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="70%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#064e3b" stop-opacity="0.25"/>
+    </linearGradient>
+    <!-- Outer glow (from Concept 2) -->
+    <filter id="glow">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#059669" flood-opacity="0.3"/>
+    </filter>
+    <!-- Keyhole depth (from Concept 2) -->
+    <radialGradient id="keyholeDepth" cx="0.5" cy="0.35" r="0.65">
+      <stop offset="0%" stop-color="#0d3d2e"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </radialGradient>
   </defs>
-  <!-- Shield shape (matches generate_pngs.py geometry) - 肩线调平，减少溜肩 -->
+
+  <!-- Shield with Original shape + Concept 2 quality -->
+  <g filter="url(#glow)">
+    <!-- Base shield - Original geometry -->
+    <path d="
+      M 201 52 L 311 52
+      L 426 182
+      Q 426 375, 256 476
+      Q 86 375, 86 182
+      Z
+    " fill="url(#shieldBody)"/>
+
+    <!-- Specular highlight layer -->
+    <path d="
+      M 201 52 L 311 52
+      L 426 182
+      Q 426 375, 256 476
+      Q 86 375, 86 182
+      Z
+    " fill="url(#specular)"/>
+
+    <!-- Side shadow for 3D -->
+    <path d="
+      M 201 52 L 311 52
+      L 426 182
+      Q 426 375, 256 476
+      Q 86 375, 86 182
+      Z
+    " fill="url(#sideShadow)"/>
+  </g>
+
+  <!-- Thin inner border (Original position, Concept 2 style) -->
   <path d="
-    M 192 52 L 320 52
-    L 426 182
-    Q 426 339, 256 460
-    Q 86 339, 86 182
-    Z
-  " fill="url(#shieldGrad)" stroke="none"/>
-  <!-- Inner shield border highlight -->
-  <path d="
-    M 195 66 L 317 66
+    M 204 66 L 308 66
     L 414 188
-    Q 414 333, 256 446
-    Q 98 333, 98 188
+    Q 414 369, 256 462
+    Q 98 369, 98 188
     Z
-  " fill="none" stroke="#a7f3d0" stroke-width="3" opacity="0.5"/>
-  <!-- Keyhole circle -->
-  <circle cx="256" cy="220" r="56" fill="#022c22"/>
-  <!-- Keyhole slot (rectangle below circle) -->
-  <rect x="238" y="260" width="36" height="80" rx="8" fill="#022c22"/>
-  <!-- Keyhole inner highlight -->
-  <circle cx="256" cy="220" r="28" fill="none" stroke="#10b981" stroke-width="3" opacity="0.6"/>
+  " fill="none" stroke="#a7f3d0" stroke-width="1.2" opacity="0.3"/>
+
+  <!-- Keyhole composite (Concept 2 style) -->
+  <g>
+    <!-- Keyhole circle -->
+    <circle cx="256" cy="220" r="56" fill="url(#keyholeDepth)"/>
+    <!-- Keyhole slot with rounded bottom -->
+    <path d="
+      M 238 260
+      L 238 340
+      Q 238 352, 250 352
+      L 262 352
+      Q 274 352, 274 340
+      L 274 260
+      Z
+    " fill="url(#keyholeDepth)"/>
+
+    <!-- Subtle ring inside keyhole -->
+    <circle cx="256" cy="220" r="30" fill="none" stroke="#10b981" stroke-width="2" opacity="0.35"/>
+
+    <!-- Tiny specular dot -->
+    <circle cx="248" cy="212" r="6" fill="#34d399" opacity="0.3"/>
+  </g>
 </svg>
