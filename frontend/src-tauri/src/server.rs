@@ -67,7 +67,11 @@ async fn start_sidecar(app: &tauri::AppHandle) -> bool {
     let shell = app.shell();
     let sidecar = match shell.sidecar("achilles-server") {
         Ok(cmd) => cmd,
-        Err(_) => return false,
+        Err(e) => {
+            eprintln!("[sidecar] Failed to find sidecar binary: {}", e);
+            app.emit("server-log", format!("Sidecar not found: {}", e)).unwrap_or_default();
+            return false;
+        }
     };
 
     match sidecar.spawn() {
@@ -77,15 +81,25 @@ async fn start_sidecar(app: &tauri::AppHandle) -> bool {
                     proc.child = Some(child);
                 }
             }
-            tokio::time::sleep(std::time::Duration::from_secs(3)).await;
-            if check_health("http://127.0.0.1:8900").await {
-                update_state(app, true);
-                app.emit("server-status", "running").unwrap_or_default();
-                return true;
+            // Poll for up to 15 seconds (PyInstaller extraction can be slow)
+            for i in 0..15 {
+                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                if check_health("http://127.0.0.1:8900").await {
+                    eprintln!("[sidecar] Server healthy after {}s", i + 1);
+                    update_state(app, true);
+                    app.emit("server-status", "running").unwrap_or_default();
+                    return true;
+                }
             }
+            eprintln!("[sidecar] Server did not become healthy within 15s");
+            app.emit("server-log", "Sidecar started but health check timed out after 15s".to_string()).unwrap_or_default();
             false
         }
-        Err(_) => false,
+        Err(e) => {
+            eprintln!("[sidecar] Failed to spawn sidecar: {}", e);
+            app.emit("server-log", format!("Sidecar spawn failed: {}", e)).unwrap_or_default();
+            false
+        }
     }
 }
 
