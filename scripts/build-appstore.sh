@@ -27,7 +27,7 @@ FRONTEND_DIR="$PROJECT_ROOT/frontend"
 BINARIES_DIR="$TAURI_DIR/binaries"
 
 # Signing identities
-APP_SIGN_IDENTITY="Apple Distribution: Tao Shen (HNU7NA3S7L)"
+APP_SIGN_IDENTITY="FA83D81041EDA1622BD97878D38E04342676CF7C"
 INSTALLER_SIGN_IDENTITY="3rd Party Mac Developer Installer: Tao Shen (HNU7NA3S7L)"
 TEAM_ID="HNU7NA3S7L"
 
@@ -51,7 +51,7 @@ cd "$PROJECT_ROOT"
 pyinstaller \
     --noconfirm \
     --clean \
-    --onefile \
+    --onedir \
     --name achilles-server \
     --target-arch arm64 \
     --strip \
@@ -93,13 +93,14 @@ pyinstaller \
     --exclude-module PIL \
     achilles/sidecar_entry.py
 
-echo "   Sidecar binary: dist/achilles-server"
+echo "   Sidecar directory: dist/achilles-server/"
 
 # --- Step 2: Place sidecar in Tauri binaries directory ---
 echo "[2/6] Installing sidecar binary..."
 
 mkdir -p "$BINARIES_DIR"
-cp "$PROJECT_ROOT/dist/achilles-server" "$BINARIES_DIR/achilles-server-${TARGET_TRIPLE}"
+# Copy the main executable (Tauri externalBin will place it in Contents/MacOS/)
+cp "$PROJECT_ROOT/dist/achilles-server/achilles-server" "$BINARIES_DIR/achilles-server-${TARGET_TRIPLE}"
 chmod +x "$BINARIES_DIR/achilles-server-${TARGET_TRIPLE}"
 
 echo "   Installed: binaries/achilles-server-${TARGET_TRIPLE}"
@@ -120,11 +121,50 @@ npx tauri build --target "$TARGET_TRIPLE"
 APP_BUNDLE="$TAURI_DIR/target/${TARGET_TRIPLE}/release/bundle/macos/Achilles Vault.app"
 echo "   App bundle: $APP_BUNDLE"
 
+# --- Step 3.5: Copy PyInstaller _internal/ into app bundle ---
+echo "[3.5/6] Installing PyInstaller runtime libraries into app bundle..."
+
+MACOS_DIR="$APP_BUNDLE/Contents/MacOS"
+RESOURCES_DIR="$APP_BUNDLE/Contents/Resources"
+INTERNAL_SRC="$PROJECT_ROOT/dist/achilles-server/_internal"
+INTERNAL_DST="$RESOURCES_DIR/_internal"
+
+if [ -d "$INTERNAL_SRC" ]; then
+    # Place _internal/ in Resources/ (not MacOS/) to avoid code signing issues
+    # Data/metadata files in MacOS/ break codesign verification
+    cp -R "$INTERNAL_SRC" "$INTERNAL_DST"
+    echo "   Copied _internal/ to Contents/Resources/_internal/"
+    echo "   Files: $(find "$INTERNAL_DST" -type f | wc -l | tr -d ' ')"
+    # Symlink from MacOS/_internal → Resources/_internal so PyInstaller bootloader finds it
+    ln -sf "../Resources/_internal" "$MACOS_DIR/_internal"
+    echo "   Created symlink: Contents/MacOS/_internal → ../Resources/_internal"
+else
+    echo "   ERROR: _internal/ directory not found at $INTERNAL_SRC"
+    exit 1
+fi
+
 # --- Step 4: Re-sign for App Store ---
 echo "[4/6] Re-signing for App Store with sandbox entitlements..."
 
+# Sign ALL Mach-O binaries/libraries inside _internal/ (innermost → outermost)
+echo "   Signing _internal/ libraries..."
+find "$INTERNAL_DST" -type f \( -name "*.so" -o -name "*.dylib" \) | while read lib; do
+    codesign --force --options runtime \
+        --sign "$APP_SIGN_IDENTITY" \
+        "$lib" 2>/dev/null || true
+done
+find "$INTERNAL_DST" -type f -perm +111 | while read bin; do
+    file_type=$(file -b "$bin" 2>/dev/null)
+    if echo "$file_type" | grep -q "Mach-O"; then
+        codesign --force --options runtime \
+            --sign "$APP_SIGN_IDENTITY" \
+            "$bin" 2>/dev/null || true
+    fi
+done
+echo "   Signed _internal/ contents"
+
 # Sign the sidecar binary inside the app bundle
-SIDECAR_IN_BUNDLE="$APP_BUNDLE/Contents/MacOS/achilles-server"
+SIDECAR_IN_BUNDLE="$MACOS_DIR/achilles-server"
 if [ -f "$SIDECAR_IN_BUNDLE" ]; then
     echo "   Signing sidecar..."
     codesign --force --options runtime \
@@ -141,9 +181,16 @@ find "$APP_BUNDLE/Contents/Frameworks" -type f \( -name "*.dylib" -o -name "*.so
         "$lib"
 done
 
-# Sign the main app bundle
+# Sign the main app executable
+echo "   Signing main executable..."
+codesign --force --options runtime \
+    --sign "$APP_SIGN_IDENTITY" \
+    --entitlements "$APP_ENTITLEMENTS" \
+    "$MACOS_DIR/achilles-vault"
+
+# Sign the app bundle (without --deep to avoid issues with _internal/ data files)
 echo "   Signing app bundle..."
-codesign --force --deep --options runtime \
+codesign --force --options runtime \
     --sign "$APP_SIGN_IDENTITY" \
     --entitlements "$APP_ENTITLEMENTS" \
     "$APP_BUNDLE"
