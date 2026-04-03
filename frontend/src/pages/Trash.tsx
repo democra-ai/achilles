@@ -44,7 +44,7 @@ function daysUntilPurge(deletedAt: number): number {
 }
 
 export default function Trash() {
-  const { addToast } = useStore();
+  const { addToast, serverStatus } = useStore();
   const [items, setItems] = useState<TrashItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -60,8 +60,9 @@ export default function Trash() {
   }, []);
 
   useEffect(() => {
+    if (!serverStatus.running) return;
     loadTrash();
-  }, [loadTrash]);
+  }, [serverStatus.running, loadTrash]);
 
   const handleRestore = async (item: TrashItem) => {
     try {

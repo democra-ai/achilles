@@ -55,12 +55,23 @@ fn spawn_via_login_shell(
 }
 
 pub async fn start_backend_server(app: tauri::AppHandle) {
+    set_starting(&app, true);
+
+    // Check if already running (e.g. from a prior session)
+    if check_health("http://127.0.0.1:8900").await {
+        update_state(&app, true);
+        app.emit("server-status", "running").unwrap_or_default();
+        set_starting(&app, false);
+        return;
+    }
     // Try sidecar first
     if start_sidecar(&app).await {
+        set_starting(&app, false);
         return;
     }
     // Fallback: system python via login shell
     start_with_python(&app).await;
+    set_starting(&app, false);
 }
 
 async fn start_sidecar(app: &tauri::AppHandle) -> bool {
@@ -81,8 +92,8 @@ async fn start_sidecar(app: &tauri::AppHandle) -> bool {
                     proc.child = Some(child);
                 }
             }
-            // Poll for up to 15 seconds (PyInstaller extraction can be slow)
-            for i in 0..15 {
+            // Poll for up to 30 seconds — first launch PyInstaller extraction can be very slow
+            for i in 0..30 {
                 tokio::time::sleep(std::time::Duration::from_secs(1)).await;
                 if check_health("http://127.0.0.1:8900").await {
                     eprintln!("[sidecar] Server healthy after {}s", i + 1);
@@ -91,8 +102,8 @@ async fn start_sidecar(app: &tauri::AppHandle) -> bool {
                     return true;
                 }
             }
-            eprintln!("[sidecar] Server did not become healthy within 15s");
-            app.emit("server-log", "Sidecar started but health check timed out after 15s".to_string()).unwrap_or_default();
+            eprintln!("[sidecar] Server did not become healthy within 30s");
+            app.emit("server-log", "Sidecar started but health check timed out after 30s".to_string()).unwrap_or_default();
             false
         }
         Err(e) => {
@@ -138,18 +149,63 @@ pub async fn do_start_server(app: &tauri::AppHandle) -> Result<(), String> {
         return Ok(());
     }
 
+    // If auto-start is already in progress, just wait for it instead of spawning again
+    if is_starting(app) {
+        for _ in 0..40 {
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+            if check_health("http://127.0.0.1:8900").await {
+                update_state(app, true);
+                app.emit("server-status", "running").unwrap_or_default();
+                return Ok(());
+            }
+        }
+        app.emit("server-status", "failed").unwrap_or_default();
+        return Ok(());
+    }
+
+    set_starting(app, true);
+
+    // Try sidecar first (required for App Store sandbox where no system Python exists)
+    if start_sidecar(app).await {
+        set_starting(app, false);
+        return Ok(());
+    }
+
+    // Fallback: system Python via login shell
     let cmd = build_python_command(
         "uvicorn",
         "-m uvicorn achilles.main:app --host 127.0.0.1 --port 8900",
     );
-    let child = spawn_via_login_shell(app, &cmd)?;
-
-    if let Some(state) = app.try_state::<Mutex<ServerProcess>>() {
-        if let Ok(mut proc) = state.lock() {
-            proc.child = Some(child);
+    let result = match spawn_via_login_shell(app, &cmd) {
+        Ok(child) => {
+            if let Some(state) = app.try_state::<Mutex<ServerProcess>>() {
+                if let Ok(mut proc) = state.lock() {
+                    proc.child = Some(child);
+                }
+            }
+            // Poll for startup
+            for _ in 0..15 {
+                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                if check_health("http://127.0.0.1:8900").await {
+                    update_state(app, true);
+                    app.emit("server-status", "running").unwrap_or_default();
+                    set_starting(app, false);
+                    return Ok(());
+                }
+            }
+            // Don't return an error — emit status and let frontend handle gracefully
+            app.emit("server-status", "failed").unwrap_or_default();
+            Ok(())
         }
-    }
-    Ok(())
+        Err(_) => {
+            // Don't propagate raw spawn errors to the frontend
+            app.emit("server-status", "failed").unwrap_or_default();
+            Ok(())
+        }
+    };
+
+    set_starting(app, false);
+    result
 }
 
 pub fn do_stop_server(app: &tauri::AppHandle) -> Result<(), String> {
@@ -179,6 +235,23 @@ fn update_state(app: &tauri::AppHandle, running: bool) {
             s.server_running = running;
         }
     }
+}
+
+fn set_starting(app: &tauri::AppHandle, starting: bool) {
+    if let Some(state) = app.try_state::<Mutex<AppState>>() {
+        if let Ok(mut s) = state.lock() {
+            s.server_starting = starting;
+        }
+    }
+}
+
+fn is_starting(app: &tauri::AppHandle) -> bool {
+    if let Some(state) = app.try_state::<Mutex<AppState>>() {
+        if let Ok(s) = state.lock() {
+            return s.server_starting;
+        }
+    }
+    false
 }
 
 // --- MCP Server Management ---

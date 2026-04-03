@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Achilles Vault - Support</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --card: #141414;
+      --border: #232323;
+      --text: #e5e5e5;
+      --muted: #a0a0a0;
+      --accent: #34d399;
+      --accent-dim: rgba(52,211,153,0.12);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+    .hero {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .hero-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: var(--accent-dim);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .hero-icon svg { width: 32px; height: 32px; color: var(--accent); }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    .hero p { color: var(--muted); font-size: 16px; }
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+    .section { margin-bottom: 40px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .card p, .card li {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .card ul {
+      list-style: none;
+      padding: 0;
+    }
+    .card ul li {
+      padding: 6px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .card ul li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 14px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.6;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 540px) {
+      .contact-grid { grid-template-columns: 1fr; }
+    }
+    .contact-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    .contact-card .label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .contact-card .value {
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .footer {
+      text-align: center;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <div class="hero-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+        </svg>
+      </div>
+      <h1>Achilles Vault Support</h1>
+      <p>Local-first secret management for AI workflows</p>
+    </div>
+
+    <div class="section">
+      <h2>Frequently Asked Questions</h2>
+
+      <div class="card">
+        <h3>How do I get started?</h3>
+        <p>Launch Achilles Vault and the backend server will start automatically. The dashboard shows your projects, vault items, and server status. Create a project first, then start adding secrets to it.</p>
+      </div>
+
+      <div class="card">
+        <h3>The server shows as "Offline" &mdash; what should I do?</h3>
+        <p>Click the <strong>Start</strong> button in the app. If the issue persists, try quitting and relaunching the app. The backend server runs locally on your machine and requires no internet connection.</p>
+      </div>
+
+      <div class="card">
+        <h3>Where is my data stored?</h3>
+        <p>All data is stored locally on your device in the <code>~/.achilles/</code> directory. Your secrets are encrypted with AES-256-GCM. No data is ever sent to external servers.</p>
+      </div>
+
+      <div class="card">
+        <h3>How do I connect AI tools to the vault?</h3>
+        <p>Achilles Vault includes a built-in MCP (Model Context Protocol) server on port 8901. Compatible AI tools like Claude and Cursor can connect to it directly. Go to <strong>Settings</strong> in the app to see your MCP configuration.</p>
+      </div>
+
+      <div class="card">
+        <h3>Can I use Achilles Vault with multiple projects?</h3>
+        <p>Yes. Create separate projects in the <strong>Projects</strong> tab. Each project can have its own environments (e.g. development, staging, production), and secrets are scoped to project and environment.</p>
+      </div>
+
+      <div class="card">
+        <h3>How do I back up my vault?</h3>
+        <p>Your vault is a local SQLite database at <code>~/.achilles/vault.db</code>. You can back up this file along with <code>~/.achilles/master.key</code>. Keep your master key safe &mdash; it is required to decrypt your secrets.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Troubleshooting</h2>
+      <div class="card">
+        <ul>
+          <li>If the app won't start, try restarting your Mac and launching again.</li>
+          <li>If the backend server won't start, check that no other process is using port 8900.</li>
+          <li>If secrets fail to decrypt, ensure your <code>~/.achilles/master.key</code> file is intact.</li>
+          <li>For the Chrome extension, make sure the desktop app is running first.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Contact Us</h2>
+      <div class="contact-grid">
+        <div class="contact-card">
+          <div class="label">Email Support</div>
+          <div class="value"><a href="mailto:support@democra.ai">support@democra.ai</a></div>
+        </div>
+        <div class="contact-card">
+          <div class="label">Bug Reports</div>
+          <div class="value"><a href="https://github.com/democra-ai/achilles/issues">GitHub Issues</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>&copy; 2025&ndash;2026 Democra AI. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

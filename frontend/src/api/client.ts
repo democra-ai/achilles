@@ -29,15 +29,20 @@ api.interceptors.response.use(
       // Network error - server is down. Immediately mark as offline
       // and activate cooldown so health polls don't flip it back.
       markApiFailed();
+      const wasRunning = store.serverStatus.running;
       useStore.setState((state) => ({
         serverStatus: { ...state.serverStatus, running: false },
       }));
-      addToast({
-        type: "error",
-        title: "Connection failed",
-        message: "Cannot reach the server. Make sure the backend is running.",
-        duration: 5000,
-      });
+      // Only show the toast if the server was previously online to avoid
+      // spamming errors during startup when the server isn't ready yet.
+      if (wasRunning) {
+        addToast({
+          type: "error",
+          title: "Connection failed",
+          message: "Cannot reach the server. Make sure the backend is running.",
+          duration: 5000,
+        });
+      }
     } else if (error.response.status === 422) {
       const detail = error.response.data?.error?.message || error.response.data?.detail;
       addToast({

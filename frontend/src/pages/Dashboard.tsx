@@ -64,6 +64,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!serverStatus.running) return;
     projectsApi
       .list()
       .then((r) => setProjects(r.data))
@@ -79,10 +80,10 @@ export default function Dashboard() {
       .list()
       .then((r) => setApiKeys(r.data))
       .catch(() => {});
-  }, [setProjects, setApiKeys, auditLevel]);
+  }, [serverStatus.running, setProjects, setApiKeys, auditLevel]);
 
   useEffect(() => {
-    if (projects.length === 0) {
+    if (!serverStatus.running || projects.length === 0) {
       setSecretCount(0);
       return;
     }
@@ -98,7 +99,7 @@ export default function Dashboard() {
     Promise.all(promises).then((counts) => {
       setSecretCount(counts.reduce((a, b) => a + b, 0));
     });
-  }, [projects]);
+  }, [projects, serverStatus.running]);
 
   const stats = [
     {

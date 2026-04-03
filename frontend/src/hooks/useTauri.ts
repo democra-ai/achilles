@@ -32,10 +32,10 @@ export function useServerManager() {
       try {
         const invoke = await getInvoke();
         if (invoke) {
-          addToast({ type: "info", title: "Starting server...", message: "The backend server is starting up" });
+          addToast({ type: "info", title: "Starting server...", message: "The backend server is starting up. This may take a moment on first launch." });
           await invoke("start_server");
-          // Poll for health
-          for (let i = 0; i < 15; i++) {
+          // Poll for health — allow up to 40s to match sidecar extraction time
+          for (let i = 0; i < 40; i++) {
             await new Promise((r) => setTimeout(r, 1000));
             await checkServerHealth();
             const { serverStatus } = useStore.getState();
@@ -45,10 +45,21 @@ export function useServerManager() {
               return;
             }
           }
-          addToast({ type: "error", title: "Server failed to start", message: "Timeout waiting for server. Check terminal for errors." });
+          addToast({
+            type: "warning",
+            title: "Still starting up",
+            message: "The server is taking longer than usual. Try quitting and relaunching the app.",
+            duration: 8000,
+          });
         }
-      } catch (err) {
-        addToast({ type: "error", title: "Failed to start server", message: String(err) });
+      } catch {
+        // Don't show error — the auto-start may still be in progress
+        addToast({
+          type: "info",
+          title: "Starting up",
+          message: "The server is initializing. Please wait a moment.",
+          duration: 5000,
+        });
       }
     } else {
       // Browser mode - try the helper endpoint approach

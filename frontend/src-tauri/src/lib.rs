@@ -28,6 +28,7 @@ fn move_window_to_active_space(_window: &tauri::WebviewWindow) {}
 
 pub struct AppState {
     pub server_running: bool,
+    pub server_starting: bool,
     pub server_port: u16,
     pub api_url: String,
     pub mcp_running: bool,
@@ -39,6 +40,12 @@ pub struct AppState {
 fn get_server_status(state: State<'_, Mutex<AppState>>) -> Result<bool, String> {
     let s = state.lock().map_err(|e| e.to_string())?;
     Ok(s.server_running)
+}
+
+#[tauri::command]
+fn is_server_starting(state: State<'_, Mutex<AppState>>) -> Result<bool, String> {
+    let s = state.lock().map_err(|e| e.to_string())?;
+    Ok(s.server_starting)
 }
 
 #[tauri::command]
@@ -93,6 +100,7 @@ pub fn run() {
         .plugin(tauri_plugin_deep_link::init())
         .manage(Mutex::new(AppState {
             server_running: false,
+            server_starting: false,
             server_port: 8900,
             api_url: "http://127.0.0.1:8900".to_string(),
             mcp_running: false,
@@ -103,6 +111,7 @@ pub fn run() {
         .manage(Mutex::new(server::McpProcess { child: None }))
         .invoke_handler(tauri::generate_handler![
             get_server_status,
+            is_server_starting,
             get_api_url,
             check_server_health,
             start_server,

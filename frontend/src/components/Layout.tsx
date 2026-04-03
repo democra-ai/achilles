@@ -21,7 +21,7 @@ import {
   Monitor,
 } from "lucide-react";
 import { useStore } from "@/store";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerManager } from "@/hooks/useTauri";
 import { ToastBridge } from "./Toast";
 import { Toaster } from "@/components/ui/sonner";
@@ -73,6 +73,20 @@ const bottomNav = [
   { to: "/settings", icon: Settings, label: "Settings" },
 ];
 
+function StartupBanner() {
+  return (
+    <div className="px-6 pt-4">
+      <Alert>
+        <Loader2 className="size-4 animate-spin" />
+        <AlertTitle>Starting up</AlertTitle>
+        <AlertDescription>
+          The backend server is starting. This may take a moment on first launch.
+        </AlertDescription>
+      </Alert>
+    </div>
+  );
+}
+
 function OfflineBanner() {
   const { isTauri, startServer } = useServerManager();
   const [starting, setStarting] = useState(false);
@@ -80,9 +94,13 @@ function OfflineBanner() {
   const cmd = "python -m achilles.main";
 
   const handleStart = async () => {
+    if (starting) return;
     setStarting(true);
-    await startServer();
-    setStarting(false);
+    try {
+      await startServer();
+    } finally {
+      setStarting(false);
+    }
   };
 
   const handleCopy = async () => {
@@ -97,7 +115,7 @@ function OfflineBanner() {
         <WifiOff className="size-4" />
         <AlertTitle>Server Offline</AlertTitle>
         <AlertDescription className="flex items-center justify-between">
-          <span>The backend server is not running.</span>
+          <span>{starting ? "Starting the backend server\u2026 This may take a moment on first launch." : "The backend server is not running."}</span>
           {isTauri ? (
             <Button
               size="sm"
@@ -254,7 +272,25 @@ export default function Layout() {
   } = useStore();
   const { isTauri, startServer } = useServerManager();
   const [sidebarStarting, setSidebarStarting] = useState(false);
+  const [autoStartPhase, setAutoStartPhase] = useState(isTauri);
+  const hasBeenOnline = useRef(false);
   const location = useLocation();
+
+  // In Tauri mode, the Rust backend auto-starts the server on launch.
+  // Show a friendly startup banner for up to 45s instead of the red error.
+  useEffect(() => {
+    if (!isTauri) return;
+    const timer = setTimeout(() => setAutoStartPhase(false), 45000);
+    return () => clearTimeout(timer);
+  }, [isTauri]);
+
+  // Once server comes online, clear the auto-start phase permanently
+  useEffect(() => {
+    if (serverStatus.running) {
+      hasBeenOnline.current = true;
+      setAutoStartPhase(false);
+    }
+  }, [serverStatus.running]);
 
   useEffect(() => {
     const applyTheme = (resolved: "light" | "dark") => {
@@ -284,9 +320,13 @@ export default function Layout() {
   }, [checkServerHealth, checkMcpHealth]);
 
   const handleSidebarStart = async () => {
+    if (sidebarStarting) return;
     setSidebarStarting(true);
-    await startServer();
-    setSidebarStarting(false);
+    try {
+      await startServer();
+    } finally {
+      setSidebarStarting(false);
+    }
   };
 
   return (
@@ -412,14 +452,14 @@ export default function Layout() {
               running={serverStatus.running}
               port={serverStatus.port}
               isTauri={isTauri}
-              sidebarStarting={sidebarStarting}
+              sidebarStarting={sidebarStarting || autoStartPhase}
               onStart={handleSidebarStart}
             />
           </SidebarFooter>
         </Sidebar>
 
         <SidebarInset className="overflow-y-auto relative z-[1] !mt-[var(--titlebar-inset,0px)]">
-          {!serverStatus.running && <OfflineBanner />}
+          {!serverStatus.running && (autoStartPhase ? <StartupBanner /> : <OfflineBanner />)}
 
           <div className="max-w-[1200px] w-full px-6 lg:px-10 py-6 lg:py-8">
             <AnimatePresence mode="wait">

@@ -82,6 +82,7 @@ export default function VaultPage({ category }: VaultPageProps) {
     secrets,
     setSecrets,
     addToast,
+    serverStatus,
   } = useStore();
 
   const [showCreate, setShowCreate] = useState(false);
@@ -121,6 +122,7 @@ export default function VaultPage({ category }: VaultPageProps) {
   const platformCacheRef = useRef<Map<string, Platform>>(new Map());
 
   useEffect(() => {
+    if (!serverStatus.running) return;
     if (projects.length === 0) {
       projectsApi
         .list()
@@ -132,14 +134,15 @@ export default function VaultPage({ category }: VaultPageProps) {
         })
         .catch(() => {});
     }
-  }, [projects.length, setProjects, selectProject, selectedProject]);
+  }, [serverStatus.running, projects.length, setProjects, selectProject, selectedProject]);
 
-  // Load platform catalog once on mount
+  // Load platform catalog once server is online
   useEffect(() => {
+    if (!serverStatus.running) return;
     platformsApi.list()
       .then((r) => setPlatforms(r.data.platforms))
       .catch(() => {});
-  }, []);
+  }, [serverStatus.running]);
 
   // Fetch platform detail when user picks a platform in the create dialog
   useEffect(() => {
@@ -184,11 +187,15 @@ export default function VaultPage({ category }: VaultPageProps) {
   }, [selectedProject, projects, selectedEnv, category, setSecrets]);
 
   useEffect(() => {
+    if (!serverStatus.running) {
+      setSecrets([]);
+      return;
+    }
     setSecrets([]);
     loadSecrets();
     setRevealedKeys(new Set());
     setRevealedValues({});
-  }, [loadSecrets, setSecrets]);
+  }, [serverStatus.running, loadSecrets, setSecrets]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

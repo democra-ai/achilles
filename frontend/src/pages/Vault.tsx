@@ -88,6 +88,7 @@ export default function Vault() {
     secrets,
     setSecrets,
     addToast,
+    serverStatus,
   } = useStore();
 
   const composingRef = useRef(false);
@@ -116,6 +117,7 @@ export default function Vault() {
   const [editLoading, setEditLoading] = useState(false);
 
   useEffect(() => {
+    if (!serverStatus.running) return;
     if (projects.length === 0) {
       projectsApi
         .list()
@@ -127,7 +129,7 @@ export default function Vault() {
         })
         .catch(() => {});
     }
-  }, [projects.length, setProjects, selectProject, selectedProject]);
+  }, [serverStatus.running, projects.length, setProjects, selectProject, selectedProject]);
 
   const ENVS = ["development", "staging", "production"];
 
@@ -153,11 +155,15 @@ export default function Vault() {
   }, [selectedProject, projects, selectedEnv, filterCategory, setSecrets]);
 
   useEffect(() => {
+    if (!serverStatus.running) {
+      setSecrets([]);
+      return;
+    }
     setSecrets([]);
     loadSecrets();
     setRevealedKeys(new Set());
     setRevealedValues({});
-  }, [loadSecrets, setSecrets]);
+  }, [serverStatus.running, loadSecrets, setSecrets]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

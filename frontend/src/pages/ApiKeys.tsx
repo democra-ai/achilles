@@ -57,7 +57,7 @@ const fadeUp = {
 };
 
 export default function ApiKeys() {
-  const { apiKeys, setApiKeys, addToast } = useStore();
+  const { apiKeys, setApiKeys, addToast, serverStatus } = useStore();
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [selectedScopes, setSelectedScopes] = useState<string[]>(["read"]);
@@ -67,11 +67,12 @@ export default function ApiKeys() {
   const [copiedKey, setCopiedKey] = useState(false);
 
   useEffect(() => {
+    if (!serverStatus.running) return;
     apiKeysApi
       .list()
       .then((r) => setApiKeys(r.data))
       .catch(() => {});
-  }, [setApiKeys]);
+  }, [serverStatus.running, setApiKeys]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

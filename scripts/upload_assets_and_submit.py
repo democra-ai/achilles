@@ -166,6 +166,7 @@ def main():
                         "name": "Achilles Vault",
                         "subtitle": "Local-First Secret Management",
                         "privacyPolicyUrl": "https://github.com/AchillesVault/achilles/blob/main/PRIVACY.md",
+                        "supportUrl": "https://democra-ai.github.io/achilles/support.html",
                     }
                 }
             })
