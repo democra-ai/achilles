@@ -129,7 +129,10 @@ async def create_environment(
         raise HTTPException(status_code=409, detail="Environment already exists")
 
     await db.log_audit(
-        "environment.create", "environment", user["username"], env["id"],
+        "environment.create",
+        "environment",
+        user["username"],
+        env["id"],
         details={"project_id": project_id, "name": body.name},
     )
 

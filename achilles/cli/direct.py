@@ -4,13 +4,10 @@ Provides synchronous wrappers around the async Database class,
 allowing CLI commands to read/write the vault directly via SQLite.
 """
 
-import asyncio
-import json
 import sqlite3
 from pathlib import Path
-from typing import Any
 
-from achilles.config import Settings, get_settings
+from achilles.config import get_settings
 from achilles.crypto import decrypt
 
 

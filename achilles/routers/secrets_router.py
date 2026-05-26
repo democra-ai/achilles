@@ -16,7 +16,7 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
-from achilles.auth import get_current_user, require_scope
+from achilles.auth import require_scope
 from achilles.crypto import decrypt, encrypt
 from achilles.models import (
     SecretBulkCreate,
@@ -26,7 +26,9 @@ from achilles.models import (
     SecretResponse,
 )
 
-router = APIRouter(prefix="/api/v1/projects/{project_id}/environments/{env_name}/secrets", tags=["secrets"])
+router = APIRouter(
+    prefix="/api/v1/projects/{project_id}/environments/{env_name}/secrets", tags=["secrets"]
+)
 link_router = APIRouter(prefix="/api/v1/secrets", tags=["secrets"])
 
 
@@ -113,7 +115,10 @@ async def get_secret(
         )
 
     await db.log_audit(
-        "secret.read", "secret", user["username"], secret["id"],
+        "secret.read",
+        "secret",
+        user["username"],
+        secret["id"],
         details={"key": key, "project_id": project_id, "environment": env_name},
         ip_address=request.client.host if request.client else None,
     )
@@ -159,8 +164,16 @@ async def set_secret(
     )
 
     await db.log_audit(
-        "secret.write", "secret", user["username"], result["id"],
-        details={"key": key, "project_id": project_id, "environment": env_name, "version": result["version"]},
+        "secret.write",
+        "secret",
+        user["username"],
+        result["id"],
+        details={
+            "key": key,
+            "project_id": project_id,
+            "environment": env_name,
+            "version": result["version"],
+        },
         ip_address=request.client.host if request.client else None,
     )
 
@@ -196,7 +209,9 @@ async def bulk_set_secrets(
         results.append(result)
 
     await db.log_audit(
-        "secret.bulk_write", "secret", user["username"],
+        "secret.bulk_write",
+        "secret",
+        user["username"],
         details={"project_id": project_id, "environment": env_name, "count": len(results)},
         ip_address=request.client.host if request.client else None,
     )
@@ -221,7 +236,9 @@ async def delete_secret(
         raise HTTPException(status_code=404, detail=f"Secret '{key}' not found")
 
     await db.log_audit(
-        "secret.delete", "secret", user["username"],
+        "secret.delete",
+        "secret",
+        user["username"],
         details={"key": key, "project_id": project_id, "environment": env_name},
         ip_address=request.client.host if request.client else None,
     )
@@ -256,6 +273,7 @@ async def get_secret_versions(
 
 # --- Secret Linking (many-to-many) ---
 
+
 @link_router.post("/{secret_id}/link", status_code=status.HTTP_200_OK)
 async def link_secret(
     request: Request,
@@ -275,7 +293,10 @@ async def link_secret(
             linked.append(pid)
 
     await db.log_audit(
-        "secret.link", "secret", user["username"], secret_id,
+        "secret.link",
+        "secret",
+        user["username"],
+        secret_id,
         details={"linked_projects": linked},
         ip_address=request.client.host if request.client else None,
     )
@@ -296,7 +317,10 @@ async def unlink_secret(
         raise HTTPException(status_code=404, detail="Link not found")
 
     await db.log_audit(
-        "secret.unlink", "secret", user["username"], secret_id,
+        "secret.unlink",
+        "secret",
+        user["username"],
+        secret_id,
         details={"unlinked_project": project_id},
         ip_address=request.client.host if request.client else None,
     )

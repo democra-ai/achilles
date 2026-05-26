@@ -21,7 +21,15 @@ from slowapi.util import get_remote_address
 
 from achilles.config import get_settings
 from achilles.database import Database
-from achilles.routers import ai_router, audit_router, auth_router, platforms_router, projects_router, secrets_router, trash_router
+from achilles.routers import (
+    ai_router,
+    audit_router,
+    auth_router,
+    platforms_router,
+    projects_router,
+    secrets_router,
+    trash_router,
+)
 
 logger = logging.getLogger("achilles")
 
@@ -130,6 +138,7 @@ def create_app() -> FastAPI:
     # Serve web dashboard
     web_dir = Path(__file__).parent.parent / "web"
     if web_dir.exists():
+
         @app.get("/", tags=["dashboard"])
         async def dashboard():
             return FileResponse(web_dir / "index.html")

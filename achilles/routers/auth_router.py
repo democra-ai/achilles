@@ -69,12 +69,13 @@ async def login(request: Request, body: LoginRequest):
             detail="Invalid username or password",
         )
 
-    token, expires_in = create_access_token(
-        user["id"], user["username"], user["role"], settings
-    )
+    token, expires_in = create_access_token(user["id"], user["username"], user["role"], settings)
 
     await db.log_audit(
-        "user.login", "user", user["username"], user["id"],
+        "user.login",
+        "user",
+        user["username"],
+        user["id"],
         ip_address=request.client.host if request.client else None,
     )
 

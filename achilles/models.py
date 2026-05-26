@@ -21,6 +21,7 @@ class SecretCategory(str, Enum):
 
 # --- Auth ---
 
+
 class LoginRequest(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     password: str = Field(min_length=8)
@@ -38,6 +39,7 @@ class TokenResponse(BaseModel):
 
 
 # --- Projects ---
+
 
 class ProjectCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100, pattern=r"^[a-zA-Z0-9_-]+$")
@@ -59,6 +61,7 @@ class EnvironmentCreate(BaseModel):
 
 
 # --- Secrets ---
+
 
 class SecretCreate(BaseModel):
     key: str = Field(min_length=1, max_length=200, pattern=r"^[a-zA-Z0-9_./-]+$")
@@ -86,6 +89,7 @@ class SecretResponse(BaseModel):
 
 class SecretMetadata(BaseModel):
     """Secret listing without the value."""
+
     id: str
     key: str
     version: int
@@ -100,10 +104,12 @@ class SecretMetadata(BaseModel):
 
 class SecretLinkRequest(BaseModel):
     """Request to link a secret to additional projects."""
+
     project_ids: list[str] = Field(min_length=1)
 
 
 # --- API Keys ---
+
 
 class APIKeyCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
@@ -121,8 +127,10 @@ class APIKeyResponse(BaseModel):
 
 # --- AI / MCP ---
 
+
 class AISecretRequest(BaseModel):
     """AI-friendly secret retrieval request."""
+
     project: str
     environment: str = "production"
     keys: list[str] = Field(default_factory=list)
@@ -130,6 +138,7 @@ class AISecretRequest(BaseModel):
 
 class AISecretResponse(BaseModel):
     """AI-friendly secret response."""
+
     project: str
     environment: str
     secrets: dict[str, str]
@@ -137,24 +146,28 @@ class AISecretResponse(BaseModel):
 
 class MCPToolCall(BaseModel):
     """MCP-compatible tool call format."""
+
     name: str
     arguments: dict[str, Any] = Field(default_factory=dict)
 
 
 class MCPToolResult(BaseModel):
     """MCP-compatible tool result."""
+
     content: list[dict[str, Any]]
     is_error: bool = False
 
 
 class OpenAIFunctionDef(BaseModel):
     """OpenAI function calling format."""
+
     name: str
     description: str
     parameters: dict[str, Any]
 
 
 # --- Audit ---
+
 
 class AuditEntry(BaseModel):
     id: str
@@ -168,6 +181,7 @@ class AuditEntry(BaseModel):
 
 
 # --- Error ---
+
 
 class ErrorResponse(BaseModel):
     error: dict[str, Any]

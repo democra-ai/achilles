@@ -13,7 +13,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyHea
 from jose import JWTError, jwt
 from passlib.hash import argon2
 
-from achilles.config import Settings, get_settings
+from achilles.config import Settings
 
 
 http_bearer = HTTPBearer(auto_error=False)
@@ -126,6 +126,7 @@ async def get_current_user(
 
 def require_scope(scope: str):
     """Dependency to check API key scope."""
+
     async def _check(user: dict = Depends(get_current_user)) -> dict:
         if user["auth_method"] == "api_key":
             scopes = user.get("scopes", [])
@@ -135,4 +136,5 @@ def require_scope(scope: str):
                     detail=f"Missing required scope: {scope}",
                 )
         return user
+
     return _check

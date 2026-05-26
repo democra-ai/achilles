@@ -16,7 +16,15 @@ import json
 import logging
 import time
 
-from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket, WebSocketDisconnect, Query
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Request,
+    WebSocket,
+    WebSocketDisconnect,
+    Query,
+)
 
 from achilles.auth import get_current_user, hash_api_key
 from achilles.crypto import decrypt, encrypt
@@ -28,6 +36,7 @@ router = APIRouter(prefix="/api/v1/ai", tags=["ai"])
 
 
 # --- 1. Simple AI Secret API ---
+
 
 @router.post("/secrets", response_model=AISecretResponse)
 async def ai_get_secrets(
@@ -68,7 +77,9 @@ async def ai_get_secrets(
                 result_secrets[s["key"]] = decrypt(full["encrypted_value"], settings.master_key)
 
     await db.log_audit(
-        "ai.secrets.read", "secret", user["username"],
+        "ai.secrets.read",
+        "secret",
+        user["username"],
         details={"project": body.project, "environment": body.environment, "keys": body.keys},
         ip_address=request.client.host if request.client else None,
     )
@@ -90,7 +101,10 @@ MCP_TOOLS = [
             "type": "object",
             "properties": {
                 "project": {"type": "string", "description": "Project name"},
-                "environment": {"type": "string", "description": "Environment name (default: production)"},
+                "environment": {
+                    "type": "string",
+                    "description": "Environment name (default: production)",
+                },
                 "key": {"type": "string", "description": "Secret key name"},
             },
             "required": ["project", "key"],
@@ -103,7 +117,10 @@ MCP_TOOLS = [
             "type": "object",
             "properties": {
                 "project": {"type": "string", "description": "Project name"},
-                "environment": {"type": "string", "description": "Environment name (default: production)"},
+                "environment": {
+                    "type": "string",
+                    "description": "Environment name (default: production)",
+                },
             },
             "required": ["project"],
         },
@@ -164,14 +181,21 @@ async def mcp_call_tool(
             projects = await db.list_projects()
             project = next((p for p in projects if p["name"] == project_name), None)
             if not project:
-                return MCPToolResult(content=[{"type": "text", "text": f"Project '{project_name}' not found"}], is_error=True)
+                return MCPToolResult(
+                    content=[{"type": "text", "text": f"Project '{project_name}' not found"}],
+                    is_error=True,
+                )
 
             secret = await db.get_secret_merged(project["id"], env_name, key)
             if not secret:
-                return MCPToolResult(content=[{"type": "text", "text": f"Secret '{key}' not found"}], is_error=True)
+                return MCPToolResult(
+                    content=[{"type": "text", "text": f"Secret '{key}' not found"}], is_error=True
+                )
 
             value = decrypt(secret["encrypted_value"], settings.master_key)
-            await db.log_audit("mcp.get_secret", "secret", user["username"], secret["id"], details={"key": key})
+            await db.log_audit(
+                "mcp.get_secret", "secret", user["username"], secret["id"], details={"key": key}
+            )
 
             return MCPToolResult(content=[{"type": "text", "text": value}])
 
@@ -182,7 +206,10 @@ async def mcp_call_tool(
             projects = await db.list_projects()
             project = next((p for p in projects if p["name"] == project_name), None)
             if not project:
-                return MCPToolResult(content=[{"type": "text", "text": f"Project '{project_name}' not found"}], is_error=True)
+                return MCPToolResult(
+                    content=[{"type": "text", "text": f"Project '{project_name}' not found"}],
+                    is_error=True,
+                )
 
             secrets = await db.list_secrets_merged(project["id"], env_name)
             keys = [{"key": s["key"], "source": s.get("_source", "own")} for s in secrets]
@@ -197,17 +224,31 @@ async def mcp_call_tool(
             projects = await db.list_projects()
             project = next((p for p in projects if p["name"] == project_name), None)
             if not project:
-                return MCPToolResult(content=[{"type": "text", "text": f"Project '{project_name}' not found"}], is_error=True)
+                return MCPToolResult(
+                    content=[{"type": "text", "text": f"Project '{project_name}' not found"}],
+                    is_error=True,
+                )
 
             env = await db.get_environment(project["id"], env_name)
             if not env:
-                return MCPToolResult(content=[{"type": "text", "text": f"Environment '{env_name}' not found"}], is_error=True)
+                return MCPToolResult(
+                    content=[{"type": "text", "text": f"Environment '{env_name}' not found"}],
+                    is_error=True,
+                )
 
             encrypted = encrypt(value, settings.master_key)
-            result = await db.set_secret(project["id"], env["id"], key, encrypted, created_by=user["username"])
-            await db.log_audit("mcp.set_secret", "secret", user["username"], result["id"], details={"key": key})
+            result = await db.set_secret(
+                project["id"], env["id"], key, encrypted, created_by=user["username"]
+            )
+            await db.log_audit(
+                "mcp.set_secret", "secret", user["username"], result["id"], details={"key": key}
+            )
 
-            return MCPToolResult(content=[{"type": "text", "text": f"Secret '{key}' saved (version {result['version']})"}])
+            return MCPToolResult(
+                content=[
+                    {"type": "text", "text": f"Secret '{key}' saved (version {result['version']})"}
+                ]
+            )
 
         elif body.name == "delete_secret":
             project_name = args["project"]
@@ -217,27 +258,40 @@ async def mcp_call_tool(
             projects = await db.list_projects()
             project = next((p for p in projects if p["name"] == project_name), None)
             if not project:
-                return MCPToolResult(content=[{"type": "text", "text": f"Project '{project_name}' not found"}], is_error=True)
+                return MCPToolResult(
+                    content=[{"type": "text", "text": f"Project '{project_name}' not found"}],
+                    is_error=True,
+                )
 
             env = await db.get_environment(project["id"], env_name)
             if not env:
-                return MCPToolResult(content=[{"type": "text", "text": f"Environment '{env_name}' not found"}], is_error=True)
+                return MCPToolResult(
+                    content=[{"type": "text", "text": f"Environment '{env_name}' not found"}],
+                    is_error=True,
+                )
 
             success = await db.delete_secret(project["id"], env["id"], key)
             if not success:
-                return MCPToolResult(content=[{"type": "text", "text": f"Secret '{key}' not found"}], is_error=True)
+                return MCPToolResult(
+                    content=[{"type": "text", "text": f"Secret '{key}' not found"}], is_error=True
+                )
 
-            await db.log_audit("mcp.delete_secret", "secret", user["username"], details={"key": key})
+            await db.log_audit(
+                "mcp.delete_secret", "secret", user["username"], details={"key": key}
+            )
             return MCPToolResult(content=[{"type": "text", "text": f"Secret '{key}' deleted"}])
 
         else:
-            return MCPToolResult(content=[{"type": "text", "text": f"Unknown tool: {body.name}"}], is_error=True)
+            return MCPToolResult(
+                content=[{"type": "text", "text": f"Unknown tool: {body.name}"}], is_error=True
+            )
 
     except Exception as e:
         return MCPToolResult(content=[{"type": "text", "text": str(e)}], is_error=True)
 
 
 # --- 3. OpenAI Function Calling Schema ---
+
 
 @router.get("/openai/functions")
 async def openai_function_definitions():
@@ -254,7 +308,11 @@ async def openai_function_definitions():
                 "type": "object",
                 "properties": {
                     "project": {"type": "string", "description": "The project name"},
-                    "environment": {"type": "string", "description": "The environment (development, staging, production)", "default": "production"},
+                    "environment": {
+                        "type": "string",
+                        "description": "The environment (development, staging, production)",
+                        "default": "production",
+                    },
                     "key": {"type": "string", "description": "The secret key to retrieve"},
                 },
                 "required": ["project", "key"],
@@ -267,7 +325,11 @@ async def openai_function_definitions():
                 "type": "object",
                 "properties": {
                     "project": {"type": "string", "description": "The project name"},
-                    "environment": {"type": "string", "description": "The environment", "default": "production"},
+                    "environment": {
+                        "type": "string",
+                        "description": "The environment",
+                        "default": "production",
+                    },
                 },
                 "required": ["project"],
             },
@@ -279,7 +341,11 @@ async def openai_function_definitions():
                 "type": "object",
                 "properties": {
                     "project": {"type": "string", "description": "The project name"},
-                    "environment": {"type": "string", "description": "The environment", "default": "production"},
+                    "environment": {
+                        "type": "string",
+                        "description": "The environment",
+                        "default": "production",
+                    },
                     "key": {"type": "string", "description": "The secret key"},
                     "value": {"type": "string", "description": "The secret value to store"},
                 },
@@ -291,6 +357,7 @@ async def openai_function_definitions():
 
 
 # --- 4. Anthropic Tool Use Schema ---
+
 
 @router.get("/anthropic/tools")
 async def anthropic_tool_definitions():
@@ -405,6 +472,7 @@ async def anthropic_tool_definitions():
 
 # --- 5. WebSocket Real-Time Interface ---
 
+
 @router.websocket("/ws")
 async def ai_websocket(
     websocket: WebSocket,
@@ -478,10 +546,16 @@ async def ai_websocket(
 
                 elif action == "list_projects":
                     projects = await db.list_projects()
-                    await send_ok([
-                        {"name": p["name"], "description": p.get("description", ""), "id": p["id"]}
-                        for p in projects
-                    ])
+                    await send_ok(
+                        [
+                            {
+                                "name": p["name"],
+                                "description": p.get("description", ""),
+                                "id": p["id"],
+                            }
+                            for p in projects
+                        ]
+                    )
 
                 elif action == "list_secrets":
                     project_name = raw.get("project")
@@ -491,7 +565,16 @@ async def ai_websocket(
                         continue
                     proj = await resolve_project(project_name)
                     secrets = await db.list_secrets_merged(proj["id"], env_name)
-                    await send_ok([{"key": s["key"], "version": s["version"], "source": s.get("_source", "own")} for s in secrets])
+                    await send_ok(
+                        [
+                            {
+                                "key": s["key"],
+                                "version": s["version"],
+                                "source": s.get("_source", "own"),
+                            }
+                            for s in secrets
+                        ]
+                    )
 
                 elif action == "get_secret":
                     project_name = raw.get("project")
@@ -507,8 +590,11 @@ async def ai_websocket(
                         continue
                     value = decrypt(secret["encrypted_value"], settings.master_key)
                     await db.log_audit(
-                        "ws.get_secret", "secret", user.get("username", "ws-client"),
-                        secret["id"], details={"key": key, "project": project_name},
+                        "ws.get_secret",
+                        "secret",
+                        user.get("username", "ws-client"),
+                        secret["id"],
+                        details={"key": key, "project": project_name},
                     )
                     await send_ok(value)
 
@@ -525,17 +611,26 @@ async def ai_websocket(
                     env = await resolve_env(proj["id"], env_name)
                     encrypted = encrypt(value, settings.master_key)
                     result = await db.set_secret(
-                        proj["id"], env["id"], key, encrypted,
-                        description=description, created_by=user.get("username", "ws-client"),
+                        proj["id"],
+                        env["id"],
+                        key,
+                        encrypted,
+                        description=description,
+                        created_by=user.get("username", "ws-client"),
                     )
                     await db.log_audit(
-                        "ws.set_secret", "secret", user.get("username", "ws-client"),
-                        result["id"], details={"key": key, "project": project_name},
+                        "ws.set_secret",
+                        "secret",
+                        user.get("username", "ws-client"),
+                        result["id"],
+                        details={"key": key, "project": project_name},
                     )
                     await send_ok({"key": key, "version": result["version"]})
 
                 else:
-                    await send_error(f"Unknown action: '{action}'. Valid actions: ping, list_projects, list_secrets, get_secret, set_secret")
+                    await send_error(
+                        f"Unknown action: '{action}'. Valid actions: ping, list_projects, list_secrets, get_secret, set_secret"
+                    )
 
             except ValueError as e:
                 await send_error(str(e))

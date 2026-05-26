@@ -4,7 +4,7 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
-from achilles.auth import get_current_user, require_scope
+from achilles.auth import require_scope
 
 router = APIRouter(prefix="/api/v1/trash", tags=["trash"])
 
@@ -49,7 +49,10 @@ async def restore_secret(
         raise HTTPException(status_code=404, detail="Item not found in trash")
 
     await db.log_audit(
-        "secret.restore", "secret", user["username"], secret_id,
+        "secret.restore",
+        "secret",
+        user["username"],
+        secret_id,
         ip_address=request.client.host if request.client else None,
     )
     return {"restored": True}
@@ -68,7 +71,10 @@ async def purge_secret(
         raise HTTPException(status_code=404, detail="Item not found in trash")
 
     await db.log_audit(
-        "secret.purge", "secret", user["username"], secret_id,
+        "secret.purge",
+        "secret",
+        user["username"],
+        secret_id,
         ip_address=request.client.host if request.client else None,
     )
 
@@ -83,7 +89,9 @@ async def empty_trash(
     count = await db.purge_expired_trash(max_age_days=0)
 
     await db.log_audit(
-        "secret.empty_trash", "secret", user["username"],
+        "secret.empty_trash",
+        "secret",
+        user["username"],
         details={"count": count},
         ip_address=request.client.host if request.client else None,
     )

@@ -4,10 +4,7 @@ Launches both the FastAPI backend (port 8900) and MCP server (port 8901)
 in a single process. Used when the app is distributed via App Store.
 """
 
-import asyncio
 import logging
-import signal
-import sys
 import threading
 
 import uvicorn

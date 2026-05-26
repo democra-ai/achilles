@@ -146,8 +146,7 @@ async def get_platform(platform_id: str):
     if not platform:
         raise HTTPException(
             status_code=404,
-            detail=f"Platform '{platform_id}' not found. "
-                   f"Available: {[p['id'] for p in platforms]}",
+            detail=f"Platform '{platform_id}' not found. Available: {[p['id'] for p in platforms]}",
         )
     return platform
 

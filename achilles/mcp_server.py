@@ -35,9 +35,7 @@ async def _resolve_project(name: str) -> dict:
     proj = next((p for p in projects if p["name"] == name), None)
     if not proj:
         available = [p["name"] for p in projects]
-        raise ValueError(
-            f"Project '{name}' not found. Available projects: {available}"
-        )
+        raise ValueError(f"Project '{name}' not found. Available projects: {available}")
     return proj
 
 
@@ -48,9 +46,7 @@ async def _resolve_env(project_id: str, environment: str) -> dict:
     if not env:
         envs = await _db.list_environments(project_id)
         available = [e["name"] for e in envs]
-        raise ValueError(
-            f"Environment '{environment}' not found. Available: {available}"
-        )
+        raise ValueError(f"Environment '{environment}' not found. Available: {available}")
     return env
 
 
@@ -75,9 +71,7 @@ def register_tools(mcp: FastMCP) -> None:
         )
 
     @mcp.tool()
-    async def get_secret(
-        project: str, key: str, environment: str = "development"
-    ) -> str:
+    async def get_secret(project: str, key: str, environment: str = "development") -> str:
         """Retrieve a decrypted secret value from the vault.
 
         Searches with inheritance: project's own secrets > linked secrets > Global secrets.
@@ -99,8 +93,7 @@ def register_tools(mcp: FastMCP) -> None:
             secrets = await _db.list_secrets_merged(proj["id"], environment)
             available = [s["key"] for s in secrets]
             raise ValueError(
-                f"Secret '{key}' not found in {project}/{environment}. "
-                f"Available keys: {available}"
+                f"Secret '{key}' not found in {project}/{environment}. Available keys: {available}"
             )
 
         value = decrypt(secret["encrypted_value"], _settings.master_key)
@@ -110,7 +103,12 @@ def register_tools(mcp: FastMCP) -> None:
             "secret",
             "mcp-client",
             secret["id"],
-            details={"key": key, "project": project, "environment": environment, "source": secret.get("_source", "own")},
+            details={
+                "key": key,
+                "project": project,
+                "environment": environment,
+                "source": secret.get("_source", "own"),
+            },
         )
         return value
 
@@ -188,9 +186,7 @@ def register_tools(mcp: FastMCP) -> None:
         return f"Secret '{key}' saved in {project}/{environment} (version {result['version']})"
 
     @mcp.tool()
-    async def delete_secret(
-        project: str, key: str, environment: str = "development"
-    ) -> str:
+    async def delete_secret(project: str, key: str, environment: str = "development") -> str:
         """Delete a secret from the vault.
 
         Args:

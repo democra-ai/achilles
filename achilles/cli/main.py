@@ -9,8 +9,6 @@ Follows cli-building skill patterns:
 
 import json
 import os
-import sys
-from datetime import datetime
 from pathlib import Path
 
 import httpx
@@ -56,6 +54,7 @@ def handle_error(response: httpx.Response) -> None:
 
 # --- Auth commands ---
 
+
 @app.command()
 def login(
     url: str = typer.Option(DEFAULT_URL, "--url", "-u", help="Vault server URL"),
@@ -82,13 +81,18 @@ def register(
 ):
     """Register a new user (first user becomes admin)."""
     with httpx.Client(base_url=url, timeout=30) as client:
-        resp = client.post("/api/v1/auth/register", json={"username": username, "password": password})
+        resp = client.post(
+            "/api/v1/auth/register", json={"username": username, "password": password}
+        )
         handle_error(resp)
         data = resp.json()
-        console.print(f"[green]\u2713 Registered: {data['username']} (role: {data['role']})[/green]")
+        console.print(
+            f"[green]\u2713 Registered: {data['username']} (role: {data['role']})[/green]"
+        )
 
 
 # --- Project commands ---
+
 
 @app.command("projects")
 def list_projects():
@@ -99,7 +103,9 @@ def list_projects():
         projects = resp.json()
 
     if not projects:
-        console.print("[dim]No projects found. Create one with: achilles create-project <name>[/dim]")
+        console.print(
+            "[dim]No projects found. Create one with: achilles create-project <name>[/dim]"
+        )
         return
 
     table = Table(title="Projects")
@@ -128,6 +134,7 @@ def create_project(
 
 
 # --- Secret commands ---
+
 
 @app.command("set")
 def set_secret(
@@ -182,7 +189,9 @@ def list_secrets(
         params = {}
         if tag:
             params["tag"] = tag
-        resp = client.get(f"/api/v1/projects/{project_id}/environments/{env}/secrets", params=params)
+        resp = client.get(
+            f"/api/v1/projects/{project_id}/environments/{env}/secrets", params=params
+        )
         handle_error(resp)
         secrets = resp.json()
 
@@ -221,6 +230,7 @@ def delete_secret(
 
 
 # --- Export/Import ---
+
 
 @app.command("export")
 def export_secrets(
@@ -265,7 +275,9 @@ def run_with_secrets(
     env_vars = os.environ.copy()
     for s in secret_list:
         with get_client() as client:
-            resp2 = client.get(f"/api/v1/projects/{project_id}/environments/{env}/secrets/{s['key']}")
+            resp2 = client.get(
+                f"/api/v1/projects/{project_id}/environments/{env}/secrets/{s['key']}"
+            )
             if resp2.status_code == 200:
                 env_vars[s["key"]] = resp2.json()["value"]
 
@@ -276,6 +288,7 @@ def run_with_secrets(
 
 # --- Server command ---
 
+
 @app.command("serve")
 def serve(
     host: str = typer.Option("127.0.0.1", "--host", "-h"),
@@ -284,10 +297,12 @@ def serve(
 ):
     """Start the Achilles Vault server."""
     import os
+
     os.environ.setdefault("ACHILLES_HOST", host)
     os.environ.setdefault("ACHILLES_PORT", str(port))
 
     import uvicorn
+
     console.print(f"[bold]Achilles Vault[/bold] starting on {host}:{port}")
     console.print(f"  Dashboard: http://{host}:{port}/")
     console.print(f"  API Docs:  http://{host}:{port}/docs")
@@ -295,6 +310,7 @@ def serve(
 
 
 # --- Direct-access commands (no server needed) ---
+
 
 @app.command("context")
 def context(
@@ -315,7 +331,9 @@ def context(
     proj = resolve_project_by_id_or_name(project)
     if not proj:
         console.print(f"[red]\u2717 Project '{project}' not found.[/red]")
-        console.print("[dim]Run 'achilles context --help' or check available projects in the Vault app.[/dim]")
+        console.print(
+            "[dim]Run 'achilles context --help' or check available projects in the Vault app.[/dim]"
+        )
         raise typer.Exit(1)
 
     secrets = list_secrets_merged(proj["id"], env)
@@ -324,14 +342,16 @@ def context(
         items = []
         for s in secrets:
             tags = json.loads(s["tags"]) if isinstance(s["tags"], str) else s.get("tags", [])
-            items.append({
-                "key": s["key"],
-                "description": s.get("description", ""),
-                "category": s.get("category", ""),
-                "source": s.get("_source", "own"),
-                "version": s["version"],
-                "tags": tags,
-            })
+            items.append(
+                {
+                    "key": s["key"],
+                    "description": s.get("description", ""),
+                    "category": s.get("category", ""),
+                    "source": s.get("_source", "own"),
+                    "version": s["version"],
+                    "tags": tags,
+                }
+            )
         result = {
             "project": proj["name"],
             "environment": env,
@@ -365,7 +385,9 @@ def context(
 
     console.print(table)
     console.print()
-    console.print(f"[dim]To retrieve a value: achilles vault-get {proj['name']} <KEY> --env {env}[/dim]")
+    console.print(
+        f"[dim]To retrieve a value: achilles vault-get {proj['name']} <KEY> --env {env}[/dim]"
+    )
 
 
 @app.command("vault-get")
@@ -393,7 +415,9 @@ def vault_get(
     secret = get_secret_merged(proj["id"], env, key)
     if not secret:
         console.print(f"[red]\u2717 Secret '{key}' not found in {proj['name']}/{env}.[/red]")
-        console.print(f"[dim]Run 'achilles context {proj['name']} --env {env}' to see available keys.[/dim]")
+        console.print(
+            f"[dim]Run 'achilles context {proj['name']} --env {env}' to see available keys.[/dim]"
+        )
         raise typer.Exit(1)
 
     value = decrypt_secret(secret["encrypted_value"])
@@ -469,7 +493,10 @@ def vault_run(
         if row:
             env_vars[s["key"]] = decrypt_secret(row["encrypted_value"])
 
-    console.print(f"[dim]\u2192 Injecting {len(secret_list)} secrets from {proj['name']}/{env}[/dim]", err=True)
+    console.print(
+        f"[dim]\u2192 Injecting {len(secret_list)} secrets from {proj['name']}/{env}[/dim]",
+        err=True,
+    )
     result = subprocess.run(command, env=env_vars)
     raise typer.Exit(result.returncode)
 
@@ -564,9 +591,7 @@ def _configure_claude_mcp(project_dir: Path | None) -> bool:
 
 @app.command("init")
 def init(
-    tool: str = typer.Argument(
-        help="AI tool to configure: claude-code, cursor, copilot, or all"
-    ),
+    tool: str = typer.Argument(help="AI tool to configure: claude-code, cursor, copilot, or all"),
     project_dir: str = typer.Option(
         ".", "--dir", "-d", help="Project directory (default: current directory)"
     ),
@@ -607,9 +632,9 @@ def init(
 
             if with_mcp:
                 if _configure_claude_mcp(target):
-                    changes.append(f"  \u2713 MCP server registered in .claude/settings.json")
+                    changes.append("  \u2713 MCP server registered in .claude/settings.json")
                 else:
-                    changes.append(f"  \u2022 MCP server already configured")
+                    changes.append("  \u2022 MCP server already configured")
 
         elif t == "cursor":
             rules_path = target / ".cursorrules"
@@ -623,7 +648,9 @@ def init(
             if _inject_snippet(copilot_path, _COPILOT_SNIPPET):
                 changes.append(f"  \u2713 copilot-instructions.md updated — {copilot_path}")
             else:
-                changes.append(f"  \u2022 copilot-instructions.md already configured — {copilot_path}")
+                changes.append(
+                    f"  \u2022 copilot-instructions.md already configured — {copilot_path}"
+                )
 
         else:
             console.print(f"[red]\u2717 Unknown tool: {t}[/red]")
@@ -634,7 +661,9 @@ def init(
     for line in changes:
         console.print(line)
     console.print()
-    console.print("[dim]AI agents in this project will now automatically use Achilles Vault for secrets.[/dim]")
+    console.print(
+        "[dim]AI agents in this project will now automatically use Achilles Vault for secrets.[/dim]"
+    )
 
 
 if __name__ == "__main__":

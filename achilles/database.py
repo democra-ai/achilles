@@ -11,7 +11,6 @@ import aiosqlite
 import json
 import time
 import uuid
-from pathlib import Path
 from typing import Any
 
 from achilles.config import Settings
@@ -133,9 +132,7 @@ class Database:
                 "ALTER TABLE secrets ADD COLUMN category TEXT NOT NULL DEFAULT 'api_key'"
             )
         if "deleted_at" not in columns:
-            await self._db.execute(
-                "ALTER TABLE secrets ADD COLUMN deleted_at REAL"
-            )
+            await self._db.execute("ALTER TABLE secrets ADD COLUMN deleted_at REAL")
 
         # Migration: add is_global column to projects
         cursor = await self._db.execute("PRAGMA table_info(projects)")
@@ -146,8 +143,12 @@ class Database:
             )
 
         # Create indexes that depend on migrated columns
-        await self._db.execute("CREATE INDEX IF NOT EXISTS idx_secrets_category ON secrets(category)")
-        await self._db.execute("CREATE INDEX IF NOT EXISTS idx_secrets_deleted ON secrets(deleted_at)")
+        await self._db.execute(
+            "CREATE INDEX IF NOT EXISTS idx_secrets_category ON secrets(category)"
+        )
+        await self._db.execute(
+            "CREATE INDEX IF NOT EXISTS idx_secrets_deleted ON secrets(deleted_at)"
+        )
 
         await self._db.commit()
 
@@ -166,16 +167,20 @@ class Database:
 
     async def _ensure_global_project(self) -> None:
         """Create the Global project if it doesn't exist."""
-        cursor = await self.db.execute(
-            "SELECT id FROM projects WHERE is_global = 1"
-        )
+        cursor = await self.db.execute("SELECT id FROM projects WHERE is_global = 1")
         row = await cursor.fetchone()
         if not row:
             now = time.time()
             project_id = str(uuid.uuid4())
             await self.db.execute(
                 "INSERT INTO projects (id, name, description, is_global, created_at, updated_at) VALUES (?, ?, ?, 1, ?, ?)",
-                (project_id, GLOBAL_PROJECT_NAME, "Global secrets inherited by all projects", now, now),
+                (
+                    project_id,
+                    GLOBAL_PROJECT_NAME,
+                    "Global secrets inherited by all projects",
+                    now,
+                    now,
+                ),
             )
             for env_name in ("development", "staging", "production"):
                 env_id = str(uuid.uuid4())
@@ -187,9 +192,7 @@ class Database:
 
     async def get_global_project(self) -> dict | None:
         """Get the Global project."""
-        cursor = await self.db.execute(
-            "SELECT * FROM projects WHERE is_global = 1"
-        )
+        cursor = await self.db.execute("SELECT * FROM projects WHERE is_global = 1")
         row = await cursor.fetchone()
         return dict(row) if row else None
 
@@ -224,9 +227,7 @@ class Database:
 
     async def delete_project(self, project_id: str) -> bool:
         # Prevent deleting the Global project
-        cursor = await self.db.execute(
-            "SELECT is_global FROM projects WHERE id = ?", (project_id,)
-        )
+        cursor = await self.db.execute("SELECT is_global FROM projects WHERE id = ?", (project_id,))
         row = await cursor.fetchone()
         if row and row["is_global"]:
             raise ValueError("Cannot delete the Global project")
@@ -299,19 +300,48 @@ class Database:
             if current:
                 await self.db.execute(
                     "INSERT INTO secret_versions (id, secret_id, version, encrypted_value, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?)",
-                    (str(uuid.uuid4()), secret_id, existing["version"], current["encrypted_value"], now, created_by),
+                    (
+                        str(uuid.uuid4()),
+                        secret_id,
+                        existing["version"],
+                        current["encrypted_value"],
+                        now,
+                        created_by,
+                    ),
                 )
 
             await self.db.execute(
                 "UPDATE secrets SET encrypted_value = ?, version = ?, tags = ?, description = ?, category = ?, updated_at = ?, created_by = ? WHERE id = ?",
-                (encrypted_value, new_version, tags_json, description, category, now, created_by, secret_id),
+                (
+                    encrypted_value,
+                    new_version,
+                    tags_json,
+                    description,
+                    category,
+                    now,
+                    created_by,
+                    secret_id,
+                ),
             )
             version = new_version
         else:
             version = 1
             await self.db.execute(
                 "INSERT INTO secrets (id, project_id, environment_id, key, encrypted_value, version, tags, description, category, created_at, updated_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (secret_id, project_id, environment_id, key, encrypted_value, 1, tags_json, description, category, now, now, created_by),
+                (
+                    secret_id,
+                    project_id,
+                    environment_id,
+                    key,
+                    encrypted_value,
+                    1,
+                    tags_json,
+                    description,
+                    category,
+                    now,
+                    now,
+                    created_by,
+                ),
             )
 
         await self.db.commit()
@@ -442,9 +472,7 @@ class Database:
 
         # 3. Global secrets (inherited by all non-global projects)
         global_secrets = []
-        cursor = await self.db.execute(
-            "SELECT is_global FROM projects WHERE id = ?", (project_id,)
-        )
+        cursor = await self.db.execute("SELECT is_global FROM projects WHERE id = ?", (project_id,))
         proj_row = await cursor.fetchone()
         is_self_global = proj_row and proj_row["is_global"]
 
@@ -516,9 +544,7 @@ class Database:
             return result
 
         # 3. Global secret
-        cursor = await self.db.execute(
-            "SELECT is_global FROM projects WHERE id = ?", (project_id,)
-        )
+        cursor = await self.db.execute("SELECT is_global FROM projects WHERE id = ?", (project_id,))
         proj_row = await cursor.fetchone()
         is_self_global = proj_row and proj_row["is_global"]
 
@@ -602,7 +628,15 @@ class Database:
         now = time.time()
         await self.db.execute(
             "INSERT INTO api_keys (id, name, key_hash, scopes, project_ids, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (key_id, name, key_hash, json.dumps(scopes or ["read"]), json.dumps(project_ids or []), now, expires_at),
+            (
+                key_id,
+                name,
+                key_hash,
+                json.dumps(scopes or ["read"]),
+                json.dumps(project_ids or []),
+                now,
+                expires_at,
+            ),
         )
         await self.db.commit()
         return {"id": key_id, "name": name, "created_at": now}
@@ -632,16 +666,12 @@ class Database:
         return [dict(row) for row in rows]
 
     async def revoke_api_key(self, key_id: str) -> bool:
-        cursor = await self.db.execute(
-            "UPDATE api_keys SET is_active = 0 WHERE id = ?", (key_id,)
-        )
+        cursor = await self.db.execute("UPDATE api_keys SET is_active = 0 WHERE id = ?", (key_id,))
         await self.db.commit()
         return cursor.rowcount > 0
 
     async def delete_api_key(self, key_id: str) -> bool:
-        cursor = await self.db.execute(
-            "DELETE FROM api_keys WHERE id = ?", (key_id,)
-        )
+        cursor = await self.db.execute("DELETE FROM api_keys WHERE id = ?", (key_id,))
         await self.db.commit()
         return cursor.rowcount > 0
 
@@ -682,7 +712,16 @@ class Database:
     ) -> None:
         await self.db.execute(
             "INSERT INTO audit_log (id, timestamp, action, resource_type, resource_id, actor, details, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (str(uuid.uuid4()), time.time(), action, resource_type, resource_id, actor, json.dumps(details or {}), ip_address),
+            (
+                str(uuid.uuid4()),
+                time.time(),
+                action,
+                resource_type,
+                resource_id,
+                actor,
+                json.dumps(details or {}),
+                ip_address,
+            ),
         )
         await self.db.commit()
 
